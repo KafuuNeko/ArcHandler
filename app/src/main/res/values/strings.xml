@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">ArcHandler</string>
+    <string name="unknown_error">Unknown Error</string>
 </resources>

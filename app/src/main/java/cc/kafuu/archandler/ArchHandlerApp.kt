@@ -2,10 +2,12 @@ package cc.kafuu.archandler
 
 import android.app.Application
 import android.util.Log
+import cc.kafuu.archandler.libs.AppLibs
 import com.chibatching.kotpref.Kotpref
 import net.sf.sevenzipjbinding.SevenZip
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
+import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
 
@@ -19,7 +21,7 @@ class ArchHandlerApp : Application() {
         Kotpref.init(this)
         startKoin {
             androidContext(this@ArchHandlerApp)
-            modules(modules)
+            modules(appModules)
         }
         testVersion()
     }
@@ -35,6 +37,6 @@ class ArchHandlerApp : Application() {
     }
 }
 
-private val modules = module {
-
+private val appModules = module {
+    singleOf(::AppLibs)
 }
