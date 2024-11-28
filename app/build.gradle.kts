@@ -67,6 +67,9 @@ dependencies {
     // JBinding-4Android
     implementation(libs.x.zip.jbinding.xandroid)
 
+    // XXPermissions
+    implementation(libs.xxpermissions)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

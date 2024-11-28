@@ -11,6 +11,7 @@ lifecycleRuntimeKtx = "2.8.7"
 activityCompose = "1.9.3"
 composeBom = "2024.11.00"
 roomRuntime = "2.6.1"
+xxpermissions = "20.0"
 xZipJbindingXandroid = "Release-16.02-2.02"
 
 [libraries]
@@ -34,6 +35,7 @@ androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "
 koin-android = { module = "io.insert-koin:koin-android", version.ref = "koinAndroid" }
 kotpref = { module = "com.chibatching.kotpref:kotpref", version.ref = "kotpref" }
 x-zip-jbinding-xandroid = { module = "com.github.omicronapps:7-Zip-JBinding-4Android", version.ref = "xZipJbindingXandroid" }
+xxpermissions = { module = "com.github.getActivity:XXPermissions", version.ref = "xxpermissions" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
