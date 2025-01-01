@@ -4,13 +4,25 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-abstract class CoreViewModel<I> : ViewModel() {
+abstract class CoreViewModel<I, S, E> : ViewModel() {
+    // Ui State (Model -> View)
+    private val mUiStateFlow = MutableStateFlow<S?>(null)
+    val uiState = mUiStateFlow.asStateFlow()
+
+    // Ui Intent (View -> Model)
     private val mUiIntentFlow = MutableSharedFlow<I>()
+
+    // Single Event (Model -> View)
+    private val mSingleEventFlow = MutableSharedFlow<E>()
+    val singleEventFlow = mSingleEventFlow.asSharedFlow()
 
     init {
         viewModelScope.launch {
@@ -23,6 +35,16 @@ abstract class CoreViewModel<I> : ViewModel() {
     fun emit(uiIntent: I) {
         viewModelScope.launch {
             mUiIntentFlow.emit(uiIntent)
+        }
+    }
+
+    protected fun updateState(state: S) {
+        mUiStateFlow.value = state
+    }
+
+    protected fun dispatchingEvent(event: E) {
+        viewModelScope.launch {
+            mSingleEventFlow.emit(event)
         }
     }
 
