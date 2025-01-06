@@ -2,33 +2,50 @@ package cc.kafuu.archandler.ui
 
 import android.os.Bundle
 import androidx.activity.viewModels
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import cc.kafuu.archandler.R
+import cc.kafuu.archandler.libs.AppModel
 import cc.kafuu.archandler.libs.core.ActivityPreview
 import cc.kafuu.archandler.libs.core.CoreActivity
 import cc.kafuu.archandler.libs.core.attachEventListener
-import cc.kafuu.archandler.ui.theme.AppTheme
 import cc.kafuu.archandler.ui.widges.AppPrimaryButton
 import cc.kafuu.archandler.vm.MainSingleEvent
 import cc.kafuu.archandler.vm.MainUiIntent
@@ -36,6 +53,7 @@ import cc.kafuu.archandler.vm.MainUiState
 import cc.kafuu.archandler.vm.MainViewModel
 import com.hjq.permissions.Permission
 import com.hjq.permissions.XXPermissions
+import kotlinx.coroutines.launch
 
 
 class MainActivity : CoreActivity() {
@@ -49,21 +67,12 @@ class MainActivity : CoreActivity() {
     @Composable
     override fun ViewContent() {
         val uiState by mViewModel.uiState.collectAsState()
-        when (val state = uiState) {
-            null -> mViewModel.emit(MainUiIntent.Init)
-
-            is MainUiState.Directory -> MainViewBody(
-                uiState = state
+        uiState?.also { state ->
+            MainViewBody(
+                uiState = state,
+                emitIntent = { intent -> mViewModel.emit(intent) }
             )
-
-            is MainUiState.DirectoryLoadFailure -> TODO()
-
-            is MainUiState.DirectoryLoading -> TODO()
-
-            MainUiState.NotPermission -> NotPermissionViewBody(
-                onClick = { mViewModel.emit(it) }
-            )
-        }
+        } ?: mViewModel.emit(MainUiIntent.Init)
     }
 
     private fun onSingleEvent(singleEvent: MainSingleEvent) = when (singleEvent) {
@@ -77,23 +86,220 @@ class MainActivity : CoreActivity() {
     }
 }
 
-
 @Composable
 private fun MainViewBody(
-    uiState: MainUiState.Directory
+    uiState: MainUiState,
+    emitIntent: (uiIntent: MainUiIntent) -> Unit = {}
 ) {
-    Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-        Greeting(
-            name = "Android",
-            modifier = Modifier.padding(innerPadding)
+    when (uiState) {
+        MainUiState.NotPermission -> NotPermissionViewBody(
+            emitIntent = emitIntent
+        )
+
+        is MainUiState.StorageVolumeList -> MainScaffold(
+            title = stringResource(R.string.app_name),
+            emitIntent = emitIntent
+        ) {
+            StorageVolumeListViewBody(
+                modifier = Modifier.padding(it),
+                uiState = uiState
+            )
+        }
+
+        is MainUiState.DirectoryList -> MainScaffold(
+            title = uiState.storageData.name,
+            emitIntent = emitIntent
+        ) {
+            DirectoryListViewBody(
+                modifier = Modifier.padding(it),
+                uiState = uiState
+            )
+        }
+    }
+}
+
+@Composable
+private fun MainScaffold(
+    title: String,
+    emitIntent: (uiIntent: MainUiIntent) -> Unit = {},
+    content: @Composable (PaddingValues) -> Unit
+) {
+    val coroutineScope = rememberCoroutineScope()
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        drawerContent = { MainScaffoldDrawer(emitIntent = emitIntent) }
+    ) {
+        Scaffold(
+            modifier = Modifier
+                .statusBarsPadding(),
+            topBar = {
+                MainScaffoldTopBar(
+                    title = title,
+                    onMenuClick = { coroutineScope.launch { drawerState.open() } }
+                )
+            },
+            content = content
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun MainScaffoldTopBar(
+    title: String,
+    onMenuClick: () -> Unit
+) {
+    TopAppBar(
+        title = {
+            Text(
+                text = title,
+                maxLines = 1,
+                style = TextStyle(
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            )
+        },
+        navigationIcon = {
+            Image(
+                modifier = Modifier
+                    .size(50.dp)
+                    .padding(10.dp)
+                    .clickable { onMenuClick() },
+                painter = painterResource(R.drawable.ic_menu),
+                contentDescription = stringResource(R.string.home_memu)
+            )
+        }
+    )
+}
+
+@Composable
+private fun MainScaffoldDrawer(
+    emitIntent: (uiIntent: MainUiIntent) -> Unit = {},
+) {
+    ModalDrawerSheet(
+        modifier = Modifier
+            .width(200.dp)
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(10.dp)
+            ) {
+                Image(
+                    modifier = Modifier.size(64.dp),
+                    painter = painterResource(R.drawable.ic_logo),
+                    contentDescription = null
+                )
+
+                Spacer(modifier = Modifier.height(5.dp))
+
+                Text(
+                    text = stringResource(R.string.app_name),
+                    style = TextStyle(
+                        fontWeight = FontWeight.Bold
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(5.dp))
+
+                Text(
+                    text = AppModel.EMAIL,
+                    style = TextStyle(
+                        fontWeight = FontWeight.Normal
+                    )
+                )
+            }
+            HorizontalDivider(modifier = Modifier.fillMaxWidth())
+            Spacer(modifier = Modifier.height(10.dp))
+
+            DrawerItem(
+                icon = R.drawable.ic_code,
+                title = stringResource(R.string.code_repository)
+            ) {
+                emitIntent(MainUiIntent.CodeRepositoryClick)
+            }
+
+            DrawerItem(
+                icon = R.drawable.ic_feedback,
+                title = stringResource(R.string.feedback)
+            ) {
+                emitIntent(MainUiIntent.FeedbackClick)
+            }
+
+            DrawerItem(
+                icon = R.drawable.ic_rate,
+                title = stringResource(R.string.rate)
+            ) {
+                emitIntent(MainUiIntent.RateClick)
+            }
+
+            DrawerItem(
+                icon = R.drawable.ic_aboutt,
+                title = stringResource(R.string.about)
+            ) {
+                emitIntent(MainUiIntent.AboutClick)
+            }
+        }
+    }
+}
+
+@Composable
+private fun DrawerItem(
+    modifier: Modifier = Modifier,
+    @DrawableRes icon: Int,
+    title: String,
+    onMenuClick: () -> Unit
+) {
+    Row(
+        modifier = modifier
+            .padding(10.dp)
+            .fillMaxWidth()
+            .clickable { onMenuClick() },
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Image(
+            painter = painterResource(icon),
+            contentDescription = title
+        )
+        Spacer(Modifier.width(5.dp))
+        Text(
+            text = title,
+            style = TextStyle(
+                fontWeight = FontWeight.Normal
+            ),
+            maxLines = 1
         )
     }
 }
 
 @Composable
+private fun StorageVolumeListViewBody(
+    modifier: Modifier,
+    uiState: MainUiState.StorageVolumeList
+) {
+    Greeting(
+        name = "Android",
+        modifier = modifier
+    )
+}
+
+@Composable
+private fun DirectoryListViewBody(
+    modifier: Modifier,
+    uiState: MainUiState.DirectoryList
+) {
+}
+
+@Composable
 private fun NotPermissionViewBody(
     modifier: Modifier = Modifier,
-    onClick: (uiIntent: MainUiIntent) -> Unit = {}
+    emitIntent: (uiIntent: MainUiIntent) -> Unit = {}
 ) {
     Column(
         modifier = modifier
@@ -121,7 +327,7 @@ private fun NotPermissionViewBody(
         AppPrimaryButton(
             modifier = Modifier.fillMaxWidth(),
             onClick = {
-                onClick(MainUiIntent.JumpFilePermissionSetting)
+                emitIntent(MainUiIntent.JumpFilePermissionSetting)
             },
             text = stringResource(R.string.enable_permission),
         )

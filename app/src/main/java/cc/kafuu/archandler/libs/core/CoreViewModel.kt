@@ -38,10 +38,6 @@ abstract class CoreViewModel<I, S, E> : ViewModel() {
         }
     }
 
-    protected fun updateState(state: S) {
-        mUiStateFlow.value = state
-    }
-
     protected fun dispatchingEvent(event: E) {
         viewModelScope.launch {
             mSingleEventFlow.emit(event)
@@ -52,5 +48,9 @@ abstract class CoreViewModel<I, S, E> : ViewModel() {
 
     protected fun <T> Flow<T>.stateInThis(): StateFlow<T?> {
         return stateIn(viewModelScope, SharingStarted.Lazily, null)
+    }
+
+    protected fun S.setup() {
+        mUiStateFlow.value = this
     }
 }

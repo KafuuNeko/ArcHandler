@@ -3,4 +3,12 @@
     <string name="unknown_error">Unknown Error</string>
     <string name="not_permission_in_main_view">Permission to access all files is required. Please enable it to proceed.</string>
     <string name="enable_permission">Enable Permission</string>
+    <string name="internal_storage">Internal Storage</string>
+    <string name="unknown">Unknown</string>
+    <string name="home_memu">Home menu</string>
+    <string name="code_repository">Code repository</string>
+    <string name="feedback">Feedback</string>
+    <string name="rate">Rate</string>
+    <string name="about">About</string>
+    <string name="unknown_version">Unknown version</string>
 </resources>
