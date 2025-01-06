@@ -3,6 +3,7 @@ package cc.kafuu.archandler
 import android.app.Application
 import android.util.Log
 import cc.kafuu.archandler.libs.AppLibs
+import cc.kafuu.archandler.libs.manager.FileManager
 import com.chibatching.kotpref.Kotpref
 import net.sf.sevenzipjbinding.SevenZip
 import org.koin.android.ext.koin.androidContext
@@ -39,4 +40,5 @@ class ArchHandlerApp : Application() {
 
 private val appModules = module {
     singleOf(::AppLibs)
+    singleOf(::FileManager)
 }

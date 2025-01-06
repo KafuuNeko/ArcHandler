@@ -5,6 +5,7 @@ import cc.kafuu.archandler.R
 import cc.kafuu.archandler.libs.AppLibs
 import cc.kafuu.archandler.libs.AppModel
 import cc.kafuu.archandler.libs.core.CoreViewModel
+import cc.kafuu.archandler.libs.manager.FileManager
 import cc.kafuu.archandler.libs.model.StorageData
 import com.hjq.permissions.Permission
 import com.hjq.permissions.XXPermissions
@@ -57,7 +58,7 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState, MainSingleEvent>(
     private fun loadExternalStorages() = viewModelScope.launch(Dispatchers.IO) {
         MainUiState.StorageVolumeList(loading = true).setup()
         runCatching {
-            get<AppLibs>().getMountedStorageVolumes()
+            get<FileManager>().getMountedStorageVolumes()
         }.onSuccess { storages ->
             MainUiState.StorageVolumeList(loading = false, storageVolumes = storages).setup()
         }.onFailure { exception ->
