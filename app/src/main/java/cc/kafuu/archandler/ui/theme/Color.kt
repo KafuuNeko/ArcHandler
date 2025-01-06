@@ -32,7 +32,7 @@ val OnBackgroundDarkColor = Color(0xFFE4E4E4)
 val OnPrimaryColor = Color(0xFFFFFFFF)
 
 // 暗色模式主色上的文本颜色
-val OnPrimaryDarkColor = Color(0xFF0288D1)
+val OnPrimaryDarkColor = Color(0xFFFFFFFF)
 
 // 浅色模式表面上的文本颜色
 val OnSurfaceColor = Color(0xFF1C1B1F)

@@ -33,14 +33,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import cc.kafuu.archandler.R
 import cc.kafuu.archandler.libs.AppModel
 import cc.kafuu.archandler.libs.core.ActivityPreview
@@ -119,6 +117,45 @@ private fun MainViewBody(
 }
 
 @Composable
+private fun NotPermissionViewBody(
+    modifier: Modifier = Modifier,
+    emitIntent: (uiIntent: MainUiIntent) -> Unit = {}
+) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Image(
+            modifier = Modifier.size(64.dp),
+            painter = painterResource(R.drawable.ic_folder_off),
+            contentDescription = stringResource(R.string.not_permission_in_main_view)
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        Text(
+            text = stringResource(R.string.not_permission_in_main_view),
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onBackground,
+            style = MaterialTheme.typography.displayMedium
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        AppPrimaryButton(
+            modifier = Modifier.fillMaxWidth(),
+            onClick = {
+                emitIntent(MainUiIntent.JumpFilePermissionSetting)
+            },
+            text = stringResource(R.string.enable_permission),
+        )
+    }
+}
+
+@Composable
 private fun MainScaffold(
     title: String,
     emitIntent: (uiIntent: MainUiIntent) -> Unit = {},
@@ -156,17 +193,14 @@ private fun MainScaffoldTopBar(
             Text(
                 text = title,
                 maxLines = 1,
-                style = TextStyle(
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
-                )
+                style = MaterialTheme.typography.titleMedium
             )
         },
         navigationIcon = {
             Image(
                 modifier = Modifier
                     .size(50.dp)
-                    .padding(10.dp)
+                    .padding(horizontal = 10.dp, vertical = 5.dp)
                     .clickable { onMenuClick() },
                 painter = painterResource(R.drawable.ic_menu),
                 contentDescription = stringResource(R.string.home_memu)
@@ -179,9 +213,13 @@ private fun MainScaffoldTopBar(
 private fun MainScaffoldDrawer(
     emitIntent: (uiIntent: MainUiIntent) -> Unit = {},
 ) {
+    val appVersionName = LocalContext.current.run {
+        packageManager.getPackageInfo(applicationContext.packageName, 0).versionName
+    } ?: stringResource(R.string.unknown_version)
+
     ModalDrawerSheet(
         modifier = Modifier
-            .width(200.dp)
+            .width(220.dp)
     ) {
         Column(
             modifier = Modifier.fillMaxSize()
@@ -201,18 +239,21 @@ private fun MainScaffoldDrawer(
 
                 Text(
                     text = stringResource(R.string.app_name),
-                    style = TextStyle(
-                        fontWeight = FontWeight.Bold
-                    )
+                    style = MaterialTheme.typography.titleMedium
+                )
+
+                Spacer(modifier = Modifier.height(5.dp))
+
+                Text(
+                    text = appVersionName,
+                    style = MaterialTheme.typography.bodyMedium
                 )
 
                 Spacer(modifier = Modifier.height(5.dp))
 
                 Text(
                     text = AppModel.EMAIL,
-                    style = TextStyle(
-                        fontWeight = FontWeight.Normal
-                    )
+                    style = MaterialTheme.typography.bodyMedium
                 )
             }
             HorizontalDivider(modifier = Modifier.fillMaxWidth())
@@ -264,15 +305,14 @@ private fun DrawerItem(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Image(
+            modifier = Modifier.size(32.dp),
             painter = painterResource(icon),
             contentDescription = title
         )
         Spacer(Modifier.width(5.dp))
         Text(
             text = title,
-            style = TextStyle(
-                fontWeight = FontWeight.Normal
-            ),
+            style = MaterialTheme.typography.headlineMedium,
             maxLines = 1
         )
     }
@@ -294,44 +334,6 @@ private fun DirectoryListViewBody(
     modifier: Modifier,
     uiState: MainUiState.DirectoryList
 ) {
-}
-
-@Composable
-private fun NotPermissionViewBody(
-    modifier: Modifier = Modifier,
-    emitIntent: (uiIntent: MainUiIntent) -> Unit = {}
-) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Image(
-            modifier = Modifier.size(64.dp),
-            painter = painterResource(R.drawable.ic_folder_off),
-            contentDescription = stringResource(R.string.not_permission_in_main_view)
-        )
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        Text(
-            text = stringResource(R.string.not_permission_in_main_view),
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onBackground,
-        )
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        AppPrimaryButton(
-            modifier = Modifier.fillMaxWidth(),
-            onClick = {
-                emitIntent(MainUiIntent.JumpFilePermissionSetting)
-            },
-            text = stringResource(R.string.enable_permission),
-        )
-    }
 }
 
 @Composable

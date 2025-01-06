@@ -6,12 +6,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.TextStyle
 
 @Composable
 fun AppPrimaryButton(
     modifier: Modifier,
     text: String,
     onClick: () -> Unit = {},
+    textStyle: TextStyle = MaterialTheme.typography.displayMedium
 ) {
     Button(
         modifier = modifier,
@@ -25,7 +27,8 @@ fun AppPrimaryButton(
     ) {
         Text(
             text = text,
-            color = MaterialTheme.colorScheme.onPrimaryContainer
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
+            style = textStyle
         )
     }
 }
