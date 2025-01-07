@@ -5,6 +5,8 @@ import cc.kafuu.archandler.R
 import cc.kafuu.archandler.libs.AppLibs
 import cc.kafuu.archandler.libs.AppModel
 import cc.kafuu.archandler.libs.core.CoreViewModel
+import cc.kafuu.archandler.libs.ext.getParentPath
+import cc.kafuu.archandler.libs.ext.isSameFileOrDirectory
 import cc.kafuu.archandler.libs.manager.FileManager
 import cc.kafuu.archandler.libs.model.StorageData
 import com.hjq.permissions.Permission
@@ -15,6 +17,7 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
 import java.io.File
 import java.nio.file.Path
+import kotlin.io.path.Path
 
 class MainViewModel : CoreViewModel<MainUiIntent, MainUiState, MainSingleEvent>(), KoinComponent {
     override fun onCollectedIntent(uiIntent: MainUiIntent) {
@@ -22,28 +25,38 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState, MainSingleEvent>(
             MainUiIntent.Init -> initViewModel()
 
             MainUiIntent.JumpFilePermissionSetting -> dispatchingEvent(
-                MainSingleEvent.JumpFilePermissionSetting
+                event = MainSingleEvent.JumpFilePermissionSetting
             )
-
-            is MainUiIntent.ChangeDirectory -> {
-                // TODO: Waiting for implementation
-            }
 
             MainUiIntent.AboutClick -> {
                 // TODO: Waiting for implementation
             }
 
-            MainUiIntent.CodeRepositoryClick -> {
-                get<AppLibs>().jumpToUrl(AppModel.CODE_REPOSITORY_URL)
-            }
+            MainUiIntent.CodeRepositoryClick -> get<AppLibs>().jumpToUrl(
+                url = AppModel.CODE_REPOSITORY_URL
+            )
 
-            MainUiIntent.FeedbackClick -> {
-                get<AppLibs>().jumpToUrl(AppModel.FEEDBACK_URL)
-            }
+            MainUiIntent.FeedbackClick -> get<AppLibs>().jumpToUrl(
+                url = AppModel.FEEDBACK_URL
+            )
 
-            MainUiIntent.RateClick -> {
-                get<AppLibs>().jumpToUrl(AppModel.GOOGLE_PLAY_URL)
-            }
+            MainUiIntent.RateClick -> get<AppLibs>().jumpToUrl(
+                url = AppModel.GOOGLE_PLAY_URL
+            )
+
+            is MainUiIntent.StorageVolumeSelected -> onStorageVolumeSelected(
+                storageData = uiIntent.storageData
+            )
+
+            is MainUiIntent.FileSelected -> onFileSelected(
+                storageData = uiIntent.storageData,
+                file = uiIntent.file
+            )
+
+            is MainUiIntent.BackToParent -> onBackToParent(
+                storageData = uiIntent.storageData,
+                currentPath = uiIntent.currentPath
+            )
         }
     }
 
@@ -52,6 +65,43 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState, MainSingleEvent>(
             MainUiState.NotPermission.setup()
         } else {
             loadExternalStorages()
+        }
+    }
+
+    private fun onStorageVolumeSelected(
+        storageData: StorageData
+    ) {
+        loadDirectory(
+            storageData = storageData,
+            directoryPath = Path(storageData.directory.path)
+        )
+    }
+
+    private fun onFileSelected(
+        storageData: StorageData,
+        file: File
+    ) {
+        if (file.isDirectory) {
+            loadDirectory(
+                storageData = storageData,
+                directoryPath = Path(file.path)
+            )
+            return
+        }
+    }
+
+    private fun onBackToParent(
+        storageData: StorageData,
+        currentPath: Path
+    ) {
+        val parent = currentPath.getParentPath()
+        if (parent == null || Path(storageData.directory.path).isSameFileOrDirectory(currentPath)) {
+            loadExternalStorages()
+        } else {
+            loadDirectory(
+                storageData = storageData,
+                directoryPath = parent
+            )
         }
     }
 
@@ -101,14 +151,25 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState, MainSingleEvent>(
 sealed class MainUiIntent {
     data object Init : MainUiIntent()
     data object JumpFilePermissionSetting : MainUiIntent()
-    data class ChangeDirectory(
-        val directoryPath: Path
-    ) : MainUiIntent()
 
     data object CodeRepositoryClick : MainUiIntent()
     data object FeedbackClick : MainUiIntent()
     data object RateClick : MainUiIntent()
     data object AboutClick : MainUiIntent()
+
+    data class StorageVolumeSelected(
+        val storageData: StorageData
+    ) : MainUiIntent()
+
+    data class FileSelected(
+        val storageData: StorageData,
+        val file: File
+    ) : MainUiIntent()
+
+    data class BackToParent(
+        val storageData: StorageData,
+        val currentPath: Path
+    ) : MainUiIntent()
 }
 
 sealed class MainUiState {

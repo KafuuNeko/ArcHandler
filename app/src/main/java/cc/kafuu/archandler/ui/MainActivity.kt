@@ -1,6 +1,7 @@
 package cc.kafuu.archandler.ui
 
 import android.os.Bundle
+import androidx.activity.compose.BackHandler
 import androidx.activity.viewModels
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
@@ -17,6 +18,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -44,7 +47,12 @@ import cc.kafuu.archandler.libs.AppModel
 import cc.kafuu.archandler.libs.core.ActivityPreview
 import cc.kafuu.archandler.libs.core.CoreActivity
 import cc.kafuu.archandler.libs.core.attachEventListener
+import cc.kafuu.archandler.libs.ext.getIcon
+import cc.kafuu.archandler.libs.ext.getLastModifiedDate
+import cc.kafuu.archandler.libs.ext.getReadableSize
+import cc.kafuu.archandler.libs.model.StorageData
 import cc.kafuu.archandler.ui.widges.AppPrimaryButton
+import cc.kafuu.archandler.ui.widges.IconTextItem
 import cc.kafuu.archandler.vm.MainSingleEvent
 import cc.kafuu.archandler.vm.MainUiIntent
 import cc.kafuu.archandler.vm.MainUiState
@@ -52,6 +60,7 @@ import cc.kafuu.archandler.vm.MainViewModel
 import com.hjq.permissions.Permission
 import com.hjq.permissions.XXPermissions
 import kotlinx.coroutines.launch
+import java.io.File
 
 
 class MainActivity : CoreActivity() {
@@ -100,7 +109,8 @@ private fun MainViewBody(
         ) {
             StorageVolumeListViewBody(
                 modifier = Modifier.padding(it),
-                uiState = uiState
+                uiState = uiState,
+                emitIntent = emitIntent
             )
         }
 
@@ -110,7 +120,8 @@ private fun MainViewBody(
         ) {
             DirectoryListViewBody(
                 modifier = Modifier.padding(it),
-                uiState = uiState
+                uiState = uiState,
+                emitIntent = emitIntent
             )
         }
     }
@@ -189,6 +200,7 @@ private fun MainScaffoldTopBar(
     onMenuClick: () -> Unit
 ) {
     TopAppBar(
+        modifier = Modifier,
         title = {
             Text(
                 text = title,
@@ -321,26 +333,103 @@ private fun DrawerItem(
 @Composable
 private fun StorageVolumeListViewBody(
     modifier: Modifier,
-    uiState: MainUiState.StorageVolumeList
+    uiState: MainUiState.StorageVolumeList,
+    emitIntent: (uiIntent: MainUiIntent) -> Unit = {},
 ) {
-    Greeting(
-        name = "Android",
+    Column(
         modifier = modifier
+            .fillMaxSize()
+            .padding(horizontal = 10.dp, vertical = 10.dp)
+    ) {
+        Text(
+            text = stringResource(R.string.storage_volume),
+            style = MaterialTheme.typography.headlineMedium
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        LazyColumn {
+            items(uiState.storageVolumes) {
+                StorageVolumeItem(it) {
+                    emitIntent(MainUiIntent.StorageVolumeSelected(it))
+                }
+                Spacer(modifier = Modifier.height(10.dp))
+            }
+        }
+    }
+}
+
+@Composable
+private fun StorageVolumeItem(
+    storageData: StorageData,
+    onMenuClick: () -> Unit
+) {
+    IconTextItem(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onMenuClick() },
+        painter = painterResource(R.drawable.ic_storage),
+        text = storageData.name,
+        secondaryText = storageData.directory.path
     )
 }
 
 @Composable
 private fun DirectoryListViewBody(
     modifier: Modifier,
-    uiState: MainUiState.DirectoryList
+    uiState: MainUiState.DirectoryList,
+    emitIntent: (uiIntent: MainUiIntent) -> Unit = {},
 ) {
+    BackHandler {
+        MainUiIntent.BackToParent(
+            storageData = uiState.storageData,
+            currentPath = uiState.directoryPath
+        ).also(emitIntent)
+    }
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(horizontal = 10.dp, vertical = 10.dp)
+    ) {
+        Text(
+            text = uiState.directoryPath.toString(),
+            style = MaterialTheme.typography.headlineMedium
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        LazyColumn {
+            items(uiState.files) {
+                FileItem(it) {
+                    MainUiIntent.FileSelected(
+                        storageData = uiState.storageData,
+                        file = it
+                    ).also(emitIntent)
+                }
+                Spacer(modifier = Modifier.height(10.dp))
+            }
+        }
+    }
 }
 
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
+private fun FileItem(
+    file: File,
+    onMenuClick: () -> Unit
+) {
+    val secondaryText = file.takeIf { it.isFile }?.let {
+        stringResource(
+            R.string.file_info_format,
+            file.getReadableSize(), file.getLastModifiedDate()
+        )
+    }
+    IconTextItem(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onMenuClick() },
+        painter = painterResource(file.getIcon()),
+        text = file.name,
+        secondaryText = secondaryText
     )
 }
 

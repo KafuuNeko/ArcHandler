@@ -11,4 +11,6 @@
     <string name="rate">Rate</string>
     <string name="about">About</string>
     <string name="unknown_version">Unknown version</string>
+    <string name="storage_volume">Storage Volume</string>
+    <string name="file_info_format">%s  %s</string>
 </resources>
