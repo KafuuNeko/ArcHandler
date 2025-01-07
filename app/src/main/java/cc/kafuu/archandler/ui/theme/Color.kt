@@ -3,19 +3,19 @@ package cc.kafuu.archandler.ui.theme
 import androidx.compose.ui.graphics.Color
 
 // 背景颜色（浅色模式与暗色模式）
-val BackgroundColor = Color(0xFFF5F5F5)
-val BackgroundDarkColor = Color(0xFF121212)
+val BackgroundColor = Color(0xFFEBEBEB)
+val BackgroundDarkColor = Color(0xFF1C1C1C)
 
 // 主色（浅色模式与暗色模式）
 val PrimaryColor = Color(0xFF03A9F4)
 val PrimaryDarkColor = Color(0xFF0288D1)
 
 // 辅助色（浅色模式与暗色模式）
-val SecondaryColor = Color(0xFF384040)
-val SecondaryDarkColor = Color(0xFF384040)
+val SecondaryColor = Color(0xFFD7D7D7)
+val SecondaryDarkColor = Color(0xFF303030)
 
-// 其他颜色(卡片、按钮、表面元素的颜色)
-val SurfaceColor = Color(0xFFFFFFFF)
+// 其他颜色(卡片、表面元素的颜色)
+val SurfaceColor = Color(0xFFF5F5F5)
 val SurfaceDarkColor = Color(0xFF121212)
 
 // 错误颜色（用于警告或错误提示）
