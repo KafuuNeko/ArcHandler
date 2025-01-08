@@ -1,6 +1,7 @@
 package cc.kafuu.archandler.ui.widges
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -24,10 +25,16 @@ fun IconTextItem(
     modifier: Modifier = Modifier,
     painter: Painter,
     text: String,
-    secondaryText: String? = null
+    secondaryText: String? = null,
+    onClick: (() -> Unit)? = null
 ) {
+    var itemModifier = modifier
+    onClick?.also {
+        itemModifier = itemModifier.clickable { it() }
+    }
+
     AppCard(
-        modifier = modifier
+        modifier = itemModifier
     ) {
         Row(
             modifier = Modifier

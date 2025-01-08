@@ -7,6 +7,7 @@ import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -18,8 +19,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -36,6 +36,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -50,9 +51,9 @@ import cc.kafuu.archandler.libs.core.attachEventListener
 import cc.kafuu.archandler.libs.ext.getIcon
 import cc.kafuu.archandler.libs.ext.getLastModifiedDate
 import cc.kafuu.archandler.libs.ext.getReadableSize
-import cc.kafuu.archandler.libs.model.StorageData
 import cc.kafuu.archandler.ui.widges.AppPrimaryButton
 import cc.kafuu.archandler.ui.widges.IconTextItem
+import cc.kafuu.archandler.ui.widges.LazyList
 import cc.kafuu.archandler.vm.MainSingleEvent
 import cc.kafuu.archandler.vm.MainUiIntent
 import cc.kafuu.archandler.vm.MainUiState
@@ -60,7 +61,6 @@ import cc.kafuu.archandler.vm.MainViewModel
 import com.hjq.permissions.Permission
 import com.hjq.permissions.XXPermissions
 import kotlinx.coroutines.launch
-import java.io.File
 
 
 class MainActivity : CoreActivity() {
@@ -118,6 +118,14 @@ private fun MainViewBody(
             title = uiState.storageData.name,
             emitIntent = emitIntent
         ) {
+            BackHandler {
+                if (uiState.loading) return@BackHandler
+                MainUiIntent.BackToParent(
+                    storageData = uiState.storageData,
+                    currentPath = uiState.directoryPath
+                ).also(emitIntent)
+            }
+
             DirectoryListViewBody(
                 modifier = Modifier.padding(it),
                 uiState = uiState,
@@ -200,7 +208,6 @@ private fun MainScaffoldTopBar(
     onMenuClick: () -> Unit
 ) {
     TopAppBar(
-        modifier = Modifier,
         title = {
             Text(
                 text = title,
@@ -225,10 +232,6 @@ private fun MainScaffoldTopBar(
 private fun MainScaffoldDrawer(
     emitIntent: (uiIntent: MainUiIntent) -> Unit = {},
 ) {
-    val appVersionName = LocalContext.current.run {
-        packageManager.getPackageInfo(applicationContext.packageName, 0).versionName
-    } ?: stringResource(R.string.unknown_version)
-
     ModalDrawerSheet(
         modifier = Modifier
             .width(220.dp)
@@ -236,74 +239,92 @@ private fun MainScaffoldDrawer(
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(10.dp)
-            ) {
-                Image(
-                    modifier = Modifier.size(64.dp),
-                    painter = painterResource(R.drawable.ic_logo),
-                    contentDescription = null
-                )
+            DrawerHeader()
 
-                Spacer(modifier = Modifier.height(5.dp))
-
-                Text(
-                    text = stringResource(R.string.app_name),
-                    style = MaterialTheme.typography.titleMedium
-                )
-
-                Spacer(modifier = Modifier.height(5.dp))
-
-                Text(
-                    text = appVersionName,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-
-                Spacer(modifier = Modifier.height(5.dp))
-
-                Text(
-                    text = AppModel.EMAIL,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
             HorizontalDivider(modifier = Modifier.fillMaxWidth())
-            Spacer(modifier = Modifier.height(10.dp))
 
-            DrawerItem(
-                icon = R.drawable.ic_code,
-                title = stringResource(R.string.code_repository)
-            ) {
-                emitIntent(MainUiIntent.CodeRepositoryClick)
-            }
-
-            DrawerItem(
-                icon = R.drawable.ic_feedback,
-                title = stringResource(R.string.feedback)
-            ) {
-                emitIntent(MainUiIntent.FeedbackClick)
-            }
-
-            DrawerItem(
-                icon = R.drawable.ic_rate,
-                title = stringResource(R.string.rate)
-            ) {
-                emitIntent(MainUiIntent.RateClick)
-            }
-
-            DrawerItem(
-                icon = R.drawable.ic_aboutt,
-                title = stringResource(R.string.about)
-            ) {
-                emitIntent(MainUiIntent.AboutClick)
-            }
+            DrawerMenuList(emitIntent = emitIntent)
         }
     }
 }
 
 @Composable
-private fun DrawerItem(
+private fun DrawerHeader() {
+    val appVersionName = LocalContext.current.run {
+        packageManager.getPackageInfo(applicationContext.packageName, 0).versionName
+    } ?: stringResource(R.string.unknown_version)
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(10.dp)
+    ) {
+        Image(
+            modifier = Modifier.size(64.dp),
+            painter = painterResource(R.drawable.ic_logo),
+            contentDescription = null
+        )
+
+        Spacer(modifier = Modifier.height(5.dp))
+
+        Text(
+            text = stringResource(R.string.app_name),
+            style = MaterialTheme.typography.titleMedium
+        )
+
+        Spacer(modifier = Modifier.height(5.dp))
+
+        Text(
+            text = appVersionName,
+            style = MaterialTheme.typography.bodyMedium
+        )
+
+        Spacer(modifier = Modifier.height(5.dp))
+
+        Text(
+            text = AppModel.EMAIL,
+            style = MaterialTheme.typography.bodyMedium
+        )
+    }
+}
+
+@Composable
+private fun DrawerMenuList(
+    emitIntent: (uiIntent: MainUiIntent) -> Unit = {},
+) {
+    Column {
+        DrawerMenuItem(
+            icon = R.drawable.ic_code,
+            title = stringResource(R.string.code_repository)
+        ) {
+            emitIntent(MainUiIntent.CodeRepositoryClick)
+        }
+
+        DrawerMenuItem(
+            icon = R.drawable.ic_feedback,
+            title = stringResource(R.string.feedback)
+        ) {
+            emitIntent(MainUiIntent.FeedbackClick)
+        }
+
+        DrawerMenuItem(
+            icon = R.drawable.ic_rate,
+            title = stringResource(R.string.rate)
+        ) {
+            emitIntent(MainUiIntent.RateClick)
+        }
+
+        DrawerMenuItem(
+            icon = R.drawable.ic_aboutt,
+            title = stringResource(R.string.about)
+        ) {
+            emitIntent(MainUiIntent.AboutClick)
+        }
+    }
+}
+
+@Composable
+private fun DrawerMenuItem(
     modifier: Modifier = Modifier,
     @DrawableRes icon: Int,
     title: String,
@@ -346,32 +367,30 @@ private fun StorageVolumeListViewBody(
             style = MaterialTheme.typography.headlineMedium
         )
 
-        Spacer(modifier = Modifier.height(10.dp))
-
-        LazyColumn {
-            items(uiState.storageVolumes) {
-                StorageVolumeItem(it) {
-                    emitIntent(MainUiIntent.StorageVolumeSelected(it))
-                }
-                Spacer(modifier = Modifier.height(10.dp))
+        if (uiState.loading) FillLoadingView() else LazyList(
+            modifier = Modifier
+                .padding(top = 10.dp),
+            emptyState = {
+                FillMessage(
+                    icon = painterResource(R.drawable.ic_storage),
+                    message = stringResource(R.string.no_accessible_storage_devices),
+                )
+            },
+            items = uiState.storageVolumes
+        ) {
+            IconTextItem(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                painter = painterResource(R.drawable.ic_storage),
+                text = it.name,
+                secondaryText = it.directory.path
+            ) {
+                emitIntent(MainUiIntent.StorageVolumeSelected(it))
             }
+
+            Spacer(modifier = Modifier.height(10.dp))
         }
     }
-}
-
-@Composable
-private fun StorageVolumeItem(
-    storageData: StorageData,
-    onMenuClick: () -> Unit
-) {
-    IconTextItem(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onMenuClick() },
-        painter = painterResource(R.drawable.ic_storage),
-        text = storageData.name,
-        secondaryText = storageData.directory.path
-    )
 }
 
 @Composable
@@ -380,12 +399,6 @@ private fun DirectoryListViewBody(
     uiState: MainUiState.DirectoryList,
     emitIntent: (uiIntent: MainUiIntent) -> Unit = {},
 ) {
-    BackHandler {
-        MainUiIntent.BackToParent(
-            storageData = uiState.storageData,
-            currentPath = uiState.directoryPath
-        ).also(emitIntent)
-    }
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -396,41 +409,76 @@ private fun DirectoryListViewBody(
             style = MaterialTheme.typography.headlineMedium
         )
 
-        Spacer(modifier = Modifier.height(10.dp))
-
-        LazyColumn {
-            items(uiState.files) {
-                FileItem(it) {
-                    MainUiIntent.FileSelected(
-                        storageData = uiState.storageData,
-                        file = it
-                    ).also(emitIntent)
-                }
-                Spacer(modifier = Modifier.height(10.dp))
+        if (uiState.loading) FillLoadingView() else LazyList(
+            modifier = Modifier
+                .padding(top = 10.dp),
+            items = uiState.files,
+            emptyState = {
+                FillMessage(
+                    icon = painterResource(R.drawable.ic_empty_folder),
+                    message = stringResource(R.string.empty_directory),
+                )
             }
+        ) { file ->
+            val text = file.name
+            val secondaryText = file.takeIf { it.isFile }?.let {
+                stringResource(
+                    R.string.file_info_format,
+                    file.getReadableSize(), file.getLastModifiedDate()
+                )
+            }
+            IconTextItem(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                painter = painterResource(file.getIcon()),
+                text = text,
+                secondaryText = secondaryText
+            ) {
+                MainUiIntent.FileSelected(
+                    storageData = uiState.storageData,
+                    file = file
+                ).also(emitIntent)
+            }
+            Spacer(modifier = Modifier.height(10.dp))
         }
     }
 }
 
+
 @Composable
-private fun FileItem(
-    file: File,
-    onMenuClick: () -> Unit
+private fun FillLoadingView() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        CircularProgressIndicator()
+    }
+}
+
+@Composable
+private fun FillMessage(
+    icon: Painter,
+    message: String
 ) {
-    val secondaryText = file.takeIf { it.isFile }?.let {
-        stringResource(
-            R.string.file_info_format,
-            file.getReadableSize(), file.getLastModifiedDate()
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(30.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Image(
+            modifier = Modifier
+                .size(96.dp),
+            painter = icon,
+            contentDescription = null
+        )
+        Spacer(modifier = Modifier.height(5.dp))
+        Text(
+            text = message,
+            style = MaterialTheme.typography.displayMedium
         )
     }
-    IconTextItem(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onMenuClick() },
-        painter = painterResource(file.getIcon()),
-        text = file.name,
-        secondaryText = secondaryText
-    )
 }
 
 @Preview(showBackground = true, widthDp = 320, heightDp = 640)
