@@ -215,7 +215,7 @@ private fun MainScaffoldTopBar(
                     .padding(horizontal = 10.dp, vertical = 5.dp)
                     .clickable { onMenuClick() },
                 painter = painterResource(R.drawable.ic_menu),
-                contentDescription = stringResource(R.string.home_memu)
+                contentDescription = stringResource(R.string.home_menu)
             )
         }
     )
