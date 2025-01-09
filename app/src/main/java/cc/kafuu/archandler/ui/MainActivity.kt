@@ -9,9 +9,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -51,9 +50,14 @@ import cc.kafuu.archandler.libs.core.attachEventListener
 import cc.kafuu.archandler.libs.ext.getIcon
 import cc.kafuu.archandler.libs.ext.getLastModifiedDate
 import cc.kafuu.archandler.libs.ext.getReadableSize
+import cc.kafuu.archandler.libs.model.StorageData
+import cc.kafuu.archandler.libs.utils.castOrNull
+import cc.kafuu.archandler.ui.widges.AppLoadingView
 import cc.kafuu.archandler.ui.widges.AppPrimaryButton
 import cc.kafuu.archandler.ui.widges.IconTextItem
 import cc.kafuu.archandler.ui.widges.LazyList
+import cc.kafuu.archandler.ui.widges.OptionalIconTextItem
+import cc.kafuu.archandler.vm.MainDirectoryViewMode
 import cc.kafuu.archandler.vm.MainSingleEvent
 import cc.kafuu.archandler.vm.MainUiIntent
 import cc.kafuu.archandler.vm.MainUiState
@@ -61,6 +65,7 @@ import cc.kafuu.archandler.vm.MainViewModel
 import com.hjq.permissions.Permission
 import com.hjq.permissions.XXPermissions
 import kotlinx.coroutines.launch
+import java.io.File
 
 
 class MainActivity : CoreActivity() {
@@ -104,22 +109,21 @@ private fun MainViewBody(
         )
 
         is MainUiState.StorageVolumeList -> MainScaffold(
-            title = stringResource(R.string.app_name),
+            uiState = uiState,
             emitIntent = emitIntent
         ) {
             StorageVolumeListViewBody(
-                modifier = Modifier.padding(it),
                 uiState = uiState,
                 emitIntent = emitIntent
             )
         }
 
         is MainUiState.DirectoryList -> MainScaffold(
-            title = uiState.storageData.name,
+            uiState = uiState,
             emitIntent = emitIntent
         ) {
             BackHandler {
-                if (uiState.loading) return@BackHandler
+                if (uiState.loadingState.isLoading) return@BackHandler
                 MainUiIntent.BackToParent(
                     storageData = uiState.storageData,
                     currentPath = uiState.directoryPath
@@ -127,7 +131,6 @@ private fun MainViewBody(
             }
 
             DirectoryListViewBody(
-                modifier = Modifier.padding(it),
                 uiState = uiState,
                 emitIntent = emitIntent
             )
@@ -176,12 +179,19 @@ private fun NotPermissionViewBody(
 
 @Composable
 private fun MainScaffold(
-    title: String,
+    uiState: MainUiState,
     emitIntent: (uiIntent: MainUiIntent) -> Unit = {},
-    content: @Composable (PaddingValues) -> Unit
+    content: @Composable () -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val title = when (uiState) {
+        is MainUiState.DirectoryList -> castOrNull<MainDirectoryViewMode.MultipleSelect>(uiState.viewMode)?.let {
+            stringResource(R.string.n_files_selected, it.selected.size)
+        } ?: uiState.storageData.name
+
+        else -> stringResource(R.string.app_name)
+    }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -196,8 +206,18 @@ private fun MainScaffold(
                     onMenuClick = { coroutineScope.launch { drawerState.open() } }
                 )
             },
-            content = content
-        )
+        ) { padding ->
+            Box(
+                modifier = Modifier.padding(padding)
+            ) {
+                content()
+                uiState.loadingState.takeIf {
+                    it.isLoading
+                }?.let {
+                    AppLoadingView(loadingState = uiState.loadingState)
+                }
+            }
+        }
     }
 }
 
@@ -224,7 +244,7 @@ private fun MainScaffoldTopBar(
                 painter = painterResource(R.drawable.ic_menu),
                 contentDescription = stringResource(R.string.home_menu)
             )
-        }
+        },
     )
 }
 
@@ -353,7 +373,7 @@ private fun DrawerMenuItem(
 
 @Composable
 private fun StorageVolumeListViewBody(
-    modifier: Modifier,
+    modifier: Modifier = Modifier,
     uiState: MainUiState.StorageVolumeList,
     emitIntent: (uiIntent: MainUiIntent) -> Unit = {},
 ) {
@@ -366,11 +386,11 @@ private fun StorageVolumeListViewBody(
             text = stringResource(R.string.storage_volume),
             style = MaterialTheme.typography.headlineMedium
         )
-
-        if (uiState.loading) FillLoadingView() else LazyList(
+        LazyList(
             modifier = Modifier
                 .padding(top = 10.dp),
             emptyState = {
+                if (uiState.loadingState.isLoading) return@LazyList
                 FillMessage(
                     icon = painterResource(R.drawable.ic_storage),
                     message = stringResource(R.string.no_accessible_storage_devices),
@@ -387,7 +407,6 @@ private fun StorageVolumeListViewBody(
             ) {
                 emitIntent(MainUiIntent.StorageVolumeSelected(it))
             }
-
             Spacer(modifier = Modifier.height(10.dp))
         }
     }
@@ -395,63 +414,153 @@ private fun StorageVolumeListViewBody(
 
 @Composable
 private fun DirectoryListViewBody(
-    modifier: Modifier,
+    modifier: Modifier = Modifier,
     uiState: MainUiState.DirectoryList,
     emitIntent: (uiIntent: MainUiIntent) -> Unit = {},
 ) {
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(horizontal = 10.dp, vertical = 10.dp)
+            .padding(vertical = 10.dp)
     ) {
         Text(
+            modifier = Modifier
+                .padding(horizontal = 10.dp),
             text = uiState.directoryPath.toString(),
             style = MaterialTheme.typography.headlineMedium
         )
-
-        if (uiState.loading) FillLoadingView() else LazyList(
+        DirectoryListView(
             modifier = Modifier
-                .padding(top = 10.dp),
+                .fillMaxHeight(),
+            uiState = uiState,
+            emitIntent = emitIntent
+        )
+    }
+}
+
+@Composable
+private fun DirectoryListView(
+    modifier: Modifier = Modifier,
+    uiState: MainUiState.DirectoryList,
+    emitIntent: (uiIntent: MainUiIntent) -> Unit = {},
+) {
+    val multipleSelectMode = castOrNull<MainDirectoryViewMode.MultipleSelect>(uiState.viewMode)
+    val pauseMode = castOrNull<MainDirectoryViewMode.Pause>(uiState.viewMode)
+
+    Column(
+        modifier = modifier
+    ) {
+        LazyList(
+            modifier = Modifier
+                .padding(top = 10.dp)
+                .padding(horizontal = 10.dp)
+                .weight(1f),
             items = uiState.files,
             emptyState = {
+                if (uiState.loadingState.isLoading) return@LazyList
                 FillMessage(
                     icon = painterResource(R.drawable.ic_empty_folder),
                     message = stringResource(R.string.empty_directory),
                 )
             }
         ) { file ->
-            val text = file.name
-            val secondaryText = file.takeIf { it.isFile }?.let {
-                stringResource(
-                    R.string.file_info_format,
-                    file.getLastModifiedDate(), file.getReadableSize()
-                )
-            }
-            IconTextItem(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                painter = painterResource(file.getIcon()),
-                text = text,
-                secondaryText = secondaryText
-            ) {
-                MainUiIntent.FileSelected(
-                    storageData = uiState.storageData,
-                    file = file
-                ).also(emitIntent)
-            }
+            DirectoryListItem(
+                storageData = uiState.storageData,
+                file = file,
+                multipleSelectMode = multipleSelectMode != null,
+                selectedSet = multipleSelectMode?.selected,
+                emitIntent = emitIntent
+            )
             Spacer(modifier = Modifier.height(10.dp))
+        }
+
+        multipleSelectMode?.let {
+            HorizontalDivider(modifier = Modifier.fillMaxWidth())
+            DirectoryListMultipleMenuView(
+                modifier = Modifier
+                    .height(50.dp)
+                    .padding(horizontal = 10.dp),
+                viewMode = it,
+                emitIntent = emitIntent
+            )
+        }
+
+        pauseMode?.let {
+            HorizontalDivider(modifier = Modifier.fillMaxWidth())
+            DirectoryListPauseMenuView(
+                modifier = Modifier
+                    .height(50.dp)
+                    .padding(horizontal = 10.dp),
+                viewMode = it,
+                emitIntent = emitIntent
+            )
         }
     }
 }
 
+@Composable
+private fun DirectoryListItem(
+    storageData: StorageData,
+    file: File,
+    multipleSelectMode: Boolean,
+    selectedSet: Set<File>?,
+    emitIntent: (uiIntent: MainUiIntent) -> Unit = {},
+) {
+    val text = file.name
+    val secondaryText = file.takeIf { it.isFile }?.let {
+        stringResource(
+            R.string.file_info_format,
+            file.getLastModifiedDate(), file.getReadableSize()
+        )
+    }
+    val checked = selectedSet?.contains(file) ?: false
+    val onCheckedChange = {
+        MainUiIntent.FileCheckedChange(
+            file = file,
+            checked = !checked
+        ).also(emitIntent)
+    }
+    OptionalIconTextItem(
+        modifier = Modifier
+            .fillMaxWidth(),
+        painter = painterResource(file.getIcon()),
+        text = text,
+        checked = checked,
+        secondaryText = secondaryText,
+        displaySelectBox = multipleSelectMode,
+        onCheckedChange = { onCheckedChange() },
+        onLongClick = { emitIntent(MainUiIntent.FileMultipleSelectMode(!multipleSelectMode)) }
+    ) {
+        if (multipleSelectMode) {
+            onCheckedChange()
+            return@OptionalIconTextItem
+        }
+        MainUiIntent.FileSelected(
+            storageData = storageData,
+            file = file
+        ).also(emitIntent)
+    }
+}
 
 @Composable
-private fun FillLoadingView() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        CircularProgressIndicator()
+private fun DirectoryListMultipleMenuView(
+    modifier: Modifier = Modifier,
+    viewMode: MainDirectoryViewMode.MultipleSelect,
+    emitIntent: (uiIntent: MainUiIntent) -> Unit = {},
+) {
+    Row(modifier = modifier) {
+        // TODO: 待实现多选菜单功能
+    }
+}
+
+@Composable
+private fun DirectoryListPauseMenuView(
+    modifier: Modifier = Modifier,
+    viewMode: MainDirectoryViewMode.Pause,
+    emitIntent: (uiIntent: MainUiIntent) -> Unit = {},
+) {
+    Row(modifier = modifier) {
+        // TODO: 待实现粘贴模式菜单功能
     }
 }
 
@@ -483,7 +592,7 @@ private fun FillMessage(
 
 @Preview(showBackground = true, widthDp = 320, heightDp = 640)
 @Composable
-fun NotPermissionViewBodyPreview() {
+private fun NotPermissionViewBodyPreview() {
     ActivityPreview(darkTheme = true) {
         NotPermissionViewBody()
     }

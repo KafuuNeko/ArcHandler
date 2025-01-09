@@ -46,3 +46,8 @@ val OnSecondaryColor = Color(0xFFE4E4E4)
 // 错误色上的文本颜色
 val OnErrorColor = Color(0xFFFFFFFF)
 
+// 浅色背景上的遮罩颜色
+val MarkColor = Color(0x1A000000)
+
+// 暗色背景上的遮罩颜色
+val MarkDarkColor = Color(0x1AFFFFFF)

@@ -8,7 +8,9 @@ import cc.kafuu.archandler.libs.core.CoreViewModel
 import cc.kafuu.archandler.libs.ext.getParentPath
 import cc.kafuu.archandler.libs.ext.isSameFileOrDirectory
 import cc.kafuu.archandler.libs.manager.FileManager
+import cc.kafuu.archandler.libs.model.LoadingState
 import cc.kafuu.archandler.libs.model.StorageData
+import cc.kafuu.archandler.libs.utils.castOrNull
 import com.hjq.permissions.Permission
 import com.hjq.permissions.XXPermissions
 import kotlinx.coroutines.Dispatchers
@@ -57,6 +59,15 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState, MainSingleEvent>(
                 storageData = uiIntent.storageData,
                 currentPath = uiIntent.currentPath
             )
+
+            is MainUiIntent.FileCheckedChange -> onFileCheckedChange(
+                file = uiIntent.file,
+                checked = uiIntent.checked
+            )
+
+            is MainUiIntent.FileMultipleSelectMode -> onFileMultipleSelectModeChange(
+                enable = uiIntent.enable
+            )
         }
     }
 
@@ -90,6 +101,32 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState, MainSingleEvent>(
         }
     }
 
+    private fun onFileMultipleSelectModeChange(
+        enable: Boolean
+    ) {
+        castOrNull<MainUiState.DirectoryList>(uiState.value)?.copy(
+            viewMode = if (enable) {
+                MainDirectoryViewMode.MultipleSelect()
+            } else {
+                MainDirectoryViewMode.Normal
+            }
+        )?.setup()
+    }
+
+    private fun onFileCheckedChange(
+        file: File,
+        checked: Boolean
+    ) {
+        castOrNull<MainUiState.DirectoryList>(uiState.value)?.let { state ->
+            castOrNull<MainDirectoryViewMode.MultipleSelect>(state.viewMode)?.let { mode ->
+                val selected = mode.selected.toMutableSet().apply {
+                    if (checked) add(file) else remove(file)
+                }
+                state.copy(viewMode = MainDirectoryViewMode.MultipleSelect(selected = selected))
+            }
+        }?.setup()
+    }
+
     private fun onBackToParent(
         storageData: StorageData,
         currentPath: Path
@@ -106,14 +143,17 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState, MainSingleEvent>(
     }
 
     private fun loadExternalStorages() = viewModelScope.launch(Dispatchers.IO) {
-        MainUiState.StorageVolumeList(loading = true).setup()
+        MainUiState.StorageVolumeList(loadingState = LoadingState(isLoading = true)).setup()
         runCatching {
             get<FileManager>().getMountedStorageVolumes()
         }.onSuccess { storages ->
-            MainUiState.StorageVolumeList(loading = false, storageVolumes = storages).setup()
+            MainUiState.StorageVolumeList(
+                loadingState = LoadingState(),
+                storageVolumes = storages
+            ).setup()
         }.onFailure { exception ->
             MainUiState.StorageVolumeList(
-                loading = false,
+                loadingState = LoadingState(),
                 errorMessage = exception.message ?: get<AppLibs>().getString(R.string.unknown_error)
             ).setup()
         }
@@ -124,7 +164,7 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState, MainSingleEvent>(
         directoryPath: Path
     ) = viewModelScope.launch(Dispatchers.IO) {
         MainUiState.DirectoryList(
-            loading = true,
+            loadingState = LoadingState(isLoading = true),
             storageData = storageData,
             directoryPath = directoryPath
         ).setup()
@@ -132,14 +172,14 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState, MainSingleEvent>(
             File(directoryPath.toString()).listFiles()?.asList() ?: emptyList()
         }.onSuccess { files ->
             MainUiState.DirectoryList(
-                loading = false,
+                loadingState = LoadingState(),
                 storageData = storageData,
                 directoryPath = directoryPath,
                 files = files
             ).setup()
         }.onFailure { exception ->
             MainUiState.DirectoryList(
-                loading = false,
+                loadingState = LoadingState(),
                 storageData = storageData,
                 directoryPath = directoryPath,
                 errorMessage = exception.message ?: get<AppLibs>().getString(R.string.unknown_error)
@@ -166,29 +206,57 @@ sealed class MainUiIntent {
         val file: File
     ) : MainUiIntent()
 
+    data class FileMultipleSelectMode(
+        val enable: Boolean
+    ) : MainUiIntent()
+
+    data class FileCheckedChange(
+        val file: File,
+        val checked: Boolean
+    ) : MainUiIntent()
+
+
     data class BackToParent(
         val storageData: StorageData,
         val currentPath: Path
     ) : MainUiIntent()
 }
 
-sealed class MainUiState {
+sealed class MainUiState(
+    open val loadingState: LoadingState = LoadingState()
+) {
     // User has not authorized 'MANAGE_EXTERNAL_STORAGE'
     data object NotPermission : MainUiState()
 
     data class StorageVolumeList(
-        val loading: Boolean,
+        override val loadingState: LoadingState,
         val errorMessage: String? = null,
         val storageVolumes: List<StorageData> = emptyList()
-    ) : MainUiState()
+    ) : MainUiState(loadingState = loadingState)
 
     data class DirectoryList(
-        val loading: Boolean,
+        override val loadingState: LoadingState,
         val errorMessage: String? = null,
         val storageData: StorageData,
         val directoryPath: Path,
         val files: List<File> = emptyList(),
-    ) : MainUiState()
+        val viewMode: MainDirectoryViewMode = MainDirectoryViewMode.Normal
+    ) : MainUiState(loadingState = loadingState)
+}
+
+sealed class MainDirectoryViewMode {
+    data object Normal : MainDirectoryViewMode()
+
+    data class MultipleSelect(
+        val selected: Set<File> = emptySet()
+    ) : MainDirectoryViewMode()
+
+    data class Pause(
+        val sourceStorageData: StorageData,
+        val sourceDirectoryPath: Path,
+        val sourceFiles: List<File>,
+        val isMoving: Boolean = false
+    ) : MainDirectoryViewMode()
 }
 
 sealed class MainSingleEvent {

@@ -1,7 +1,9 @@
 package cc.kafuu.archandler.ui.widges
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -10,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -67,6 +70,76 @@ fun IconTextItem(
                         color = MaterialTheme.colorScheme.onSurface.withAlpha(0.5f)
                     )
                 }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun OptionalIconTextItem(
+    modifier: Modifier = Modifier,
+    painter: Painter,
+    text: String,
+    checked: Boolean = false,
+    onCheckedChange: ((Boolean) -> Unit)? = null,
+    secondaryText: String? = null,
+    displaySelectBox: Boolean = false,
+    onLongClick: (() -> Unit)? = null,
+    onClick: (() -> Unit)? = null,
+) {
+    AppCard(
+        modifier = modifier
+            .combinedClickable(
+                onLongClick = {
+                    onLongClick?.invoke()
+                },
+                onClick = {
+                    onClick?.invoke()
+                }
+            )
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(10.dp)
+                .fillMaxSize(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Image(
+                modifier = Modifier.size(38.dp),
+                painter = painter,
+                contentDescription = text
+            )
+
+            Spacer(modifier = Modifier.width(5.dp))
+
+            Column {
+                Text(
+                    text = text,
+                    style = MaterialTheme.typography.headlineMedium.copy(
+                        textAlign = TextAlign.Center
+                    ),
+                )
+                secondaryText?.also {
+                    Spacer(modifier = Modifier.height(5.dp))
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.labelMedium.copy(
+                            textAlign = TextAlign.Center
+                        ),
+                        color = MaterialTheme.colorScheme.onSurface.withAlpha(0.5f)
+                    )
+                }
+            }
+
+            if (displaySelectBox) {
+                Spacer(modifier = Modifier.weight(1f))
+
+                Checkbox(
+                    modifier = Modifier.size(24.dp),
+                    checked = checked,
+                    onCheckedChange = onCheckedChange
+                )
             }
         }
     }

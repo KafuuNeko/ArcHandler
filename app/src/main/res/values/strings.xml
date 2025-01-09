@@ -15,4 +15,5 @@
     <string name="storage_volume">Storage Volume</string>
     <string name="empty_directory">Empty Directory</string>
     <string name="no_accessible_storage_devices">No accessible storage devices</string>
+    <string name="n_files_selected">%d files selected</string>
 </resources>
