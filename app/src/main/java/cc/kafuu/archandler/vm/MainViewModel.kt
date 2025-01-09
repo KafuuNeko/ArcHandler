@@ -5,12 +5,12 @@ import cc.kafuu.archandler.R
 import cc.kafuu.archandler.libs.AppLibs
 import cc.kafuu.archandler.libs.AppModel
 import cc.kafuu.archandler.libs.core.CoreViewModel
+import cc.kafuu.archandler.libs.ext.castOrNull
 import cc.kafuu.archandler.libs.ext.getParentPath
 import cc.kafuu.archandler.libs.ext.isSameFileOrDirectory
 import cc.kafuu.archandler.libs.manager.FileManager
 import cc.kafuu.archandler.libs.model.LoadingState
 import cc.kafuu.archandler.libs.model.StorageData
-import cc.kafuu.archandler.libs.utils.castOrNull
 import com.hjq.permissions.Permission
 import com.hjq.permissions.XXPermissions
 import kotlinx.coroutines.Dispatchers
@@ -34,17 +34,11 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState, MainSingleEvent>(
                 // TODO: Waiting for implementation
             }
 
-            MainUiIntent.CodeRepositoryClick -> get<AppLibs>().jumpToUrl(
-                url = AppModel.CODE_REPOSITORY_URL
-            )
+            MainUiIntent.CodeRepositoryClick -> get<AppLibs>().jumpToUrl(AppModel.CODE_REPOSITORY_URL)
 
-            MainUiIntent.FeedbackClick -> get<AppLibs>().jumpToUrl(
-                url = AppModel.FEEDBACK_URL
-            )
+            MainUiIntent.FeedbackClick -> get<AppLibs>().jumpToUrl(AppModel.FEEDBACK_URL)
 
-            MainUiIntent.RateClick -> get<AppLibs>().jumpToUrl(
-                url = AppModel.GOOGLE_PLAY_URL
-            )
+            MainUiIntent.RateClick -> get<AppLibs>().jumpToUrl(AppModel.GOOGLE_PLAY_URL)
 
             is MainUiIntent.StorageVolumeSelected -> onStorageVolumeSelected(
                 storageData = uiIntent.storageData
@@ -73,7 +67,7 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState, MainSingleEvent>(
 
     private fun initViewModel() {
         if (!XXPermissions.isGranted(get(), Permission.MANAGE_EXTERNAL_STORAGE)) {
-            MainUiState.NotPermission.setup()
+            MainUiState.PermissionDenied.setup()
         } else {
             loadExternalStorages()
         }
@@ -104,7 +98,7 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState, MainSingleEvent>(
     private fun onFileMultipleSelectModeChange(
         enable: Boolean
     ) {
-        castOrNull<MainUiState.DirectoryList>(uiState.value)?.copy(
+        uiState.value?.castOrNull<MainUiState.DirectoryList>()?.copy(
             viewMode = if (enable) {
                 MainDirectoryViewMode.MultipleSelect()
             } else {
@@ -117,13 +111,12 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState, MainSingleEvent>(
         file: File,
         checked: Boolean
     ) {
-        castOrNull<MainUiState.DirectoryList>(uiState.value)?.let { state ->
-            castOrNull<MainDirectoryViewMode.MultipleSelect>(state.viewMode)?.let { mode ->
-                val selected = mode.selected.toMutableSet().apply {
-                    if (checked) add(file) else remove(file)
-                }
-                state.copy(viewMode = MainDirectoryViewMode.MultipleSelect(selected = selected))
+        val state = uiState.value?.castOrNull<MainUiState.DirectoryList>() ?: return
+        state.viewMode.castOrNull<MainDirectoryViewMode.MultipleSelect>()?.let {
+            val selected = it.selected.toMutableSet().apply {
+                if (checked) add(file) else remove(file)
             }
+            state.copy(viewMode = MainDirectoryViewMode.MultipleSelect(selected = selected))
         }?.setup()
     }
 
@@ -147,13 +140,9 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState, MainSingleEvent>(
         runCatching {
             get<FileManager>().getMountedStorageVolumes()
         }.onSuccess { storages ->
-            MainUiState.StorageVolumeList(
-                loadingState = LoadingState(),
-                storageVolumes = storages
-            ).setup()
+            MainUiState.StorageVolumeList(storageVolumes = storages).setup()
         }.onFailure { exception ->
             MainUiState.StorageVolumeList(
-                loadingState = LoadingState(),
                 errorMessage = exception.message ?: get<AppLibs>().getString(R.string.unknown_error)
             ).setup()
         }
@@ -163,25 +152,17 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState, MainSingleEvent>(
         storageData: StorageData,
         directoryPath: Path
     ) = viewModelScope.launch(Dispatchers.IO) {
-        MainUiState.DirectoryList(
-            loadingState = LoadingState(isLoading = true),
+        val uiStatePrototype = MainUiState.DirectoryList(
             storageData = storageData,
             directoryPath = directoryPath
-        ).setup()
+        )
+        uiStatePrototype.copy(loadingState = LoadingState(isLoading = true)).setup()
         runCatching {
             File(directoryPath.toString()).listFiles()?.asList() ?: emptyList()
         }.onSuccess { files ->
-            MainUiState.DirectoryList(
-                loadingState = LoadingState(),
-                storageData = storageData,
-                directoryPath = directoryPath,
-                files = files
-            ).setup()
+            uiStatePrototype.copy(files = files).setup()
         }.onFailure { exception ->
-            MainUiState.DirectoryList(
-                loadingState = LoadingState(),
-                storageData = storageData,
-                directoryPath = directoryPath,
+            uiStatePrototype.copy(
                 errorMessage = exception.message ?: get<AppLibs>().getString(R.string.unknown_error)
             ).setup()
         }
@@ -215,7 +196,6 @@ sealed class MainUiIntent {
         val checked: Boolean
     ) : MainUiIntent()
 
-
     data class BackToParent(
         val storageData: StorageData,
         val currentPath: Path
@@ -225,17 +205,16 @@ sealed class MainUiIntent {
 sealed class MainUiState(
     open val loadingState: LoadingState = LoadingState()
 ) {
-    // User has not authorized 'MANAGE_EXTERNAL_STORAGE'
-    data object NotPermission : MainUiState()
+    data object PermissionDenied : MainUiState()
 
     data class StorageVolumeList(
-        override val loadingState: LoadingState,
+        override val loadingState: LoadingState = LoadingState(),
         val errorMessage: String? = null,
         val storageVolumes: List<StorageData> = emptyList()
     ) : MainUiState(loadingState = loadingState)
 
     data class DirectoryList(
-        override val loadingState: LoadingState,
+        override val loadingState: LoadingState = LoadingState(),
         val errorMessage: String? = null,
         val storageData: StorageData,
         val directoryPath: Path,

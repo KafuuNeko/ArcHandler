@@ -47,16 +47,16 @@ import cc.kafuu.archandler.libs.AppModel
 import cc.kafuu.archandler.libs.core.ActivityPreview
 import cc.kafuu.archandler.libs.core.CoreActivity
 import cc.kafuu.archandler.libs.core.attachEventListener
+import cc.kafuu.archandler.libs.ext.castOrNull
 import cc.kafuu.archandler.libs.ext.getIcon
 import cc.kafuu.archandler.libs.ext.getLastModifiedDate
 import cc.kafuu.archandler.libs.ext.getReadableSize
 import cc.kafuu.archandler.libs.model.StorageData
-import cc.kafuu.archandler.libs.utils.castOrNull
+import cc.kafuu.archandler.ui.widges.AppIconTextItemCard
 import cc.kafuu.archandler.ui.widges.AppLoadingView
+import cc.kafuu.archandler.ui.widges.AppOptionalIconTextItemCard
 import cc.kafuu.archandler.ui.widges.AppPrimaryButton
-import cc.kafuu.archandler.ui.widges.IconTextItem
 import cc.kafuu.archandler.ui.widges.LazyList
-import cc.kafuu.archandler.ui.widges.OptionalIconTextItem
 import cc.kafuu.archandler.vm.MainDirectoryViewMode
 import cc.kafuu.archandler.vm.MainSingleEvent
 import cc.kafuu.archandler.vm.MainUiIntent
@@ -80,6 +80,12 @@ class MainActivity : CoreActivity() {
     override fun ViewContent() {
         val uiState by mViewModel.uiState.collectAsState()
         uiState?.also { state ->
+            BackHandler {
+                when (state) {
+                    is MainUiState.DirectoryList -> onBackHandler(state)
+                    else -> finish()
+                }
+            }
             MainViewBody(
                 uiState = state,
                 emitIntent = { intent -> mViewModel.emit(intent) }
@@ -96,6 +102,16 @@ class MainActivity : CoreActivity() {
             .permission(Permission.MANAGE_EXTERNAL_STORAGE)
             .request { _: List<String?>?, _: Boolean -> mViewModel.emit(MainUiIntent.Init) }
     }
+
+    private fun onBackHandler(state: MainUiState.DirectoryList) {
+        if (state.loadingState.isLoading) return
+        MainUiIntent.BackToParent(
+            storageData = state.storageData,
+            currentPath = state.directoryPath
+        ).also {
+            mViewModel.emit(it)
+        }
+    }
 }
 
 @Composable
@@ -104,33 +120,25 @@ private fun MainViewBody(
     emitIntent: (uiIntent: MainUiIntent) -> Unit = {}
 ) {
     when (uiState) {
-        MainUiState.NotPermission -> NotPermissionViewBody(
+        MainUiState.PermissionDenied -> PermissionDenied(
             emitIntent = emitIntent
         )
 
-        is MainUiState.StorageVolumeList -> MainScaffold(
+        is MainUiState.StorageVolumeList -> MainLayout(
             uiState = uiState,
             emitIntent = emitIntent
         ) {
-            StorageVolumeListViewBody(
+            StorageVolumeList(
                 uiState = uiState,
                 emitIntent = emitIntent
             )
         }
 
-        is MainUiState.DirectoryList -> MainScaffold(
+        is MainUiState.DirectoryList -> MainLayout(
             uiState = uiState,
             emitIntent = emitIntent
         ) {
-            BackHandler {
-                if (uiState.loadingState.isLoading) return@BackHandler
-                MainUiIntent.BackToParent(
-                    storageData = uiState.storageData,
-                    currentPath = uiState.directoryPath
-                ).also(emitIntent)
-            }
-
-            DirectoryListViewBody(
+            DirectoryView(
                 uiState = uiState,
                 emitIntent = emitIntent
             )
@@ -139,7 +147,7 @@ private fun MainViewBody(
 }
 
 @Composable
-private fun NotPermissionViewBody(
+private fun PermissionDenied(
     modifier: Modifier = Modifier,
     emitIntent: (uiIntent: MainUiIntent) -> Unit = {}
 ) {
@@ -178,7 +186,7 @@ private fun NotPermissionViewBody(
 }
 
 @Composable
-private fun MainScaffold(
+private fun MainLayout(
     uiState: MainUiState,
     emitIntent: (uiIntent: MainUiIntent) -> Unit = {},
     content: @Composable () -> Unit
@@ -186,9 +194,11 @@ private fun MainScaffold(
     val coroutineScope = rememberCoroutineScope()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val title = when (uiState) {
-        is MainUiState.DirectoryList -> castOrNull<MainDirectoryViewMode.MultipleSelect>(uiState.viewMode)?.let {
-            stringResource(R.string.n_files_selected, it.selected.size)
-        } ?: uiState.storageData.name
+        is MainUiState.DirectoryList -> {
+            uiState.viewMode.castOrNull<MainDirectoryViewMode.MultipleSelect>()?.let {
+                stringResource(R.string.n_files_selected, it.selected.size)
+            } ?: uiState.storageData.name
+        }
 
         else -> stringResource(R.string.app_name)
     }
@@ -313,28 +323,28 @@ private fun DrawerMenuList(
     emitIntent: (uiIntent: MainUiIntent) -> Unit = {},
 ) {
     Column {
-        DrawerMenuItem(
+        DrawerMenuOption(
             icon = R.drawable.ic_code,
             title = stringResource(R.string.code_repository)
         ) {
             emitIntent(MainUiIntent.CodeRepositoryClick)
         }
 
-        DrawerMenuItem(
+        DrawerMenuOption(
             icon = R.drawable.ic_feedback,
             title = stringResource(R.string.feedback)
         ) {
             emitIntent(MainUiIntent.FeedbackClick)
         }
 
-        DrawerMenuItem(
+        DrawerMenuOption(
             icon = R.drawable.ic_rate,
             title = stringResource(R.string.rate)
         ) {
             emitIntent(MainUiIntent.RateClick)
         }
 
-        DrawerMenuItem(
+        DrawerMenuOption(
             icon = R.drawable.ic_aboutt,
             title = stringResource(R.string.about)
         ) {
@@ -344,7 +354,7 @@ private fun DrawerMenuList(
 }
 
 @Composable
-private fun DrawerMenuItem(
+private fun DrawerMenuOption(
     modifier: Modifier = Modifier,
     @DrawableRes icon: Int,
     title: String,
@@ -372,7 +382,7 @@ private fun DrawerMenuItem(
 }
 
 @Composable
-private fun StorageVolumeListViewBody(
+private fun StorageVolumeList(
     modifier: Modifier = Modifier,
     uiState: MainUiState.StorageVolumeList,
     emitIntent: (uiIntent: MainUiIntent) -> Unit = {},
@@ -398,7 +408,7 @@ private fun StorageVolumeListViewBody(
             },
             items = uiState.storageVolumes
         ) {
-            IconTextItem(
+            AppIconTextItemCard(
                 modifier = Modifier
                     .fillMaxWidth(),
                 painter = painterResource(R.drawable.ic_storage),
@@ -413,7 +423,7 @@ private fun StorageVolumeListViewBody(
 }
 
 @Composable
-private fun DirectoryListViewBody(
+private fun DirectoryView(
     modifier: Modifier = Modifier,
     uiState: MainUiState.DirectoryList,
     emitIntent: (uiIntent: MainUiIntent) -> Unit = {},
@@ -429,7 +439,7 @@ private fun DirectoryListViewBody(
             text = uiState.directoryPath.toString(),
             style = MaterialTheme.typography.headlineMedium
         )
-        DirectoryListView(
+        FileList(
             modifier = Modifier
                 .fillMaxHeight(),
             uiState = uiState,
@@ -439,14 +449,11 @@ private fun DirectoryListViewBody(
 }
 
 @Composable
-private fun DirectoryListView(
+private fun FileList(
     modifier: Modifier = Modifier,
     uiState: MainUiState.DirectoryList,
     emitIntent: (uiIntent: MainUiIntent) -> Unit = {},
 ) {
-    val multipleSelectMode = castOrNull<MainDirectoryViewMode.MultipleSelect>(uiState.viewMode)
-    val pauseMode = castOrNull<MainDirectoryViewMode.Pause>(uiState.viewMode)
-
     Column(
         modifier = modifier
     ) {
@@ -464,19 +471,24 @@ private fun DirectoryListView(
                 )
             }
         ) { file ->
-            DirectoryListItem(
+            val (multipleSelectMode, selectedSet) =
+                uiState.viewMode.castOrNull<MainDirectoryViewMode.MultipleSelect>()?.let {
+                    true to it.selected
+                } ?: (false to null)
+
+            FileItem(
                 storageData = uiState.storageData,
                 file = file,
-                multipleSelectMode = multipleSelectMode != null,
-                selectedSet = multipleSelectMode?.selected,
+                multipleSelectMode = multipleSelectMode,
+                selectedSet = selectedSet,
                 emitIntent = emitIntent
             )
             Spacer(modifier = Modifier.height(10.dp))
         }
 
-        multipleSelectMode?.let {
+        uiState.viewMode.castOrNull<MainDirectoryViewMode.MultipleSelect>()?.let {
             HorizontalDivider(modifier = Modifier.fillMaxWidth())
-            DirectoryListMultipleMenuView(
+            DirectoryListMultipleMenu(
                 modifier = Modifier
                     .height(50.dp)
                     .padding(horizontal = 10.dp),
@@ -485,9 +497,9 @@ private fun DirectoryListView(
             )
         }
 
-        pauseMode?.let {
+        uiState.viewMode.castOrNull<MainDirectoryViewMode.Pause>()?.let {
             HorizontalDivider(modifier = Modifier.fillMaxWidth())
-            DirectoryListPauseMenuView(
+            DirectoryListPauseMenu(
                 modifier = Modifier
                     .height(50.dp)
                     .padding(horizontal = 10.dp),
@@ -499,7 +511,7 @@ private fun DirectoryListView(
 }
 
 @Composable
-private fun DirectoryListItem(
+private fun FileItem(
     storageData: StorageData,
     file: File,
     multipleSelectMode: Boolean,
@@ -520,7 +532,7 @@ private fun DirectoryListItem(
             checked = !checked
         ).also(emitIntent)
     }
-    OptionalIconTextItem(
+    AppOptionalIconTextItemCard(
         modifier = Modifier
             .fillMaxWidth(),
         painter = painterResource(file.getIcon()),
@@ -533,7 +545,7 @@ private fun DirectoryListItem(
     ) {
         if (multipleSelectMode) {
             onCheckedChange()
-            return@OptionalIconTextItem
+            return@AppOptionalIconTextItemCard
         }
         MainUiIntent.FileSelected(
             storageData = storageData,
@@ -543,7 +555,7 @@ private fun DirectoryListItem(
 }
 
 @Composable
-private fun DirectoryListMultipleMenuView(
+private fun DirectoryListMultipleMenu(
     modifier: Modifier = Modifier,
     viewMode: MainDirectoryViewMode.MultipleSelect,
     emitIntent: (uiIntent: MainUiIntent) -> Unit = {},
@@ -554,7 +566,7 @@ private fun DirectoryListMultipleMenuView(
 }
 
 @Composable
-private fun DirectoryListPauseMenuView(
+private fun DirectoryListPauseMenu(
     modifier: Modifier = Modifier,
     viewMode: MainDirectoryViewMode.Pause,
     emitIntent: (uiIntent: MainUiIntent) -> Unit = {},
@@ -592,8 +604,8 @@ private fun FillMessage(
 
 @Preview(showBackground = true, widthDp = 320, heightDp = 640)
 @Composable
-private fun NotPermissionViewBodyPreview() {
+private fun PermissionDeniedBodyPreview() {
     ActivityPreview(darkTheme = true) {
-        NotPermissionViewBody()
+        PermissionDenied()
     }
 }
