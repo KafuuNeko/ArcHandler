@@ -424,7 +424,7 @@ private fun DirectoryListViewBody(
             val secondaryText = file.takeIf { it.isFile }?.let {
                 stringResource(
                     R.string.file_info_format,
-                    file.getReadableSize(), file.getLastModifiedDate()
+                    file.getLastModifiedDate(), file.getReadableSize()
                 )
             }
             IconTextItem(
