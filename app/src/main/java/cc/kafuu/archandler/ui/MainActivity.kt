@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -79,8 +80,15 @@ class MainActivity : CoreActivity() {
     @Composable
     override fun ViewContent() {
         val uiState by mViewModel.uiState.collectAsState()
+        val coroutineScope = rememberCoroutineScope()
+        val drawerState = rememberDrawerState(DrawerValue.Closed)
+
         uiState?.also { state ->
             BackHandler {
+                if (drawerState.isOpen) {
+                    coroutineScope.launch { drawerState.close() }
+                    return@BackHandler
+                }
                 when (state) {
                     is MainUiState.DirectoryList -> onBackHandler(state)
                     else -> finish()
@@ -88,6 +96,7 @@ class MainActivity : CoreActivity() {
             }
             MainViewBody(
                 uiState = state,
+                drawerState = drawerState,
                 emitIntent = { intent -> mViewModel.emit(intent) }
             )
         } ?: mViewModel.emit(MainUiIntent.Init)
@@ -117,6 +126,7 @@ class MainActivity : CoreActivity() {
 @Composable
 private fun MainViewBody(
     uiState: MainUiState,
+    drawerState: DrawerState,
     emitIntent: (uiIntent: MainUiIntent) -> Unit = {}
 ) {
     when (uiState) {
@@ -126,6 +136,7 @@ private fun MainViewBody(
 
         is MainUiState.StorageVolumeList -> MainLayout(
             uiState = uiState,
+            drawerState = drawerState,
             emitIntent = emitIntent
         ) {
             StorageVolumeList(
@@ -136,6 +147,7 @@ private fun MainViewBody(
 
         is MainUiState.DirectoryList -> MainLayout(
             uiState = uiState,
+            drawerState = drawerState,
             emitIntent = emitIntent
         ) {
             DirectoryView(
@@ -188,11 +200,11 @@ private fun PermissionDenied(
 @Composable
 private fun MainLayout(
     uiState: MainUiState,
+    drawerState: DrawerState,
     emitIntent: (uiIntent: MainUiIntent) -> Unit = {},
     content: @Composable () -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
-    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val title = when (uiState) {
         is MainUiState.DirectoryList -> {
             uiState.viewMode.castOrNull<MainDirectoryViewMode.MultipleSelect>()?.let {
@@ -205,7 +217,12 @@ private fun MainLayout(
 
     ModalNavigationDrawer(
         drawerState = drawerState,
-        drawerContent = { MainScaffoldDrawer(emitIntent = emitIntent) }
+        drawerContent = {
+            MainScaffoldDrawer(
+                drawerState = drawerState,
+                emitIntent = emitIntent
+            )
+        }
     ) {
         Scaffold(
             modifier = Modifier
@@ -260,11 +277,13 @@ private fun MainScaffoldTopBar(
 
 @Composable
 private fun MainScaffoldDrawer(
+    drawerState: DrawerState,
     emitIntent: (uiIntent: MainUiIntent) -> Unit = {},
 ) {
     ModalDrawerSheet(
         modifier = Modifier
-            .width(220.dp)
+            .width(220.dp),
+        drawerState = drawerState
     ) {
         Column(
             modifier = Modifier.fillMaxSize()
