@@ -3,11 +3,11 @@ package cc.kafuu.archandler.ui
 import android.os.Bundle
 import androidx.activity.compose.BackHandler
 import androidx.activity.viewModels
-import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -52,13 +52,17 @@ import cc.kafuu.archandler.libs.ext.castOrNull
 import cc.kafuu.archandler.libs.ext.getIcon
 import cc.kafuu.archandler.libs.ext.getLastModifiedDate
 import cc.kafuu.archandler.libs.ext.getReadableSize
+import cc.kafuu.archandler.libs.model.LoadingState
 import cc.kafuu.archandler.libs.model.StorageData
 import cc.kafuu.archandler.ui.widges.AppIconTextItemCard
 import cc.kafuu.archandler.ui.widges.AppLoadingView
 import cc.kafuu.archandler.ui.widges.AppOptionalIconTextItemCard
 import cc.kafuu.archandler.ui.widges.AppPrimaryButton
 import cc.kafuu.archandler.ui.widges.LazyList
-import cc.kafuu.archandler.vm.MainDirectoryViewMode
+import cc.kafuu.archandler.vm.MainDrawerMenu
+import cc.kafuu.archandler.vm.MainListData
+import cc.kafuu.archandler.vm.MainListViewMode
+import cc.kafuu.archandler.vm.MainMultipleMenu
 import cc.kafuu.archandler.vm.MainSingleEvent
 import cc.kafuu.archandler.vm.MainUiIntent
 import cc.kafuu.archandler.vm.MainUiState
@@ -85,12 +89,13 @@ class MainActivity : CoreActivity() {
 
         uiState?.also { state ->
             BackHandler {
+                // 如果抽屉打开优先关闭抽屉
                 if (drawerState.isOpen) {
                     coroutineScope.launch { drawerState.close() }
                     return@BackHandler
                 }
                 when (state) {
-                    is MainUiState.DirectoryList -> onBackHandler(state)
+                    is MainUiState.Accessible -> onBackHandler(state)
                     else -> finish()
                 }
             }
@@ -112,11 +117,32 @@ class MainActivity : CoreActivity() {
             .request { _: List<String?>?, _: Boolean -> mViewModel.emit(MainUiIntent.Init) }
     }
 
-    private fun onBackHandler(state: MainUiState.DirectoryList) {
+    private fun onBackHandler(state: MainUiState.Accessible) {
         if (state.loadingState.isLoading) return
+
+        when (state.viewMode) {
+            MainListViewMode.Normal -> {
+                state.listData.castOrNull<MainListData.Directory>()?.let {
+                    doBackToParent(it)
+                } ?: finish()
+            }
+
+            is MainListViewMode.MultipleSelect -> mViewModel.emit(
+                MainUiIntent.BackToNormalViewMode
+            )
+
+            is MainListViewMode.Pause -> {
+                state.listData.castOrNull<MainListData.Directory>()?.let {
+                    doBackToParent(it)
+                } ?: mViewModel.emit(MainUiIntent.BackToNormalViewMode)
+            }
+        }
+    }
+
+    private fun doBackToParent(listData: MainListData.Directory) {
         MainUiIntent.BackToParent(
-            storageData = state.storageData,
-            currentPath = state.directoryPath
+            storageData = listData.storageData,
+            currentPath = listData.directoryPath
         ).also {
             mViewModel.emit(it)
         }
@@ -134,23 +160,12 @@ private fun MainViewBody(
             emitIntent = emitIntent
         )
 
-        is MainUiState.StorageVolumeList -> MainLayout(
+        is MainUiState.Accessible -> MainLayout(
             uiState = uiState,
             drawerState = drawerState,
             emitIntent = emitIntent
         ) {
-            StorageVolumeList(
-                uiState = uiState,
-                emitIntent = emitIntent
-            )
-        }
-
-        is MainUiState.DirectoryList -> MainLayout(
-            uiState = uiState,
-            drawerState = drawerState,
-            emitIntent = emitIntent
-        ) {
-            DirectoryView(
+            AccessibleView(
                 uiState = uiState,
                 emitIntent = emitIntent
             )
@@ -199,17 +214,17 @@ private fun PermissionDenied(
 
 @Composable
 private fun MainLayout(
-    uiState: MainUiState,
+    uiState: MainUiState.Accessible,
     drawerState: DrawerState,
     emitIntent: (uiIntent: MainUiIntent) -> Unit = {},
-    content: @Composable () -> Unit
+    content: @Composable BoxScope.() -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
-    val title = when (uiState) {
-        is MainUiState.DirectoryList -> {
-            uiState.viewMode.castOrNull<MainDirectoryViewMode.MultipleSelect>()?.let {
+    val title = when (val listData = uiState.listData) {
+        is MainListData.Directory -> {
+            uiState.viewMode.castOrNull<MainListViewMode.MultipleSelect>()?.let {
                 stringResource(R.string.n_files_selected, it.selected.size)
-            } ?: uiState.storageData.name
+            } ?: listData.storageData.name
         }
 
         else -> stringResource(R.string.app_name)
@@ -342,32 +357,13 @@ private fun DrawerMenuList(
     emitIntent: (uiIntent: MainUiIntent) -> Unit = {},
 ) {
     Column {
-        DrawerMenuOption(
-            icon = R.drawable.ic_code,
-            title = stringResource(R.string.code_repository)
-        ) {
-            emitIntent(MainUiIntent.CodeRepositoryClick)
-        }
-
-        DrawerMenuOption(
-            icon = R.drawable.ic_feedback,
-            title = stringResource(R.string.feedback)
-        ) {
-            emitIntent(MainUiIntent.FeedbackClick)
-        }
-
-        DrawerMenuOption(
-            icon = R.drawable.ic_rate,
-            title = stringResource(R.string.rate)
-        ) {
-            emitIntent(MainUiIntent.RateClick)
-        }
-
-        DrawerMenuOption(
-            icon = R.drawable.ic_aboutt,
-            title = stringResource(R.string.about)
-        ) {
-            emitIntent(MainUiIntent.AboutClick)
+        MainDrawerMenu.entries.forEach {
+            DrawerMenuOption(
+                icon = painterResource(it.icon),
+                title = stringResource(it.title)
+            ) {
+                emitIntent(MainUiIntent.MainDrawerMenuClick(it))
+            }
         }
     }
 }
@@ -375,7 +371,7 @@ private fun DrawerMenuList(
 @Composable
 private fun DrawerMenuOption(
     modifier: Modifier = Modifier,
-    @DrawableRes icon: Int,
+    icon: Painter,
     title: String,
     onMenuClick: () -> Unit
 ) {
@@ -388,7 +384,7 @@ private fun DrawerMenuOption(
     ) {
         Image(
             modifier = Modifier.size(32.dp),
-            painter = painterResource(icon),
+            painter = icon,
             contentDescription = title
         )
         Spacer(Modifier.width(5.dp))
@@ -401,15 +397,42 @@ private fun DrawerMenuOption(
 }
 
 @Composable
+private fun AccessibleView(
+    modifier: Modifier = Modifier,
+    uiState: MainUiState.Accessible,
+    emitIntent: (uiIntent: MainUiIntent) -> Unit = {},
+) {
+    when (val listData = uiState.listData) {
+        MainListData.Undecided -> Unit
+
+        is MainListData.StorageVolume -> StorageVolumeList(
+            modifier = modifier,
+            loadingState = uiState.loadingState,
+            listData = listData,
+            emitIntent = emitIntent
+        )
+
+        is MainListData.Directory -> DirectoryView(
+            modifier = modifier,
+            loadingState = uiState.loadingState,
+            listData = listData,
+            viewMode = uiState.viewMode,
+            emitIntent = emitIntent
+        )
+    }
+}
+
+@Composable
 private fun StorageVolumeList(
     modifier: Modifier = Modifier,
-    uiState: MainUiState.StorageVolumeList,
+    loadingState: LoadingState,
+    listData: MainListData.StorageVolume,
     emitIntent: (uiIntent: MainUiIntent) -> Unit = {},
 ) {
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(horizontal = 10.dp, vertical = 10.dp)
+            .padding(horizontal = 10.dp)
     ) {
         Text(
             text = stringResource(R.string.storage_volume),
@@ -419,13 +442,13 @@ private fun StorageVolumeList(
             modifier = Modifier
                 .padding(top = 10.dp),
             emptyState = {
-                if (uiState.loadingState.isLoading) return@LazyList
+                if (loadingState.isLoading) return@LazyList
                 FillMessage(
                     icon = painterResource(R.drawable.ic_storage),
                     message = stringResource(R.string.no_accessible_storage_devices),
                 )
             },
-            items = uiState.storageVolumes
+            items = listData.storageVolumes
         ) {
             AppIconTextItemCard(
                 modifier = Modifier
@@ -444,85 +467,68 @@ private fun StorageVolumeList(
 @Composable
 private fun DirectoryView(
     modifier: Modifier = Modifier,
-    uiState: MainUiState.DirectoryList,
+    loadingState: LoadingState,
+    listData: MainListData.Directory,
+    viewMode: MainListViewMode,
     emitIntent: (uiIntent: MainUiIntent) -> Unit = {},
 ) {
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(vertical = 10.dp)
     ) {
         Text(
             modifier = Modifier
                 .padding(horizontal = 10.dp),
-            text = uiState.directoryPath.toString(),
+            text = listData.directoryPath.toString(),
             style = MaterialTheme.typography.headlineMedium
         )
-        FileList(
-            modifier = Modifier
-                .fillMaxHeight(),
-            uiState = uiState,
-            emitIntent = emitIntent
-        )
-    }
-}
 
-@Composable
-private fun FileList(
-    modifier: Modifier = Modifier,
-    uiState: MainUiState.DirectoryList,
-    emitIntent: (uiIntent: MainUiIntent) -> Unit = {},
-) {
-    Column(
-        modifier = modifier
-    ) {
         LazyList(
             modifier = Modifier
                 .padding(top = 10.dp)
                 .padding(horizontal = 10.dp)
                 .weight(1f),
-            items = uiState.files,
+            items = listData.files,
             emptyState = {
-                if (uiState.loadingState.isLoading) return@LazyList
+                if (loadingState.isLoading) return@LazyList
                 FillMessage(
                     icon = painterResource(R.drawable.ic_empty_folder),
                     message = stringResource(R.string.empty_directory),
                 )
             }
         ) { file ->
-            val (multipleSelectMode, selectedSet) =
-                uiState.viewMode.castOrNull<MainDirectoryViewMode.MultipleSelect>()?.let {
-                    true to it.selected
-                } ?: (false to null)
-
+            val selectedSet = viewMode.castOrNull<MainListViewMode.MultipleSelect>()?.selected
             FileItem(
-                storageData = uiState.storageData,
+                storageData = listData.storageData,
                 file = file,
-                multipleSelectMode = multipleSelectMode,
+                multipleSelectMode = selectedSet != null,
                 selectedSet = selectedSet,
                 emitIntent = emitIntent
             )
             Spacer(modifier = Modifier.height(10.dp))
         }
 
-        uiState.viewMode.castOrNull<MainDirectoryViewMode.MultipleSelect>()?.let {
+        if (viewMode !is MainListViewMode.Normal) {
             HorizontalDivider(modifier = Modifier.fillMaxWidth())
-            DirectoryListMultipleMenu(
-                modifier = Modifier
-                    .height(50.dp)
-                    .padding(horizontal = 10.dp),
-                viewMode = it,
-                emitIntent = emitIntent
-            )
         }
 
-        uiState.viewMode.castOrNull<MainDirectoryViewMode.Pause>()?.let {
-            HorizontalDivider(modifier = Modifier.fillMaxWidth())
-            DirectoryListPauseMenu(
+        when (viewMode) {
+            MainListViewMode.Normal -> Unit
+
+            is MainListViewMode.MultipleSelect -> DirectoryListMultipleMenu(
+                modifier = Modifier
+                    .height(60.dp)
+                    .padding(horizontal = 10.dp),
+                listData = listData,
+                viewMode = viewMode,
+                emitIntent = emitIntent
+            )
+
+            is MainListViewMode.Pause -> DirectoryListPauseMenu(
                 modifier = Modifier
                     .height(50.dp)
                     .padding(horizontal = 10.dp),
-                viewMode = it,
+                viewMode = viewMode,
                 emitIntent = emitIntent
             )
         }
@@ -576,22 +582,70 @@ private fun FileItem(
 @Composable
 private fun DirectoryListMultipleMenu(
     modifier: Modifier = Modifier,
-    viewMode: MainDirectoryViewMode.MultipleSelect,
+    listData: MainListData.Directory,
+    viewMode: MainListViewMode.MultipleSelect,
     emitIntent: (uiIntent: MainUiIntent) -> Unit = {},
 ) {
-    Row(modifier = modifier) {
-        // TODO: 待实现多选菜单功能
+    Row(
+        modifier = modifier
+            .fillMaxHeight()
+    ) {
+        val files = viewMode.selected.toList()
+        MainMultipleMenu.entries.forEach {
+            BottomMenu(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight(),
+                icon = painterResource(it.icon),
+                title = stringResource(it.title)
+            ) {
+                MainUiIntent.MultipleMenuClick(
+                    menu = it,
+                    sourceStorageData = listData.storageData,
+                    sourceDirectoryPath = listData.directoryPath,
+                    sourceFiles = files,
+                ).also(emitIntent)
+            }
+        }
     }
 }
 
 @Composable
 private fun DirectoryListPauseMenu(
     modifier: Modifier = Modifier,
-    viewMode: MainDirectoryViewMode.Pause,
+    viewMode: MainListViewMode.Pause,
     emitIntent: (uiIntent: MainUiIntent) -> Unit = {},
 ) {
     Row(modifier = modifier) {
         // TODO: 待实现粘贴模式菜单功能
+    }
+}
+
+@Composable
+private fun BottomMenu(
+    modifier: Modifier = Modifier,
+    icon: Painter,
+    title: String,
+    onMenuClick: () -> Unit
+) {
+    Column(
+        modifier = modifier
+            .clickable { onMenuClick() },
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Image(
+            modifier = Modifier
+                .size(30.dp),
+            painter = icon,
+            contentDescription = title
+        )
+        Spacer(modifier = Modifier.height(5.dp))
+        Text(
+            text = title,
+            style = MaterialTheme.typography.labelMedium,
+            maxLines = 1
+        )
     }
 }
 

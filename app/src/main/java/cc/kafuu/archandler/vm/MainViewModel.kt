@@ -1,5 +1,7 @@
 package cc.kafuu.archandler.vm
 
+import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
 import androidx.lifecycle.viewModelScope
 import cc.kafuu.archandler.R
 import cc.kafuu.archandler.libs.AppLibs
@@ -30,15 +32,7 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState, MainSingleEvent>(
                 event = MainSingleEvent.JumpFilePermissionSetting
             )
 
-            MainUiIntent.AboutClick -> {
-                // TODO: Waiting for implementation
-            }
-
-            MainUiIntent.CodeRepositoryClick -> get<AppLibs>().jumpToUrl(AppModel.CODE_REPOSITORY_URL)
-
-            MainUiIntent.FeedbackClick -> get<AppLibs>().jumpToUrl(AppModel.FEEDBACK_URL)
-
-            MainUiIntent.RateClick -> get<AppLibs>().jumpToUrl(AppModel.GOOGLE_PLAY_URL)
+            is MainUiIntent.MainDrawerMenuClick -> onMainDrawerMenuClick(uiIntent.menu)
 
             is MainUiIntent.StorageVolumeSelected -> onStorageVolumeSelected(
                 storageData = uiIntent.storageData
@@ -62,6 +56,12 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState, MainSingleEvent>(
             is MainUiIntent.FileMultipleSelectMode -> onFileMultipleSelectModeChange(
                 enable = uiIntent.enable
             )
+
+            is MainUiIntent.MultipleMenuClick -> {
+                // TODO: Waiting for implementation
+            }
+
+            MainUiIntent.BackToNormalViewMode -> onBackToNormalViewMode()
         }
     }
 
@@ -73,14 +73,32 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState, MainSingleEvent>(
         }
     }
 
+    private fun onMainDrawerMenuClick(
+        menu: MainDrawerMenu
+    ) = when (menu) {
+        MainDrawerMenu.Code -> {
+            get<AppLibs>().jumpToUrl(AppModel.CODE_REPOSITORY_URL)
+        }
+
+        MainDrawerMenu.Feedback -> {
+            get<AppLibs>().jumpToUrl(AppModel.FEEDBACK_URL)
+        }
+
+        MainDrawerMenu.Rate -> {
+            get<AppLibs>().jumpToUrl(AppModel.GOOGLE_PLAY_URL)
+        }
+
+        MainDrawerMenu.About -> {
+            // TODO: 待实现关于页
+        }
+    }
+
     private fun onStorageVolumeSelected(
         storageData: StorageData
-    ) {
-        loadDirectory(
-            storageData = storageData,
-            directoryPath = Path(storageData.directory.path)
-        )
-    }
+    ) = loadDirectory(
+        storageData = storageData,
+        directoryPath = Path(storageData.directory.path)
+    )
 
     private fun onFileSelected(
         storageData: StorageData,
@@ -98,11 +116,11 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState, MainSingleEvent>(
     private fun onFileMultipleSelectModeChange(
         enable: Boolean
     ) {
-        uiState.value?.castOrNull<MainUiState.DirectoryList>()?.copy(
+        uiState.value?.castOrNull<MainUiState.Accessible>()?.copy(
             viewMode = if (enable) {
-                MainDirectoryViewMode.MultipleSelect()
+                MainListViewMode.MultipleSelect()
             } else {
-                MainDirectoryViewMode.Normal
+                MainListViewMode.Normal
             }
         )?.setup()
     }
@@ -111,12 +129,12 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState, MainSingleEvent>(
         file: File,
         checked: Boolean
     ) {
-        val state = uiState.value?.castOrNull<MainUiState.DirectoryList>() ?: return
-        state.viewMode.castOrNull<MainDirectoryViewMode.MultipleSelect>()?.let {
+        val state = uiState.value?.castOrNull<MainUiState.Accessible>() ?: return
+        state.viewMode.castOrNull<MainListViewMode.MultipleSelect>()?.let {
             val selected = it.selected.toMutableSet().apply {
                 if (checked) add(file) else remove(file)
             }
-            state.copy(viewMode = MainDirectoryViewMode.MultipleSelect(selected = selected))
+            state.copy(viewMode = MainListViewMode.MultipleSelect(selected = selected))
         }?.setup()
     }
 
@@ -124,9 +142,11 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState, MainSingleEvent>(
         storageData: StorageData,
         currentPath: Path
     ) {
+        val state = uiState.value?.castOrNull<MainUiState.Accessible>() ?: return
+
         val parent = currentPath.getParentPath()
         if (parent == null || Path(storageData.directory.path).isSameFileOrDirectory(currentPath)) {
-            loadExternalStorages()
+            loadExternalStorages(state.viewMode)
         } else {
             loadDirectory(
                 storageData = storageData,
@@ -135,14 +155,35 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState, MainSingleEvent>(
         }
     }
 
-    private fun loadExternalStorages() = viewModelScope.launch(Dispatchers.IO) {
-        MainUiState.StorageVolumeList(loadingState = LoadingState(isLoading = true)).setup()
+    private fun onBackToNormalViewMode() {
+        val state = uiState.value?.castOrNull<MainUiState.Accessible>() ?: return
+        when (val viewMode = state.viewMode) {
+            is MainListViewMode.Normal, is MainListViewMode.MultipleSelect -> {
+                uiState.value?.castOrNull<MainUiState.Accessible>()?.copy(
+                    viewMode = MainListViewMode.Normal
+                )?.setup()
+            }
+
+            is MainListViewMode.Pause -> loadDirectory(
+                storageData = viewMode.sourceStorageData,
+                directoryPath = viewMode.sourceDirectoryPath
+            )
+        }
+    }
+
+    private fun loadExternalStorages(
+        viewMode: MainListViewMode = MainListViewMode.Normal
+    ) = viewModelScope.launch(Dispatchers.IO) {
+        val uiStatePrototype = MainUiState.Accessible(viewMode = viewMode)
+        uiStatePrototype.copy(loadingState = LoadingState(isLoading = true)).setup()
         runCatching {
             get<FileManager>().getMountedStorageVolumes()
         }.onSuccess { storages ->
-            MainUiState.StorageVolumeList(storageVolumes = storages).setup()
+            uiStatePrototype.copy(
+                listData = MainListData.StorageVolume(storageVolumes = storages)
+            ).setup()
         }.onFailure { exception ->
-            MainUiState.StorageVolumeList(
+            uiStatePrototype.copy(
                 errorMessage = exception.message ?: get<AppLibs>().getString(R.string.unknown_error)
             ).setup()
         }
@@ -152,15 +193,18 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState, MainSingleEvent>(
         storageData: StorageData,
         directoryPath: Path
     ) = viewModelScope.launch(Dispatchers.IO) {
-        val uiStatePrototype = MainUiState.DirectoryList(
-            storageData = storageData,
-            directoryPath = directoryPath
-        )
+        val uiStatePrototype = MainUiState.Accessible()
         uiStatePrototype.copy(loadingState = LoadingState(isLoading = true)).setup()
         runCatching {
             File(directoryPath.toString()).listFiles()?.asList() ?: emptyList()
         }.onSuccess { files ->
-            uiStatePrototype.copy(files = files).setup()
+            uiStatePrototype.copy(
+                listData = MainListData.Directory(
+                    storageData = storageData,
+                    directoryPath = directoryPath,
+                    files = files
+                )
+            ).setup()
         }.onFailure { exception ->
             uiStatePrototype.copy(
                 errorMessage = exception.message ?: get<AppLibs>().getString(R.string.unknown_error)
@@ -173,10 +217,9 @@ sealed class MainUiIntent {
     data object Init : MainUiIntent()
     data object JumpFilePermissionSetting : MainUiIntent()
 
-    data object CodeRepositoryClick : MainUiIntent()
-    data object FeedbackClick : MainUiIntent()
-    data object RateClick : MainUiIntent()
-    data object AboutClick : MainUiIntent()
+    data class MainDrawerMenuClick(
+        val menu: MainDrawerMenu
+    ) : MainUiIntent()
 
     data class StorageVolumeSelected(
         val storageData: StorageData
@@ -200,6 +243,15 @@ sealed class MainUiIntent {
         val storageData: StorageData,
         val currentPath: Path
     ) : MainUiIntent()
+
+    data object BackToNormalViewMode : MainUiIntent()
+
+    data class MultipleMenuClick(
+        val menu: MainMultipleMenu,
+        val sourceStorageData: StorageData,
+        val sourceDirectoryPath: Path,
+        val sourceFiles: List<File>,
+    ) : MainUiIntent()
 }
 
 sealed class MainUiState(
@@ -207,37 +259,63 @@ sealed class MainUiState(
 ) {
     data object PermissionDenied : MainUiState()
 
-    data class StorageVolumeList(
+    data class Accessible(
         override val loadingState: LoadingState = LoadingState(),
         val errorMessage: String? = null,
-        val storageVolumes: List<StorageData> = emptyList()
-    ) : MainUiState(loadingState = loadingState)
-
-    data class DirectoryList(
-        override val loadingState: LoadingState = LoadingState(),
-        val errorMessage: String? = null,
-        val storageData: StorageData,
-        val directoryPath: Path,
-        val files: List<File> = emptyList(),
-        val viewMode: MainDirectoryViewMode = MainDirectoryViewMode.Normal
+        val viewMode: MainListViewMode = MainListViewMode.Normal,
+        val listData: MainListData = MainListData.Undecided,
     ) : MainUiState(loadingState = loadingState)
 }
 
-sealed class MainDirectoryViewMode {
-    data object Normal : MainDirectoryViewMode()
+sealed class MainListData {
+    data object Undecided : MainListData()
+
+    data class StorageVolume(
+        val storageVolumes: List<StorageData> = emptyList()
+    ) : MainListData()
+
+    data class Directory(
+        val storageData: StorageData,
+        val directoryPath: Path,
+        val files: List<File> = emptyList(),
+    ) : MainListData()
+}
+
+sealed class MainListViewMode {
+    data object Normal : MainListViewMode()
 
     data class MultipleSelect(
         val selected: Set<File> = emptySet()
-    ) : MainDirectoryViewMode()
+    ) : MainListViewMode()
 
     data class Pause(
         val sourceStorageData: StorageData,
         val sourceDirectoryPath: Path,
         val sourceFiles: List<File>,
         val isMoving: Boolean = false
-    ) : MainDirectoryViewMode()
+    ) : MainListViewMode()
 }
 
 sealed class MainSingleEvent {
     data object JumpFilePermissionSetting : MainSingleEvent()
+}
+
+enum class MainDrawerMenu(
+    @DrawableRes val icon: Int,
+    @StringRes val title: Int,
+) {
+    Code(R.drawable.ic_code, R.string.code_repository),
+    Feedback(R.drawable.ic_feedback, R.string.feedback),
+    Rate(R.drawable.ic_rate, R.string.rate),
+    About(R.drawable.ic_about, R.string.about)
+}
+
+enum class MainMultipleMenu(
+    @DrawableRes val icon: Int,
+    @StringRes val title: Int,
+) {
+    Copy(R.drawable.ic_file_copy, R.string.copy),
+    Move(R.drawable.ic_file_moving, R.string.move),
+    Delete(R.drawable.ic_delete, R.string.delete),
+    Archive(R.drawable.ic_packing, R.string.archive),
 }
