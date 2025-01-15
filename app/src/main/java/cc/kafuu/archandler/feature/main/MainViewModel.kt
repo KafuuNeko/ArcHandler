@@ -1,9 +1,13 @@
-package cc.kafuu.archandler.vm
+package cc.kafuu.archandler.feature.main
 
-import androidx.annotation.DrawableRes
-import androidx.annotation.StringRes
 import androidx.lifecycle.viewModelScope
 import cc.kafuu.archandler.R
+import cc.kafuu.archandler.feature.main.model.MainDrawerMenuEnum
+import cc.kafuu.archandler.feature.main.presentation.MainListData
+import cc.kafuu.archandler.feature.main.presentation.MainListViewMode
+import cc.kafuu.archandler.feature.main.presentation.MainSingleEvent
+import cc.kafuu.archandler.feature.main.presentation.MainUiIntent
+import cc.kafuu.archandler.feature.main.presentation.MainUiState
 import cc.kafuu.archandler.libs.AppLibs
 import cc.kafuu.archandler.libs.AppModel
 import cc.kafuu.archandler.libs.core.CoreViewModel
@@ -74,21 +78,21 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState, MainSingleEvent>(
     }
 
     private fun onMainDrawerMenuClick(
-        menu: MainDrawerMenu
+        menu: MainDrawerMenuEnum
     ) = when (menu) {
-        MainDrawerMenu.Code -> {
+        MainDrawerMenuEnum.Code -> {
             get<AppLibs>().jumpToUrl(AppModel.CODE_REPOSITORY_URL)
         }
 
-        MainDrawerMenu.Feedback -> {
+        MainDrawerMenuEnum.Feedback -> {
             get<AppLibs>().jumpToUrl(AppModel.FEEDBACK_URL)
         }
 
-        MainDrawerMenu.Rate -> {
+        MainDrawerMenuEnum.Rate -> {
             get<AppLibs>().jumpToUrl(AppModel.GOOGLE_PLAY_URL)
         }
 
-        MainDrawerMenu.About -> {
+        MainDrawerMenuEnum.About -> {
             // TODO: 待实现关于页
         }
     }
@@ -211,111 +215,4 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState, MainSingleEvent>(
             ).setup()
         }
     }
-}
-
-sealed class MainUiIntent {
-    data object Init : MainUiIntent()
-    data object JumpFilePermissionSetting : MainUiIntent()
-
-    data class MainDrawerMenuClick(
-        val menu: MainDrawerMenu
-    ) : MainUiIntent()
-
-    data class StorageVolumeSelected(
-        val storageData: StorageData
-    ) : MainUiIntent()
-
-    data class FileSelected(
-        val storageData: StorageData,
-        val file: File
-    ) : MainUiIntent()
-
-    data class FileMultipleSelectMode(
-        val enable: Boolean
-    ) : MainUiIntent()
-
-    data class FileCheckedChange(
-        val file: File,
-        val checked: Boolean
-    ) : MainUiIntent()
-
-    data class BackToParent(
-        val storageData: StorageData,
-        val currentPath: Path
-    ) : MainUiIntent()
-
-    data object BackToNormalViewMode : MainUiIntent()
-
-    data class MultipleMenuClick(
-        val menu: MainMultipleMenu,
-        val sourceStorageData: StorageData,
-        val sourceDirectoryPath: Path,
-        val sourceFiles: List<File>,
-    ) : MainUiIntent()
-}
-
-sealed class MainUiState(
-    open val loadingState: LoadingState = LoadingState()
-) {
-    data object PermissionDenied : MainUiState()
-
-    data class Accessible(
-        override val loadingState: LoadingState = LoadingState(),
-        val errorMessage: String? = null,
-        val viewMode: MainListViewMode = MainListViewMode.Normal,
-        val listData: MainListData = MainListData.Undecided,
-    ) : MainUiState(loadingState = loadingState)
-}
-
-sealed class MainListData {
-    data object Undecided : MainListData()
-
-    data class StorageVolume(
-        val storageVolumes: List<StorageData> = emptyList()
-    ) : MainListData()
-
-    data class Directory(
-        val storageData: StorageData,
-        val directoryPath: Path,
-        val files: List<File> = emptyList(),
-    ) : MainListData()
-}
-
-sealed class MainListViewMode {
-    data object Normal : MainListViewMode()
-
-    data class MultipleSelect(
-        val selected: Set<File> = emptySet()
-    ) : MainListViewMode()
-
-    data class Pause(
-        val sourceStorageData: StorageData,
-        val sourceDirectoryPath: Path,
-        val sourceFiles: List<File>,
-        val isMoving: Boolean = false
-    ) : MainListViewMode()
-}
-
-sealed class MainSingleEvent {
-    data object JumpFilePermissionSetting : MainSingleEvent()
-}
-
-enum class MainDrawerMenu(
-    @DrawableRes val icon: Int,
-    @StringRes val title: Int,
-) {
-    Code(R.drawable.ic_code, R.string.code_repository),
-    Feedback(R.drawable.ic_feedback, R.string.feedback),
-    Rate(R.drawable.ic_rate, R.string.rate),
-    About(R.drawable.ic_about, R.string.about)
-}
-
-enum class MainMultipleMenu(
-    @DrawableRes val icon: Int,
-    @StringRes val title: Int,
-) {
-    Copy(R.drawable.ic_file_copy, R.string.copy),
-    Move(R.drawable.ic_file_moving, R.string.move),
-    Delete(R.drawable.ic_delete, R.string.delete),
-    Archive(R.drawable.ic_packing, R.string.archive),
 }
