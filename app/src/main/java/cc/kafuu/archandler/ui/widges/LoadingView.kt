@@ -9,7 +9,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import cc.kafuu.archandler.libs.model.LoadingState
+import cc.kafuu.archandler.feature.main.presentation.LoadingState
 import cc.kafuu.archandler.ui.theme.MarkColor
 import cc.kafuu.archandler.ui.theme.MarkDarkColor
 

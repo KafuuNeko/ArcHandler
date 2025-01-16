@@ -2,7 +2,7 @@ package cc.kafuu.archandler.feature.main.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import cc.kafuu.archandler.feature.main.presentation.MainListData
+import cc.kafuu.archandler.feature.main.presentation.MainListState
 import cc.kafuu.archandler.feature.main.presentation.MainUiIntent
 import cc.kafuu.archandler.feature.main.presentation.MainUiState
 
@@ -12,21 +12,21 @@ fun AccessibleView(
     uiState: MainUiState.Accessible,
     emitIntent: (uiIntent: MainUiIntent) -> Unit = {},
 ) {
-    when (val listData = uiState.listData) {
-        MainListData.Undecided -> Unit
+    when (val listState = uiState.listState) {
+        MainListState.Undecided -> Unit
 
-        is MainListData.StorageVolume -> StorageVolumeView(
+        is MainListState.StorageVolume -> StorageVolumeView(
             modifier = modifier,
             loadingState = uiState.loadingState,
-            listData = listData,
+            listState = listState,
             emitIntent = emitIntent
         )
 
-        is MainListData.Directory -> DirectoryView(
+        is MainListState.Directory -> DirectoryView(
             modifier = modifier,
             loadingState = uiState.loadingState,
-            listData = listData,
-            viewMode = uiState.viewMode,
+            listState = listState,
+            viewMode = uiState.viewModeState,
             emitIntent = emitIntent
         )
     }

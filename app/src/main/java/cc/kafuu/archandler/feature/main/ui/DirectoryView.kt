@@ -15,15 +15,15 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import cc.kafuu.archandler.R
-import cc.kafuu.archandler.feature.main.presentation.MainListData
-import cc.kafuu.archandler.feature.main.presentation.MainListViewMode
+import cc.kafuu.archandler.feature.main.presentation.MainListState
+import cc.kafuu.archandler.feature.main.presentation.MainListViewModeState
 import cc.kafuu.archandler.feature.main.presentation.MainUiIntent
 import cc.kafuu.archandler.feature.main.ui.common.FillMessageView
 import cc.kafuu.archandler.libs.ext.castOrNull
 import cc.kafuu.archandler.libs.ext.getIcon
 import cc.kafuu.archandler.libs.ext.getLastModifiedDate
 import cc.kafuu.archandler.libs.ext.getReadableSize
-import cc.kafuu.archandler.libs.model.LoadingState
+import cc.kafuu.archandler.feature.main.presentation.LoadingState
 import cc.kafuu.archandler.libs.model.StorageData
 import cc.kafuu.archandler.ui.widges.AppOptionalIconTextItemCard
 import cc.kafuu.archandler.ui.widges.LazyList
@@ -33,8 +33,8 @@ import java.io.File
 fun DirectoryView(
     modifier: Modifier = Modifier,
     loadingState: LoadingState,
-    listData: MainListData.Directory,
-    viewMode: MainListViewMode,
+    listState: MainListState.Directory,
+    viewMode: MainListViewModeState,
     emitIntent: (uiIntent: MainUiIntent) -> Unit = {},
 ) {
     Column(
@@ -44,7 +44,7 @@ fun DirectoryView(
         Text(
             modifier = Modifier
                 .padding(horizontal = 10.dp),
-            text = listData.directoryPath.toString(),
+            text = listState.directoryPath.toString(),
             style = MaterialTheme.typography.headlineMedium
         )
 
@@ -53,7 +53,7 @@ fun DirectoryView(
                 .padding(top = 10.dp)
                 .padding(horizontal = 10.dp)
                 .weight(1f),
-            items = listData.files,
+            items = listState.files,
             emptyState = {
                 if (loadingState.isLoading) return@LazyList
                 FillMessageView(
@@ -62,9 +62,9 @@ fun DirectoryView(
                 )
             }
         ) { file ->
-            val selectedSet = viewMode.castOrNull<MainListViewMode.MultipleSelect>()?.selected
+            val selectedSet = viewMode.castOrNull<MainListViewModeState.MultipleSelect>()?.selected
             FileItem(
-                storageData = listData.storageData,
+                storageData = listState.storageData,
                 file = file,
                 multipleSelectMode = selectedSet != null,
                 selectedSet = selectedSet,
@@ -73,23 +73,23 @@ fun DirectoryView(
             Spacer(modifier = Modifier.height(10.dp))
         }
 
-        if (viewMode !is MainListViewMode.Normal) {
+        if (viewMode !is MainListViewModeState.Normal) {
             HorizontalDivider(modifier = Modifier.fillMaxWidth())
         }
 
         when (viewMode) {
-            MainListViewMode.Normal -> Unit
+            MainListViewModeState.Normal -> Unit
 
-            is MainListViewMode.MultipleSelect -> MultipleMenuView(
+            is MainListViewModeState.MultipleSelect -> MultipleMenuView(
                 modifier = Modifier
                     .height(60.dp)
                     .padding(horizontal = 10.dp),
-                listData = listData,
+                listData = listState,
                 viewMode = viewMode,
                 emitIntent = emitIntent
             )
 
-            is MainListViewMode.Pause -> PauseMenuView(
+            is MainListViewModeState.Pause -> PauseMenuView(
                 modifier = Modifier
                     .height(50.dp)
                     .padding(horizontal = 10.dp),

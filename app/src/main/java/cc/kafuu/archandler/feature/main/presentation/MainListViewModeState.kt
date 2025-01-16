@@ -4,17 +4,17 @@ import cc.kafuu.archandler.libs.model.StorageData
 import java.io.File
 import java.nio.file.Path
 
-sealed class MainListViewMode {
-    data object Normal : MainListViewMode()
+sealed class MainListViewModeState {
+    data object Normal : MainListViewModeState()
 
     data class MultipleSelect(
         val selected: Set<File> = emptySet()
-    ) : MainListViewMode()
+    ) : MainListViewModeState()
 
     data class Pause(
         val sourceStorageData: StorageData,
         val sourceDirectoryPath: Path,
         val sourceFiles: List<File>,
         val isMoving: Boolean = false
-    ) : MainListViewMode()
+    ) : MainListViewModeState()
 }

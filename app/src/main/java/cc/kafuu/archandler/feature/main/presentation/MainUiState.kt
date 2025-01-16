@@ -1,7 +1,5 @@
 package cc.kafuu.archandler.feature.main.presentation
 
-import cc.kafuu.archandler.libs.model.LoadingState
-
 sealed class MainUiState(
     open val loadingState: LoadingState = LoadingState()
 ) {
@@ -10,7 +8,7 @@ sealed class MainUiState(
     data class Accessible(
         override val loadingState: LoadingState = LoadingState(),
         val errorMessage: String? = null,
-        val viewMode: MainListViewMode = MainListViewMode.Normal,
-        val listData: MainListData = MainListData.Undecided,
+        val viewModeState: MainListViewModeState = MainListViewModeState.Normal,
+        val listState: MainListState = MainListState.Undecided,
     ) : MainUiState(loadingState = loadingState)
 }

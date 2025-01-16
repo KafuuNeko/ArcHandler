@@ -3,8 +3,8 @@ package cc.kafuu.archandler.feature.main
 import androidx.lifecycle.viewModelScope
 import cc.kafuu.archandler.R
 import cc.kafuu.archandler.feature.main.model.MainDrawerMenuEnum
-import cc.kafuu.archandler.feature.main.presentation.MainListData
-import cc.kafuu.archandler.feature.main.presentation.MainListViewMode
+import cc.kafuu.archandler.feature.main.presentation.MainListState
+import cc.kafuu.archandler.feature.main.presentation.MainListViewModeState
 import cc.kafuu.archandler.feature.main.presentation.MainSingleEvent
 import cc.kafuu.archandler.feature.main.presentation.MainUiIntent
 import cc.kafuu.archandler.feature.main.presentation.MainUiState
@@ -15,7 +15,7 @@ import cc.kafuu.archandler.libs.ext.castOrNull
 import cc.kafuu.archandler.libs.ext.getParentPath
 import cc.kafuu.archandler.libs.ext.isSameFileOrDirectory
 import cc.kafuu.archandler.libs.manager.FileManager
-import cc.kafuu.archandler.libs.model.LoadingState
+import cc.kafuu.archandler.feature.main.presentation.LoadingState
 import cc.kafuu.archandler.libs.model.StorageData
 import com.hjq.permissions.Permission
 import com.hjq.permissions.XXPermissions
@@ -121,10 +121,10 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState, MainSingleEvent>(
         enable: Boolean
     ) {
         uiState.value?.castOrNull<MainUiState.Accessible>()?.copy(
-            viewMode = if (enable) {
-                MainListViewMode.MultipleSelect()
+            viewModeState = if (enable) {
+                MainListViewModeState.MultipleSelect()
             } else {
-                MainListViewMode.Normal
+                MainListViewModeState.Normal
             }
         )?.setup()
     }
@@ -134,11 +134,11 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState, MainSingleEvent>(
         checked: Boolean
     ) {
         val state = uiState.value?.castOrNull<MainUiState.Accessible>() ?: return
-        state.viewMode.castOrNull<MainListViewMode.MultipleSelect>()?.let {
+        state.viewModeState.castOrNull<MainListViewModeState.MultipleSelect>()?.let {
             val selected = it.selected.toMutableSet().apply {
                 if (checked) add(file) else remove(file)
             }
-            state.copy(viewMode = MainListViewMode.MultipleSelect(selected = selected))
+            state.copy(viewModeState = MainListViewModeState.MultipleSelect(selected = selected))
         }?.setup()
     }
 
@@ -150,7 +150,7 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState, MainSingleEvent>(
 
         val parent = currentPath.getParentPath()
         if (parent == null || Path(storageData.directory.path).isSameFileOrDirectory(currentPath)) {
-            loadExternalStorages(state.viewMode)
+            loadExternalStorages(state.viewModeState)
         } else {
             loadDirectory(
                 storageData = storageData,
@@ -161,14 +161,14 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState, MainSingleEvent>(
 
     private fun onBackToNormalViewMode() {
         val state = uiState.value?.castOrNull<MainUiState.Accessible>() ?: return
-        when (val viewMode = state.viewMode) {
-            is MainListViewMode.Normal, is MainListViewMode.MultipleSelect -> {
+        when (val viewMode = state.viewModeState) {
+            is MainListViewModeState.Normal, is MainListViewModeState.MultipleSelect -> {
                 uiState.value?.castOrNull<MainUiState.Accessible>()?.copy(
-                    viewMode = MainListViewMode.Normal
+                    viewModeState = MainListViewModeState.Normal
                 )?.setup()
             }
 
-            is MainListViewMode.Pause -> loadDirectory(
+            is MainListViewModeState.Pause -> loadDirectory(
                 storageData = viewMode.sourceStorageData,
                 directoryPath = viewMode.sourceDirectoryPath
             )
@@ -176,15 +176,15 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState, MainSingleEvent>(
     }
 
     private fun loadExternalStorages(
-        viewMode: MainListViewMode = MainListViewMode.Normal
+        viewMode: MainListViewModeState = MainListViewModeState.Normal
     ) = viewModelScope.launch(Dispatchers.IO) {
-        val uiStatePrototype = MainUiState.Accessible(viewMode = viewMode)
+        val uiStatePrototype = MainUiState.Accessible(viewModeState = viewMode)
         uiStatePrototype.copy(loadingState = LoadingState(isLoading = true)).setup()
         runCatching {
             get<FileManager>().getMountedStorageVolumes()
         }.onSuccess { storages ->
             uiStatePrototype.copy(
-                listData = MainListData.StorageVolume(storageVolumes = storages)
+                listState = MainListState.StorageVolume(storageVolumes = storages)
             ).setup()
         }.onFailure { exception ->
             uiStatePrototype.copy(
@@ -203,7 +203,7 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState, MainSingleEvent>(
             File(directoryPath.toString()).listFiles()?.asList() ?: emptyList()
         }.onSuccess { files ->
             uiStatePrototype.copy(
-                listData = MainListData.Directory(
+                listState = MainListState.Directory(
                     storageData = storageData,
                     directoryPath = directoryPath,
                     files = files

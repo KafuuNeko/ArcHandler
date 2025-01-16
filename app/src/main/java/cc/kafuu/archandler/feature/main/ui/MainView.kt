@@ -12,8 +12,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import cc.kafuu.archandler.R
-import cc.kafuu.archandler.feature.main.presentation.MainListData.Directory
-import cc.kafuu.archandler.feature.main.presentation.MainListViewMode
+import cc.kafuu.archandler.feature.main.presentation.MainListState.Directory
+import cc.kafuu.archandler.feature.main.presentation.MainListViewModeState
 import cc.kafuu.archandler.feature.main.presentation.MainUiIntent
 import cc.kafuu.archandler.feature.main.presentation.MainUiState
 import cc.kafuu.archandler.feature.main.ui.scaffold.MainScaffoldDrawer
@@ -55,9 +55,9 @@ private fun MainLayout(
     content: @Composable BoxScope.() -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
-    val title = when (val listData = uiState.listData) {
+    val title = when (val listData = uiState.listState) {
         is Directory -> {
-            uiState.viewMode.castOrNull<MainListViewMode.MultipleSelect>()?.let {
+            uiState.viewModeState.castOrNull<MainListViewModeState.MultipleSelect>()?.let {
                 stringResource(R.string.n_files_selected, it.selected.size)
             } ?: listData.storageData.name
         }

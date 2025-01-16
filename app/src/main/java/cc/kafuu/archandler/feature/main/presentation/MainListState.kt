@@ -4,16 +4,16 @@ import cc.kafuu.archandler.libs.model.StorageData
 import java.io.File
 import java.nio.file.Path
 
-sealed class MainListData {
-    data object Undecided : MainListData()
+sealed class MainListState {
+    data object Undecided : MainListState()
 
     data class StorageVolume(
         val storageVolumes: List<StorageData> = emptyList()
-    ) : MainListData()
+    ) : MainListState()
 
     data class Directory(
         val storageData: StorageData,
         val directoryPath: Path,
         val files: List<File> = emptyList(),
-    ) : MainListData()
+    ) : MainListState()
 }

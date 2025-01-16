@@ -1,4 +1,4 @@
-package cc.kafuu.archandler.libs.model
+package cc.kafuu.archandler.feature.main.presentation
 
 data class LoadingState(
     val isLoading: Boolean = false,

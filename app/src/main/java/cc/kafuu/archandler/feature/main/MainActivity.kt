@@ -9,8 +9,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
-import cc.kafuu.archandler.feature.main.presentation.MainListData
-import cc.kafuu.archandler.feature.main.presentation.MainListViewMode
+import cc.kafuu.archandler.feature.main.presentation.MainListState
+import cc.kafuu.archandler.feature.main.presentation.MainListViewModeState
 import cc.kafuu.archandler.feature.main.presentation.MainSingleEvent
 import cc.kafuu.archandler.feature.main.presentation.MainUiIntent
 import cc.kafuu.archandler.feature.main.presentation.MainUiState
@@ -69,29 +69,29 @@ class MainActivity : CoreActivity() {
     private fun onBackHandler(state: MainUiState.Accessible) {
         if (state.loadingState.isLoading) return
 
-        when (state.viewMode) {
-            MainListViewMode.Normal -> {
-                state.listData.castOrNull<MainListData.Directory>()?.let {
+        when (state.viewModeState) {
+            MainListViewModeState.Normal -> {
+                state.listState.castOrNull<MainListState.Directory>()?.let {
                     doBackToParent(it)
                 } ?: finish()
             }
 
-            is MainListViewMode.MultipleSelect -> mViewModel.emit(
+            is MainListViewModeState.MultipleSelect -> mViewModel.emit(
                 MainUiIntent.BackToNormalViewMode
             )
 
-            is MainListViewMode.Pause -> {
-                state.listData.castOrNull<MainListData.Directory>()?.let {
+            is MainListViewModeState.Pause -> {
+                state.listState.castOrNull<MainListState.Directory>()?.let {
                     doBackToParent(it)
                 } ?: mViewModel.emit(MainUiIntent.BackToNormalViewMode)
             }
         }
     }
 
-    private fun doBackToParent(listData: MainListData.Directory) {
+    private fun doBackToParent(listState: MainListState.Directory) {
         MainUiIntent.BackToParent(
-            storageData = listData.storageData,
-            currentPath = listData.directoryPath
+            storageData = listState.storageData,
+            currentPath = listState.directoryPath
         ).also {
             mViewModel.emit(it)
         }
