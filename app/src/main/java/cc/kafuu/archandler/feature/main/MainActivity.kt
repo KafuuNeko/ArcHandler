@@ -36,24 +36,29 @@ class MainActivity : CoreActivity() {
         val coroutineScope = rememberCoroutineScope()
         val drawerState = rememberDrawerState(DrawerValue.Closed)
 
-        uiState?.also { state ->
-            BackHandler {
-                // 如果抽屉打开优先关闭抽屉
-                if (drawerState.isOpen) {
-                    coroutineScope.launch { drawerState.close() }
-                    return@BackHandler
-                }
-                when (state) {
-                    is MainUiState.Accessible -> onBackHandler(state)
-                    else -> finish()
-                }
+        val validUiState = uiState ?: run {
+            // ui状态为空，则发送初始化意图
+            mViewModel.emit(MainUiIntent.Init)
+            return
+        }
+
+        BackHandler {
+            // 如果抽屉打开优先关闭抽屉
+            if (drawerState.isOpen) {
+                coroutineScope.launch { drawerState.close() }
+                return@BackHandler
             }
-            MainViewBody(
-                uiState = state,
-                drawerState = drawerState,
-                emitIntent = { intent -> mViewModel.emit(intent) }
-            )
-        } ?: mViewModel.emit(MainUiIntent.Init)
+            when (validUiState) {
+                is MainUiState.Accessible -> onBackHandler(validUiState)
+                else -> finish()
+            }
+        }
+
+        MainViewBody(
+            uiState = validUiState,
+            drawerState = drawerState,
+            emitIntent = { intent -> mViewModel.emit(intent) }
+        )
     }
 
     private fun onSingleEvent(singleEvent: MainSingleEvent) = when (singleEvent) {
