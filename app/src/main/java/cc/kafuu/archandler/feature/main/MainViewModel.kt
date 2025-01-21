@@ -3,6 +3,7 @@ package cc.kafuu.archandler.feature.main
 import androidx.lifecycle.viewModelScope
 import cc.kafuu.archandler.R
 import cc.kafuu.archandler.feature.main.model.MainDrawerMenuEnum
+import cc.kafuu.archandler.feature.main.presentation.LoadingState
 import cc.kafuu.archandler.feature.main.presentation.MainListState
 import cc.kafuu.archandler.feature.main.presentation.MainListViewModeState
 import cc.kafuu.archandler.feature.main.presentation.MainSingleEvent
@@ -15,7 +16,6 @@ import cc.kafuu.archandler.libs.ext.castOrNull
 import cc.kafuu.archandler.libs.ext.getParentPath
 import cc.kafuu.archandler.libs.ext.isSameFileOrDirectory
 import cc.kafuu.archandler.libs.manager.FileManager
-import cc.kafuu.archandler.feature.main.presentation.LoadingState
 import cc.kafuu.archandler.libs.model.StorageData
 import com.hjq.permissions.Permission
 import com.hjq.permissions.XXPermissions
@@ -93,7 +93,7 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState, MainSingleEvent>(
         }
 
         MainDrawerMenuEnum.About -> {
-            // TODO: 待实现关于页
+            dispatchingEvent(event = MainSingleEvent.JumpAboutPage)
         }
     }
 

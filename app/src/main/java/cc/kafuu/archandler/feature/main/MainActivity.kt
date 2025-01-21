@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
+import cc.kafuu.archandler.feature.about.AboutActivity
 import cc.kafuu.archandler.feature.main.presentation.MainListState
 import cc.kafuu.archandler.feature.main.presentation.MainListViewModeState
 import cc.kafuu.archandler.feature.main.presentation.MainSingleEvent
@@ -63,6 +64,7 @@ class MainActivity : CoreActivity() {
 
     private fun onSingleEvent(singleEvent: MainSingleEvent) = when (singleEvent) {
         MainSingleEvent.JumpFilePermissionSetting -> onJumpFilePermissionSetting()
+        MainSingleEvent.JumpAboutPage -> AboutActivity.start(this)
     }
 
     private fun onJumpFilePermissionSetting() {
