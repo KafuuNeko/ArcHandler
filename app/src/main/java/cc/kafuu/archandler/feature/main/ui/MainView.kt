@@ -55,7 +55,9 @@ private fun MainLayout(
     content: @Composable BoxScope.() -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
-    val title = when (val listData = uiState.listState) {
+    val title = uiState.viewModeState.castOrNull<MainListViewModeState.Pause>()?.let {
+        stringResource(R.string.select_destination_path)
+    } ?: when (val listData = uiState.listState) {
         is Directory -> {
             uiState.viewModeState.castOrNull<MainListViewModeState.MultipleSelect>()?.let {
                 stringResource(R.string.n_files_selected, it.selected.size)

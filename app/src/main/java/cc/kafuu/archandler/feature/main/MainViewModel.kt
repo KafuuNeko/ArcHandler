@@ -3,6 +3,7 @@ package cc.kafuu.archandler.feature.main
 import androidx.lifecycle.viewModelScope
 import cc.kafuu.archandler.R
 import cc.kafuu.archandler.feature.main.model.MainDrawerMenuEnum
+import cc.kafuu.archandler.feature.main.model.MainMultipleMenuEnum
 import cc.kafuu.archandler.feature.main.presentation.LoadingState
 import cc.kafuu.archandler.feature.main.presentation.MainListState
 import cc.kafuu.archandler.feature.main.presentation.MainListViewModeState
@@ -36,36 +37,15 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState, MainSingleEvent>(
                 event = MainSingleEvent.JumpFilePermissionSetting
             )
 
-            is MainUiIntent.MainDrawerMenuClick -> onMainDrawerMenuClick(uiIntent.menu)
-
-            is MainUiIntent.StorageVolumeSelected -> onStorageVolumeSelected(
-                storageData = uiIntent.storageData
-            )
-
-            is MainUiIntent.FileSelected -> onFileSelected(
-                storageData = uiIntent.storageData,
-                file = uiIntent.file
-            )
-
-            is MainUiIntent.BackToParent -> onBackToParent(
-                storageData = uiIntent.storageData,
-                currentPath = uiIntent.currentPath
-            )
-
-            is MainUiIntent.FileCheckedChange -> onFileCheckedChange(
-                file = uiIntent.file,
-                checked = uiIntent.checked
-            )
-
-            is MainUiIntent.FileMultipleSelectMode -> onFileMultipleSelectModeChange(
-                enable = uiIntent.enable
-            )
-
-            is MainUiIntent.MultipleMenuClick -> {
-                // TODO: Waiting for implementation
-            }
-
             MainUiIntent.BackToNormalViewMode -> onBackToNormalViewMode()
+
+            is MainUiIntent.MainDrawerMenuClick -> onProcessingIntent(uiIntent)
+            is MainUiIntent.StorageVolumeSelected -> onProcessingIntent(uiIntent)
+            is MainUiIntent.FileSelected -> onProcessingIntent(uiIntent)
+            is MainUiIntent.BackToParent -> onProcessingIntent(uiIntent)
+            is MainUiIntent.FileCheckedChange -> onProcessingIntent(uiIntent)
+            is MainUiIntent.FileMultipleSelectMode -> onProcessingIntent(uiIntent)
+            is MainUiIntent.MultipleMenuClick -> onProcessingIntent(uiIntent)
         }
     }
 
@@ -77,51 +57,50 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState, MainSingleEvent>(
         }
     }
 
-    private fun onMainDrawerMenuClick(
-        menu: MainDrawerMenuEnum
-    ) = when (menu) {
-        MainDrawerMenuEnum.Code -> {
-            get<AppLibs>().jumpToUrl(AppModel.CODE_REPOSITORY_URL)
-        }
+    private fun onProcessingIntent(intent: MainUiIntent.MainDrawerMenuClick) {
+        when (intent.menu) {
+            MainDrawerMenuEnum.Code -> {
+                get<AppLibs>().jumpToUrl(AppModel.CODE_REPOSITORY_URL)
+            }
 
-        MainDrawerMenuEnum.Feedback -> {
-            get<AppLibs>().jumpToUrl(AppModel.FEEDBACK_URL)
-        }
+            MainDrawerMenuEnum.Feedback -> {
+                get<AppLibs>().jumpToUrl(AppModel.FEEDBACK_URL)
+            }
 
-        MainDrawerMenuEnum.Rate -> {
-            get<AppLibs>().jumpToUrl(AppModel.GOOGLE_PLAY_URL)
-        }
+            MainDrawerMenuEnum.Rate -> {
+                get<AppLibs>().jumpToUrl(AppModel.GOOGLE_PLAY_URL)
+            }
 
-        MainDrawerMenuEnum.About -> {
-            dispatchingEvent(event = MainSingleEvent.JumpAboutPage)
+            MainDrawerMenuEnum.About -> {
+                dispatchingEvent(event = MainSingleEvent.JumpAboutPage)
+            }
         }
     }
 
-    private fun onStorageVolumeSelected(
-        storageData: StorageData
-    ) = loadDirectory(
-        storageData = storageData,
-        directoryPath = Path(storageData.directory.path)
-    )
+    private fun onProcessingIntent(intent: MainUiIntent.StorageVolumeSelected) {
+        val state = uiState.value?.castOrNull<MainUiState.Accessible>() ?: return
+        loadDirectory(
+            storageData = intent.storageData,
+            directoryPath = Path(intent.storageData.directory.path),
+            viewModeState = state.viewModeState
+        )
+    }
 
-    private fun onFileSelected(
-        storageData: StorageData,
-        file: File
-    ) {
-        if (file.isDirectory) {
+    private fun onProcessingIntent(intent: MainUiIntent.FileSelected) {
+        val state = uiState.value?.castOrNull<MainUiState.Accessible>() ?: return
+        if (intent.file.isDirectory) {
             loadDirectory(
-                storageData = storageData,
-                directoryPath = Path(file.path)
+                storageData = intent.storageData,
+                directoryPath = Path(intent.file.path),
+                viewModeState = state.viewModeState
             )
             return
         }
     }
 
-    private fun onFileMultipleSelectModeChange(
-        enable: Boolean
-    ) {
+    private fun onProcessingIntent(intent: MainUiIntent.FileMultipleSelectMode) {
         uiState.value?.castOrNull<MainUiState.Accessible>()?.copy(
-            viewModeState = if (enable) {
+            viewModeState = if (intent.enable) {
                 MainListViewModeState.MultipleSelect()
             } else {
                 MainListViewModeState.Normal
@@ -129,32 +108,73 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState, MainSingleEvent>(
         )?.setup()
     }
 
-    private fun onFileCheckedChange(
-        file: File,
-        checked: Boolean
+    private fun onProcessingIntent(intent: MainUiIntent.MultipleMenuClick) {
+        when (intent.menu) {
+            MainMultipleMenuEnum.Copy -> entryPauseMode(
+                sourceStorageData = intent.sourceStorageData,
+                sourceDirectoryPath = intent.sourceDirectoryPath,
+                sourceFiles = intent.sourceFiles,
+                isMoving = false
+            )
+
+            MainMultipleMenuEnum.Move -> entryPauseMode(
+                sourceStorageData = intent.sourceStorageData,
+                sourceDirectoryPath = intent.sourceDirectoryPath,
+                sourceFiles = intent.sourceFiles,
+                isMoving = true
+            )
+
+            MainMultipleMenuEnum.Delete -> {
+                // TODO:
+            }
+
+            MainMultipleMenuEnum.Archive -> {
+                // TODO:
+            }
+        }
+    }
+
+    private fun entryPauseMode(
+        sourceStorageData: StorageData,
+        sourceDirectoryPath: Path,
+        sourceFiles: List<File>,
+        isMoving: Boolean = false
     ) {
+        uiState.value?.castOrNull<MainUiState.Accessible>()?.copy(
+            viewModeState = MainListViewModeState.Pause(
+                sourceStorageData = sourceStorageData,
+                sourceDirectoryPath = sourceDirectoryPath,
+                sourceFiles = sourceFiles,
+                isMoving = isMoving
+            )
+        )?.setup()
+    }
+
+    private fun onProcessingIntent(intent: MainUiIntent.FileCheckedChange) {
         val state = uiState.value?.castOrNull<MainUiState.Accessible>() ?: return
         state.viewModeState.castOrNull<MainListViewModeState.MultipleSelect>()?.let {
             val selected = it.selected.toMutableSet().apply {
-                if (checked) add(file) else remove(file)
+                if (intent.checked) add(intent.file) else remove(intent.file)
             }
             state.copy(viewModeState = MainListViewModeState.MultipleSelect(selected = selected))
         }?.setup()
     }
 
-    private fun onBackToParent(
-        storageData: StorageData,
-        currentPath: Path
+    private fun onProcessingIntent(
+        intent: MainUiIntent.BackToParent
     ) {
         val state = uiState.value?.castOrNull<MainUiState.Accessible>() ?: return
 
-        val parent = currentPath.getParentPath()
-        if (parent == null || Path(storageData.directory.path).isSameFileOrDirectory(currentPath)) {
+        val parent = intent.currentPath.getParentPath()
+        if (parent == null ||
+            Path(intent.storageData.directory.path).isSameFileOrDirectory(intent.currentPath)
+        ) {
             loadExternalStorages(state.viewModeState)
         } else {
             loadDirectory(
-                storageData = storageData,
-                directoryPath = parent
+                storageData = intent.storageData,
+                directoryPath = parent,
+                viewModeState = state.viewModeState
             )
         }
     }
@@ -195,9 +215,12 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState, MainSingleEvent>(
 
     private fun loadDirectory(
         storageData: StorageData,
-        directoryPath: Path
+        directoryPath: Path,
+        viewModeState: MainListViewModeState = MainListViewModeState.Normal,
     ) = viewModelScope.launch(Dispatchers.IO) {
-        val uiStatePrototype = MainUiState.Accessible()
+        val uiStatePrototype = MainUiState.Accessible(
+            viewModeState = viewModeState
+        )
         uiStatePrototype.copy(loadingState = LoadingState(isLoading = true)).setup()
         runCatching {
             File(directoryPath.toString()).listFiles()?.asList() ?: emptyList()
