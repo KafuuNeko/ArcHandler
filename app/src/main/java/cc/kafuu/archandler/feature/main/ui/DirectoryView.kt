@@ -15,15 +15,14 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import cc.kafuu.archandler.R
+import cc.kafuu.archandler.feature.main.presentation.LoadingState
 import cc.kafuu.archandler.feature.main.presentation.MainListState
 import cc.kafuu.archandler.feature.main.presentation.MainListViewModeState
 import cc.kafuu.archandler.feature.main.presentation.MainUiIntent
 import cc.kafuu.archandler.feature.main.ui.common.FillMessageView
-import cc.kafuu.archandler.libs.ext.castOrNull
 import cc.kafuu.archandler.libs.ext.getIcon
 import cc.kafuu.archandler.libs.ext.getLastModifiedDate
 import cc.kafuu.archandler.libs.ext.getReadableSize
-import cc.kafuu.archandler.feature.main.presentation.LoadingState
 import cc.kafuu.archandler.libs.model.StorageData
 import cc.kafuu.archandler.ui.widges.AppOptionalIconTextItemCard
 import cc.kafuu.archandler.ui.widges.LazyList
@@ -62,7 +61,7 @@ fun DirectoryView(
                 )
             }
         ) { file ->
-            val selectedSet = viewMode.castOrNull<MainListViewModeState.MultipleSelect>()?.selected
+            val selectedSet = (viewMode as? MainListViewModeState.MultipleSelect)?.selected
             FileItem(
                 storageData = listState.storageData,
                 file = file,

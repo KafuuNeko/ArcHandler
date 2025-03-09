@@ -18,7 +18,6 @@ import cc.kafuu.archandler.feature.main.presentation.MainUiIntent
 import cc.kafuu.archandler.feature.main.presentation.MainUiState
 import cc.kafuu.archandler.feature.main.ui.scaffold.MainScaffoldDrawer
 import cc.kafuu.archandler.feature.main.ui.scaffold.MainScaffoldTopBar
-import cc.kafuu.archandler.libs.ext.castOrNull
 import cc.kafuu.archandler.ui.widges.AppLoadingView
 import kotlinx.coroutines.launch
 
@@ -55,11 +54,11 @@ private fun MainLayout(
     content: @Composable BoxScope.() -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
-    val title = uiState.viewModeState.castOrNull<MainListViewModeState.Pause>()?.let {
+    val title = (uiState.viewModeState as? MainListViewModeState.Pause)?.let {
         stringResource(R.string.select_destination_path)
     } ?: when (val listData = uiState.listState) {
         is Directory -> {
-            uiState.viewModeState.castOrNull<MainListViewModeState.MultipleSelect>()?.let {
+            (uiState.viewModeState as? MainListViewModeState.MultipleSelect)?.let {
                 stringResource(R.string.n_files_selected, it.selected.size)
             } ?: listData.storageData.name
         }

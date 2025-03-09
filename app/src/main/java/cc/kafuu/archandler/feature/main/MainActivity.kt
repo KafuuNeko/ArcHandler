@@ -18,7 +18,6 @@ import cc.kafuu.archandler.feature.main.presentation.MainUiState
 import cc.kafuu.archandler.feature.main.ui.MainViewBody
 import cc.kafuu.archandler.libs.core.CoreActivity
 import cc.kafuu.archandler.libs.core.attachEventListener
-import cc.kafuu.archandler.libs.ext.castOrNull
 import com.hjq.permissions.Permission
 import com.hjq.permissions.XXPermissions
 import kotlinx.coroutines.launch
@@ -78,7 +77,7 @@ class MainActivity : CoreActivity() {
 
         when (state.viewModeState) {
             MainListViewModeState.Normal -> {
-                state.listState.castOrNull<MainListState.Directory>()?.let {
+                (state.listState as? MainListState.Directory)?.let {
                     doBackToParent(it)
                 } ?: finish()
             }
@@ -88,7 +87,7 @@ class MainActivity : CoreActivity() {
             )
 
             is MainListViewModeState.Pause -> {
-                state.listState.castOrNull<MainListState.Directory>()?.let {
+                (state.listState as? MainListState.Directory)?.let {
                     doBackToParent(it)
                 } ?: mViewModel.emit(MainUiIntent.BackToNormalViewMode)
             }

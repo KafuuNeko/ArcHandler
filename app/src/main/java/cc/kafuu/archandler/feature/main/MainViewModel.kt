@@ -13,7 +13,6 @@ import cc.kafuu.archandler.feature.main.presentation.MainUiState
 import cc.kafuu.archandler.libs.AppLibs
 import cc.kafuu.archandler.libs.AppModel
 import cc.kafuu.archandler.libs.core.CoreViewModel
-import cc.kafuu.archandler.libs.ext.castOrNull
 import cc.kafuu.archandler.libs.ext.getParentPath
 import cc.kafuu.archandler.libs.ext.isSameFileOrDirectory
 import cc.kafuu.archandler.libs.manager.FileManager
@@ -78,7 +77,7 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState, MainSingleEvent>(
     }
 
     private fun onProcessingIntent(intent: MainUiIntent.StorageVolumeSelected) {
-        val state = uiState.value?.castOrNull<MainUiState.Accessible>() ?: return
+        val state = (uiState.value as? MainUiState.Accessible) ?: return
         loadDirectory(
             storageData = intent.storageData,
             directoryPath = Path(intent.storageData.directory.path),
@@ -87,7 +86,7 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState, MainSingleEvent>(
     }
 
     private fun onProcessingIntent(intent: MainUiIntent.FileSelected) {
-        val state = uiState.value?.castOrNull<MainUiState.Accessible>() ?: return
+        val state = (uiState.value as? MainUiState.Accessible) ?: return
         if (intent.file.isDirectory) {
             loadDirectory(
                 storageData = intent.storageData,
@@ -99,7 +98,7 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState, MainSingleEvent>(
     }
 
     private fun onProcessingIntent(intent: MainUiIntent.FileMultipleSelectMode) {
-        uiState.value?.castOrNull<MainUiState.Accessible>()?.copy(
+        (uiState.value as? MainUiState.Accessible)?.copy(
             viewModeState = if (intent.enable) {
                 MainListViewModeState.MultipleSelect()
             } else {
@@ -140,7 +139,7 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState, MainSingleEvent>(
         sourceFiles: List<File>,
         isMoving: Boolean = false
     ) {
-        uiState.value?.castOrNull<MainUiState.Accessible>()?.copy(
+        (uiState.value as? MainUiState.Accessible)?.copy(
             viewModeState = MainListViewModeState.Pause(
                 sourceStorageData = sourceStorageData,
                 sourceDirectoryPath = sourceDirectoryPath,
@@ -151,8 +150,8 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState, MainSingleEvent>(
     }
 
     private fun onProcessingIntent(intent: MainUiIntent.FileCheckedChange) {
-        val state = uiState.value?.castOrNull<MainUiState.Accessible>() ?: return
-        state.viewModeState.castOrNull<MainListViewModeState.MultipleSelect>()?.let {
+        val state = uiState.value as? MainUiState.Accessible ?: return
+        (state.viewModeState as? MainListViewModeState.MultipleSelect)?.let {
             val selected = it.selected.toMutableSet().apply {
                 if (intent.checked) add(intent.file) else remove(intent.file)
             }
@@ -163,7 +162,7 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState, MainSingleEvent>(
     private fun onProcessingIntent(
         intent: MainUiIntent.BackToParent
     ) {
-        val state = uiState.value?.castOrNull<MainUiState.Accessible>() ?: return
+        val state = (uiState.value as? MainUiState.Accessible) ?: return
 
         val parent = intent.currentPath.getParentPath()
         if (parent == null ||
@@ -180,10 +179,10 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState, MainSingleEvent>(
     }
 
     private fun onBackToNormalViewMode() {
-        val state = uiState.value?.castOrNull<MainUiState.Accessible>() ?: return
+        val state = (uiState.value as? MainUiState.Accessible) ?: return
         when (val viewMode = state.viewModeState) {
             is MainListViewModeState.Normal, is MainListViewModeState.MultipleSelect -> {
-                uiState.value?.castOrNull<MainUiState.Accessible>()?.copy(
+                (uiState.value as? MainUiState.Accessible)?.copy(
                     viewModeState = MainListViewModeState.Normal
                 )?.setup()
             }
