@@ -54,7 +54,7 @@ fun MainScaffoldDrawer(
 @Composable
 private fun DrawerHeader() {
     val appVersionName = LocalContext.current.run {
-        packageManager.getPackageInfo(applicationContext.packageName, 0).versionName
+        packageManager.getPackageInfo(applicationContext.packageName, 0)?.versionName
     } ?: stringResource(R.string.unknown_version)
 
     Column(

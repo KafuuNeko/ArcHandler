@@ -5,21 +5,29 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.DrawerState
+import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import cc.kafuu.archandler.R
-import cc.kafuu.archandler.feature.main.presentation.MainListState.Directory
+import cc.kafuu.archandler.feature.main.presentation.MainListState
 import cc.kafuu.archandler.feature.main.presentation.MainListViewModeState
 import cc.kafuu.archandler.feature.main.presentation.MainUiIntent
 import cc.kafuu.archandler.feature.main.presentation.MainUiState
 import cc.kafuu.archandler.feature.main.ui.scaffold.MainScaffoldDrawer
 import cc.kafuu.archandler.feature.main.ui.scaffold.MainScaffoldTopBar
+import cc.kafuu.archandler.libs.model.StorageData
+import cc.kafuu.archandler.libs.utils.TestUtils
+import cc.kafuu.archandler.ui.theme.AppTheme
 import cc.kafuu.archandler.ui.widges.AppLoadingView
 import kotlinx.coroutines.launch
+import java.io.File
+import kotlin.io.path.Path
 
 @Composable
 fun MainViewBody(
@@ -57,7 +65,7 @@ private fun MainLayout(
     val title = (uiState.viewModeState as? MainListViewModeState.Pause)?.let {
         stringResource(R.string.select_destination_path)
     } ?: when (val listData = uiState.listState) {
-        is Directory -> {
+        is MainListState.Directory -> {
             (uiState.viewModeState as? MainListViewModeState.MultipleSelect)?.let {
                 stringResource(R.string.n_files_selected, it.selected.size)
             } ?: listData.storageData.name
@@ -99,5 +107,48 @@ private fun MainLayout(
     }
 }
 
+@Preview(widthDp = 320, heightDp = 640, showBackground = true)
+@Composable
+private fun PermissionDeniedPreview() {
+    AppTheme(dynamicColor = false) {
+        MainViewBody(
+            uiState = MainUiState.PermissionDenied,
+            drawerState = rememberDrawerState(DrawerValue.Closed)
+        )
+    }
+}
 
+@Preview(widthDp = 320, heightDp = 640)
+@Composable
+private fun StorageVolumePreview() {
+    AppTheme(dynamicColor = false) {
+        MainViewBody(
+            uiState = MainUiState.Accessible(
+                viewModeState = MainListViewModeState.Normal,
+                listState = MainListState.StorageVolume(
+                    storageVolumes = TestUtils.buildStorageDataList(100)
+                )
+            ),
+            drawerState = rememberDrawerState(DrawerValue.Closed)
+        )
+    }
+}
+
+@Preview(widthDp = 320, heightDp = 640)
+@Composable
+private fun DirectoryPreview() {
+    AppTheme(dynamicColor = false) {
+        MainViewBody(
+            uiState = MainUiState.Accessible(
+                viewModeState = MainListViewModeState.Normal,
+                listState = MainListState.Directory(
+                    storageData = StorageData("test", File("/test/data")),
+                    directoryPath = Path("/test/data"),
+                    files = TestUtils.buildFileList()
+                )
+            ),
+            drawerState = rememberDrawerState(DrawerValue.Closed)
+        )
+    }
+}
 
