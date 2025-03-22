@@ -7,27 +7,24 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-abstract class CoreViewModel<I, S, E> : ViewModel() {
+abstract class CoreViewModel<I, S>(initStatus: S) : ViewModel() {
     // Ui State (Model -> View)
-    private val mUiStateFlow = MutableStateFlow<S?>(null)
-    val uiState = mUiStateFlow.asStateFlow()
+    private val mUiStateFlow = MutableStateFlow<S>(initStatus)
+    val uiStateFlow = mUiStateFlow.asStateFlow()
 
     // Ui Intent (View -> Model)
     private val mUiIntentFlow = MutableSharedFlow<I>()
 
-    // Single Event (Model -> View)
-    private val mSingleEventFlow = MutableSharedFlow<E>()
-    val singleEventFlow = mSingleEventFlow.asSharedFlow()
-
     init {
         viewModelScope.launch {
             mUiIntentFlow.collect {
-                onCollectedIntent(it)
+                onReceivedUiIntent(it)
             }
         }
     }
@@ -38,16 +35,16 @@ abstract class CoreViewModel<I, S, E> : ViewModel() {
         }
     }
 
-    protected fun dispatchingEvent(event: E) {
-        viewModelScope.launch {
-            mSingleEventFlow.emit(event)
-        }
-    }
-
-    protected abstract fun onCollectedIntent(uiIntent: I)
+    protected abstract fun onReceivedUiIntent(uiIntent: I)
 
     protected fun <T> Flow<T>.stateInThis(): StateFlow<T?> {
         return stateIn(viewModelScope, SharingStarted.Lazily, null)
+    }
+
+    protected fun fetchUiState() = mUiStateFlow.value
+
+    protected suspend inline fun <reified T> awaitUiStateOfType(): T {
+        return uiStateFlow.filterIsInstance<T>().first()
     }
 
     protected fun S.setup() {

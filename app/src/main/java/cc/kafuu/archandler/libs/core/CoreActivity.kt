@@ -38,7 +38,7 @@ abstract class CoreActivity : ComponentActivity() {
 }
 
 inline fun <I, S, E> CoreActivity.attachEventListener(
-    viewModel: CoreViewModel<I, S, E>,
+    viewModel: CoreViewModelWithEvent<I, S, E>,
     crossinline onSingleEvent: (event: E) -> Unit
 ) = lifecycleScope.launch {
     repeatOnLifecycle(Lifecycle.State.STARTED) {

@@ -36,6 +36,8 @@ fun MainViewBody(
     emitIntent: (uiIntent: MainUiIntent) -> Unit = {}
 ) {
     when (uiState) {
+        MainUiState.None, MainUiState.Finished -> Unit
+
         MainUiState.PermissionDenied -> PermissionDeniedView(
             emitIntent = emitIntent
         )

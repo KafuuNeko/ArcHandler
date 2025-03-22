@@ -6,12 +6,11 @@ import androidx.activity.viewModels
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import cc.kafuu.archandler.feature.about.AboutActivity
-import cc.kafuu.archandler.feature.main.presentation.MainListState
-import cc.kafuu.archandler.feature.main.presentation.MainListViewModeState
 import cc.kafuu.archandler.feature.main.presentation.MainSingleEvent
 import cc.kafuu.archandler.feature.main.presentation.MainUiIntent
 import cc.kafuu.archandler.feature.main.presentation.MainUiState
@@ -28,19 +27,14 @@ class MainActivity : CoreActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         attachEventListener(mViewModel) { onSingleEvent(it) }
+        mViewModel.emit(MainUiIntent.Init)
     }
 
     @Composable
     override fun ViewContent() {
-        val uiState by mViewModel.uiState.collectAsState()
+        val uiState by mViewModel.uiStateFlow.collectAsState()
         val coroutineScope = rememberCoroutineScope()
         val drawerState = rememberDrawerState(DrawerValue.Closed)
-
-        val validUiState = uiState ?: run {
-            // ui状态为空，则发送初始化意图
-            mViewModel.emit(MainUiIntent.Init)
-            return
-        }
 
         BackHandler {
             // 如果抽屉打开优先关闭抽屉
@@ -48,14 +42,16 @@ class MainActivity : CoreActivity() {
                 coroutineScope.launch { drawerState.close() }
                 return@BackHandler
             }
-            when (validUiState) {
-                is MainUiState.Accessible -> onBackHandler(validUiState)
-                else -> finish()
-            }
+            // 否则执行正常返回逻辑
+            mViewModel.emit(MainUiIntent.Back)
+        }
+
+        LaunchedEffect(uiState) {
+            if (uiState == MainUiState.Finished) finish()
         }
 
         MainViewBody(
-            uiState = validUiState,
+            uiState = uiState,
             drawerState = drawerState,
             emitIntent = { intent -> mViewModel.emit(intent) }
         )
@@ -70,36 +66,5 @@ class MainActivity : CoreActivity() {
         XXPermissions.with(this)
             .permission(Permission.MANAGE_EXTERNAL_STORAGE)
             .request { _: List<String?>?, _: Boolean -> mViewModel.emit(MainUiIntent.Init) }
-    }
-
-    private fun onBackHandler(state: MainUiState.Accessible) {
-        if (state.loadingState.isLoading) return
-
-        when (state.viewModeState) {
-            MainListViewModeState.Normal -> {
-                (state.listState as? MainListState.Directory)?.let {
-                    doBackToParent(it)
-                } ?: finish()
-            }
-
-            is MainListViewModeState.MultipleSelect -> mViewModel.emit(
-                MainUiIntent.BackToNormalViewMode
-            )
-
-            is MainListViewModeState.Pause -> {
-                (state.listState as? MainListState.Directory)?.let {
-                    doBackToParent(it)
-                } ?: mViewModel.emit(MainUiIntent.BackToNormalViewMode)
-            }
-        }
-    }
-
-    private fun doBackToParent(listState: MainListState.Directory) {
-        MainUiIntent.BackToParent(
-            storageData = listState.storageData,
-            currentPath = listState.directoryPath
-        ).also {
-            mViewModel.emit(it)
-        }
     }
 }

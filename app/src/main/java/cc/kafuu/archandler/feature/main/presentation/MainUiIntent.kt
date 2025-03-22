@@ -8,6 +8,9 @@ import java.nio.file.Path
 
 sealed class MainUiIntent {
     data object Init : MainUiIntent()
+
+    data object Back : MainUiIntent()
+
     data object JumpFilePermissionSetting : MainUiIntent()
 
     data class MainDrawerMenuClick(
@@ -26,18 +29,6 @@ sealed class MainUiIntent {
     data class FileMultipleSelectMode(
         val enable: Boolean
     ) : MainUiIntent()
-
-    data class FileCheckedChange(
-        val file: File,
-        val checked: Boolean
-    ) : MainUiIntent()
-
-    data class BackToParent(
-        val storageData: StorageData,
-        val currentPath: Path
-    ) : MainUiIntent()
-
-    data object BackToNormalViewMode : MainUiIntent()
 
     data class MultipleMenuClick(
         val menu: MainMultipleMenuEnum,

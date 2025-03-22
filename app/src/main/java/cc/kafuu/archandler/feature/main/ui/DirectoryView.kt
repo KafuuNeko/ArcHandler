@@ -114,13 +114,8 @@ private fun FileItem(
             file.getLastModifiedDate(), file.getReadableSize()
         )
     }
-    val checked = selectedSet?.contains(file) ?: false
-    val onCheckedChange = {
-        MainUiIntent.FileCheckedChange(
-            file = file,
-            checked = !checked
-        ).also(emitIntent)
-    }
+    val checked = selectedSet?.contains(file) == true
+
     AppOptionalIconTextItemCard(
         modifier = Modifier
             .fillMaxWidth(),
@@ -129,13 +124,8 @@ private fun FileItem(
         checked = checked,
         secondaryText = secondaryText,
         displaySelectBox = multipleSelectMode,
-        onCheckedChange = { onCheckedChange() },
         onLongClick = { emitIntent(MainUiIntent.FileMultipleSelectMode(!multipleSelectMode)) }
     ) {
-        if (multipleSelectMode) {
-            onCheckedChange()
-            return@AppOptionalIconTextItemCard
-        }
         MainUiIntent.FileSelected(
             storageData = storageData,
             file = file
