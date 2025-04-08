@@ -13,6 +13,7 @@ import cc.kafuu.archandler.feature.main.presentation.MainUiState
 import cc.kafuu.archandler.libs.AppLibs
 import cc.kafuu.archandler.libs.AppModel
 import cc.kafuu.archandler.libs.core.CoreViewModelWithEvent
+import cc.kafuu.archandler.libs.core.UiIntentObserver
 import cc.kafuu.archandler.libs.ext.getParentPath
 import cc.kafuu.archandler.libs.ext.isSameFileOrDirectory
 import cc.kafuu.archandler.libs.manager.FileManager
@@ -30,19 +31,7 @@ import kotlin.io.path.Path
 class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState, MainSingleEvent>(
     initStatus = MainUiState.None
 ), KoinComponent {
-    override fun onReceivedUiIntent(uiIntent: MainUiIntent) {
-        when (uiIntent) {
-            MainUiIntent.Init -> onInit()
-            MainUiIntent.Back -> onBack()
-            MainUiIntent.JumpFilePermissionSetting -> onJumpFilePermissionSetting()
-            is MainUiIntent.MainDrawerMenuClick -> onProcessingIntent(uiIntent)
-            is MainUiIntent.StorageVolumeSelected -> onProcessingIntent(uiIntent)
-            is MainUiIntent.FileSelected -> onProcessingIntent(uiIntent)
-            is MainUiIntent.FileMultipleSelectMode -> onProcessingIntent(uiIntent)
-            is MainUiIntent.MultipleMenuClick -> onProcessingIntent(uiIntent)
-        }
-    }
-
+    @UiIntentObserver(MainUiIntent.Init::class)
     private fun onInit() {
         if (!XXPermissions.isGranted(get(), Permission.MANAGE_EXTERNAL_STORAGE)) {
             MainUiState.PermissionDenied.setup()
@@ -54,6 +43,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState, MainSing
     /**
      * 页面返回逻辑
      */
+    @UiIntentObserver(MainUiIntent.Back::class)
     private fun onBack() {
         val state = fetchUiState() as? MainUiState.Accessible ?: return
         if (state.loadingState.isLoading) return
@@ -100,6 +90,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState, MainSing
     /**
      * 跳转到文件权限设置
      */
+    @UiIntentObserver(MainUiIntent.JumpFilePermissionSetting::class)
     private fun onJumpFilePermissionSetting() {
         dispatchingEvent(MainSingleEvent.JumpFilePermissionSetting)
     }
@@ -107,6 +98,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState, MainSing
     /**
      * 处理主页抽屉按钮点击事件
      */
+    @UiIntentObserver(MainUiIntent.MainDrawerMenuClick::class)
     private fun onProcessingIntent(intent: MainUiIntent.MainDrawerMenuClick) {
         when (intent.menu) {
             MainDrawerMenuEnum.Code -> {
@@ -130,6 +122,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState, MainSing
     /**
      * 用户选择存储设备
      */
+    @UiIntentObserver(MainUiIntent.StorageVolumeSelected::class)
     private fun onProcessingIntent(intent: MainUiIntent.StorageVolumeSelected) {
         val state = fetchUiState() as? MainUiState.Accessible ?: return
         doLoadDirectory(
@@ -142,6 +135,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState, MainSing
     /**
      * 用户选择文件
      */
+    @UiIntentObserver(MainUiIntent.FileSelected::class)
     private fun onProcessingIntent(intent: MainUiIntent.FileSelected) {
         val state = fetchUiState() as? MainUiState.Accessible ?: return
         // 文件多选模式用户选择行为为切换选中模式
@@ -167,6 +161,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState, MainSing
     /**
      * 切换用户多选模式
      */
+    @UiIntentObserver(MainUiIntent.FileMultipleSelectMode::class)
     private fun onProcessingIntent(intent: MainUiIntent.FileMultipleSelectMode) {
         val state = fetchUiState() as? MainUiState.Accessible ?: return
         state.copy(
@@ -181,29 +176,30 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState, MainSing
     /**
      * 文件多选模式底部菜单点击事件
      */
-    private fun onProcessingIntent(intent: MainUiIntent.MultipleMenuClick) {
-        when (intent.menu) {
-            MainMultipleMenuEnum.Copy -> doEntryPauseMode(
-                sourceStorageData = intent.sourceStorageData,
-                sourceDirectoryPath = intent.sourceDirectoryPath,
-                sourceFiles = intent.sourceFiles,
-                isMoving = false
-            )
+    @UiIntentObserver(MainUiIntent.MultipleMenuClick::class)
+    private fun onProcessingIntent(
+        intent: MainUiIntent.MultipleMenuClick
+    ) = when (intent.menu) {
+        MainMultipleMenuEnum.Copy -> doEntryPauseMode(
+            sourceStorageData = intent.sourceStorageData,
+            sourceDirectoryPath = intent.sourceDirectoryPath,
+            sourceFiles = intent.sourceFiles,
+            isMoving = false
+        )
 
-            MainMultipleMenuEnum.Move -> doEntryPauseMode(
-                sourceStorageData = intent.sourceStorageData,
-                sourceDirectoryPath = intent.sourceDirectoryPath,
-                sourceFiles = intent.sourceFiles,
-                isMoving = true
-            )
+        MainMultipleMenuEnum.Move -> doEntryPauseMode(
+            sourceStorageData = intent.sourceStorageData,
+            sourceDirectoryPath = intent.sourceDirectoryPath,
+            sourceFiles = intent.sourceFiles,
+            isMoving = true
+        )
 
-            MainMultipleMenuEnum.Delete -> {
-                // TODO:
-            }
+        MainMultipleMenuEnum.Delete -> {
+            // TODO:
+        }
 
-            MainMultipleMenuEnum.Archive -> {
-                // TODO:
-            }
+        MainMultipleMenuEnum.Archive -> {
+            // TODO:
         }
     }
 

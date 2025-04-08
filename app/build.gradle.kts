@@ -52,6 +52,8 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
 
+    implementation(libs.kotlin.reflect)
+
     // kotpref
     implementation(libs.kotpref)
 

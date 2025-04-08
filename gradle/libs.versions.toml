@@ -36,6 +36,7 @@ koin-android = { module = "io.insert-koin:koin-android", version.ref = "koinAndr
 kotpref = { module = "com.chibatching.kotpref:kotpref", version.ref = "kotpref" }
 x-zip-jbinding-xandroid = { module = "com.github.omicronapps:7-Zip-JBinding-4Android", version.ref = "xZipJbindingXandroid" }
 xxpermissions = { module = "com.github.getActivity:XXPermissions", version.ref = "xxpermissions" }
+kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
