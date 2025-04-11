@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import cc.kafuu.archandler.libs.ext.withAlpha
 
@@ -103,9 +104,11 @@ fun AppOptionalIconTextItemCard(
     modifier: Modifier = Modifier,
     painter: Painter,
     text: String,
+    textMaxLine: Int = 1,
     checked: Boolean = false,
     onCheckedChange: ((Boolean) -> Unit)? = null,
     secondaryText: String? = null,
+    secondaryTextMaxLine: Int = 1,
     displaySelectBox: Boolean = false,
     onLongClick: (() -> Unit)? = null,
     onClick: (() -> Unit)? = null,
@@ -136,12 +139,16 @@ fun AppOptionalIconTextItemCard(
 
             Spacer(modifier = Modifier.width(5.dp))
 
-            Column {
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
                 Text(
                     text = text,
                     style = MaterialTheme.typography.headlineMedium.copy(
                         textAlign = TextAlign.Center
                     ),
+                    maxLines = textMaxLine,
+                    overflow = TextOverflow.Ellipsis
                 )
                 secondaryText?.also {
                     Spacer(modifier = Modifier.height(5.dp))
@@ -150,13 +157,15 @@ fun AppOptionalIconTextItemCard(
                         style = MaterialTheme.typography.labelMedium.copy(
                             textAlign = TextAlign.Center
                         ),
-                        color = MaterialTheme.colorScheme.onSurface.withAlpha(0.5f)
+                        color = MaterialTheme.colorScheme.onSurface.withAlpha(0.5f),
+                        maxLines = secondaryTextMaxLine,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }
 
             if (displaySelectBox) {
-                Spacer(modifier = Modifier.weight(1f))
+                Spacer(modifier = Modifier.width(5.dp))
 
                 Checkbox(
                     modifier = Modifier.size(24.dp),
