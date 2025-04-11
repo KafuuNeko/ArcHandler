@@ -1,5 +1,6 @@
 package cc.kafuu.archandler.feature.main
 
+import android.content.Context
 import androidx.lifecycle.viewModelScope
 import cc.kafuu.archandler.R
 import cc.kafuu.archandler.feature.main.model.MainDrawerMenuEnum
@@ -164,6 +165,10 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState, MainSing
     @UiIntentObserver(MainUiIntent.FileMultipleSelectMode::class)
     private fun onProcessingIntent(intent: MainUiIntent.FileMultipleSelectMode) {
         val state = fetchUiState() as? MainUiState.Accessible ?: return
+        when (state.viewModeState) {
+            is MainListViewModeState.Pause -> return
+            else -> Unit
+        }
         state.copy(
             viewModeState = if (intent.enable) {
                 MainListViewModeState.MultipleSelect()
@@ -213,6 +218,11 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState, MainSing
         isMoving: Boolean = false
     ) {
         val state = fetchUiState() as? MainUiState.Accessible ?: return
+        if (sourceFiles.isEmpty()) {
+            val message = get<Context>().getString(R.string.entry_pause_is_empty_message)
+            dispatchingEvent(MainSingleEvent.PopupToastMessage(message))
+            return
+        }
         state.copy(
             viewModeState = MainListViewModeState.Pause(
                 sourceStorageData = sourceStorageData,

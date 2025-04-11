@@ -14,10 +14,10 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import cc.kafuu.archandler.R
+import cc.kafuu.archandler.feature.main.presentation.LoadingState
 import cc.kafuu.archandler.feature.main.presentation.MainListState
 import cc.kafuu.archandler.feature.main.presentation.MainUiIntent
-import cc.kafuu.archandler.feature.main.ui.common.FillMessageView
-import cc.kafuu.archandler.feature.main.presentation.LoadingState
+import cc.kafuu.archandler.feature.main.ui.common.IconMessageView
 import cc.kafuu.archandler.ui.widges.AppIconTextItemCard
 import cc.kafuu.archandler.ui.widges.LazyList
 
@@ -42,7 +42,8 @@ fun StorageVolumeView(
                 .padding(top = 10.dp),
             emptyState = {
                 if (loadingState.isLoading) return@LazyList
-                FillMessageView(
+                IconMessageView(
+                    modifier = Modifier.fillMaxSize(),
                     icon = painterResource(R.drawable.ic_storage),
                     message = stringResource(R.string.no_accessible_storage_devices),
                 )

@@ -19,7 +19,7 @@ import cc.kafuu.archandler.feature.main.presentation.LoadingState
 import cc.kafuu.archandler.feature.main.presentation.MainListState
 import cc.kafuu.archandler.feature.main.presentation.MainListViewModeState
 import cc.kafuu.archandler.feature.main.presentation.MainUiIntent
-import cc.kafuu.archandler.feature.main.ui.common.FillMessageView
+import cc.kafuu.archandler.feature.main.ui.common.IconMessageView
 import cc.kafuu.archandler.libs.ext.getIcon
 import cc.kafuu.archandler.libs.ext.getLastModifiedDate
 import cc.kafuu.archandler.libs.ext.getReadableSize
@@ -55,7 +55,8 @@ fun DirectoryView(
             items = listState.files,
             emptyState = {
                 if (loadingState.isLoading) return@LazyList
-                FillMessageView(
+                IconMessageView(
+                    modifier = Modifier.fillMaxWidth().weight(1f),
                     icon = painterResource(R.drawable.ic_empty_folder),
                     message = stringResource(R.string.empty_directory),
                 )

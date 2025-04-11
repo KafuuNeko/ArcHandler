@@ -1,6 +1,7 @@
 package cc.kafuu.archandler.feature.main
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.viewModels
 import androidx.compose.material3.DrawerValue
@@ -60,11 +61,16 @@ class MainActivity : CoreActivity() {
     private fun onSingleEvent(singleEvent: MainSingleEvent) = when (singleEvent) {
         MainSingleEvent.JumpFilePermissionSetting -> onJumpFilePermissionSetting()
         MainSingleEvent.JumpAboutPage -> AboutActivity.start(this)
+        is MainSingleEvent.PopupToastMessage -> onPopupToastMessage(singleEvent)
     }
 
     private fun onJumpFilePermissionSetting() {
         XXPermissions.with(this)
             .permission(Permission.MANAGE_EXTERNAL_STORAGE)
             .request { _: List<String?>?, _: Boolean -> mViewModel.emit(MainUiIntent.Init) }
+    }
+
+    private fun onPopupToastMessage(singleEvent: MainSingleEvent.PopupToastMessage) {
+        Toast.makeText(this, singleEvent.message, Toast.LENGTH_SHORT).show()
     }
 }

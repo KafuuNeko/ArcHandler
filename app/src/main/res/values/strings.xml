@@ -22,4 +22,5 @@
     <string name="archive">Archive</string>
     <string name="back">Back</string>
     <string name="select_destination_path">Select destination path…</string>
+    <string name="entry_pause_is_empty_message">Please select at least one file or directory.</string>
 </resources>
