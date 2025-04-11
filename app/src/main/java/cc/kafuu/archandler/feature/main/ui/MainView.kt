@@ -24,7 +24,7 @@ import cc.kafuu.archandler.feature.main.ui.scaffold.MainScaffoldTopBar
 import cc.kafuu.archandler.libs.model.StorageData
 import cc.kafuu.archandler.libs.utils.TestUtils
 import cc.kafuu.archandler.ui.theme.AppTheme
-import cc.kafuu.archandler.ui.widges.AppLoadingView
+import cc.kafuu.archandler.ui.widges.AppLoadSwitch
 import kotlinx.coroutines.launch
 import java.io.File
 import kotlin.io.path.Path
@@ -64,7 +64,7 @@ private fun MainLayout(
     content: @Composable BoxScope.() -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
-    val title = (uiState.viewModeState as? MainListViewModeState.Pause)?.let {
+    val title = (uiState.viewModeState as? MainListViewModeState.Paste)?.let {
         stringResource(R.string.select_destination_path)
     } ?: when (val listData = uiState.listState) {
         is MainListState.Directory -> {
@@ -99,11 +99,7 @@ private fun MainLayout(
                 modifier = Modifier.padding(padding)
             ) {
                 content()
-                uiState.loadingState.takeIf {
-                    it.isLoading
-                }?.let {
-                    AppLoadingView(loadingState = uiState.loadingState)
-                }
+                AppLoadSwitch(loadState = uiState.loadState)
             }
         }
     }

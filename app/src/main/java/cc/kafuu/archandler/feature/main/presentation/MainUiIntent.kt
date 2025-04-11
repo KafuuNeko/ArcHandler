@@ -2,6 +2,7 @@ package cc.kafuu.archandler.feature.main.presentation
 
 import cc.kafuu.archandler.feature.main.model.MainDrawerMenuEnum
 import cc.kafuu.archandler.feature.main.model.MainMultipleMenuEnum
+import cc.kafuu.archandler.feature.main.model.MainPasteMenuEnum
 import cc.kafuu.archandler.libs.model.StorageData
 import java.io.File
 import java.nio.file.Path
@@ -35,5 +36,11 @@ sealed class MainUiIntent {
         val sourceStorageData: StorageData,
         val sourceDirectoryPath: Path,
         val sourceFiles: List<File>,
+    ) : MainUiIntent()
+
+    data class PasteMenuClick(
+        val menu: MainPasteMenuEnum,
+        val targetStorageData: StorageData,
+        val targetDirectoryPath: Path,
     ) : MainUiIntent()
 }

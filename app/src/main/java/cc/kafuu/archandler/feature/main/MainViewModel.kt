@@ -5,7 +5,8 @@ import androidx.lifecycle.viewModelScope
 import cc.kafuu.archandler.R
 import cc.kafuu.archandler.feature.main.model.MainDrawerMenuEnum
 import cc.kafuu.archandler.feature.main.model.MainMultipleMenuEnum
-import cc.kafuu.archandler.feature.main.presentation.LoadingState
+import cc.kafuu.archandler.feature.main.model.MainPasteMenuEnum
+import cc.kafuu.archandler.feature.main.presentation.LoadState
 import cc.kafuu.archandler.feature.main.presentation.MainListState
 import cc.kafuu.archandler.feature.main.presentation.MainListViewModeState
 import cc.kafuu.archandler.feature.main.presentation.MainSingleEvent
@@ -15,6 +16,8 @@ import cc.kafuu.archandler.libs.AppLibs
 import cc.kafuu.archandler.libs.AppModel
 import cc.kafuu.archandler.libs.core.CoreViewModelWithEvent
 import cc.kafuu.archandler.libs.core.UiIntentObserver
+import cc.kafuu.archandler.libs.ext.appCopyTo
+import cc.kafuu.archandler.libs.ext.appMoveTo
 import cc.kafuu.archandler.libs.ext.getParentPath
 import cc.kafuu.archandler.libs.ext.isSameFileOrDirectory
 import cc.kafuu.archandler.libs.manager.FileManager
@@ -47,7 +50,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState, MainSing
     @UiIntentObserver(MainUiIntent.Back::class)
     private fun onBack() {
         val state = fetchUiState() as? MainUiState.Accessible ?: return
-        if (state.loadingState.isLoading) return
+        if (state.loadState !is LoadState.None) return
 
         when (val viewMode = state.viewModeState) {
             MainListViewModeState.Normal -> {
@@ -62,7 +65,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState, MainSing
                 state.copy(viewModeState = MainListViewModeState.Normal).setup()
             }
 
-            is MainListViewModeState.Pause -> {
+            is MainListViewModeState.Paste -> {
                 if (state.listState is MainListState.Directory) {
                     doBackToParent(state.listState.storageData, state.listState.directoryPath)
                 } else {
@@ -166,7 +169,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState, MainSing
     private fun onProcessingIntent(intent: MainUiIntent.FileMultipleSelectMode) {
         val state = fetchUiState() as? MainUiState.Accessible ?: return
         when (state.viewModeState) {
-            is MainListViewModeState.Pause -> return
+            is MainListViewModeState.Paste -> return
             else -> Unit
         }
         state.copy(
@@ -185,14 +188,14 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState, MainSing
     private fun onProcessingIntent(
         intent: MainUiIntent.MultipleMenuClick
     ) = when (intent.menu) {
-        MainMultipleMenuEnum.Copy -> doEntryPauseMode(
+        MainMultipleMenuEnum.Copy -> doEntryPasteMode(
             sourceStorageData = intent.sourceStorageData,
             sourceDirectoryPath = intent.sourceDirectoryPath,
             sourceFiles = intent.sourceFiles,
             isMoving = false
         )
 
-        MainMultipleMenuEnum.Move -> doEntryPauseMode(
+        MainMultipleMenuEnum.Move -> doEntryPasteMode(
             sourceStorageData = intent.sourceStorageData,
             sourceDirectoryPath = intent.sourceDirectoryPath,
             sourceFiles = intent.sourceFiles,
@@ -211,7 +214,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState, MainSing
     /**
      * 切换入文件粘贴模式
      */
-    private fun doEntryPauseMode(
+    private fun doEntryPasteMode(
         sourceStorageData: StorageData,
         sourceDirectoryPath: Path,
         sourceFiles: List<File>,
@@ -219,12 +222,12 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState, MainSing
     ) {
         val state = fetchUiState() as? MainUiState.Accessible ?: return
         if (sourceFiles.isEmpty()) {
-            val message = get<Context>().getString(R.string.entry_pause_is_empty_message)
+            val message = get<Context>().getString(R.string.entry_paste_is_empty_message)
             dispatchingEvent(MainSingleEvent.PopupToastMessage(message))
             return
         }
         state.copy(
-            viewModeState = MainListViewModeState.Pause(
+            viewModeState = MainListViewModeState.Paste(
                 sourceStorageData = sourceStorageData,
                 sourceDirectoryPath = sourceDirectoryPath,
                 sourceFiles = sourceFiles,
@@ -237,7 +240,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState, MainSing
         viewMode: MainListViewModeState = MainListViewModeState.Normal
     ) = viewModelScope.launch(Dispatchers.IO) {
         val uiStatePrototype = MainUiState.Accessible(viewModeState = viewMode)
-        uiStatePrototype.copy(loadingState = LoadingState(isLoading = true)).setup()
+        uiStatePrototype.copy(loadState = LoadState.ExternalStoragesLoading).setup()
         runCatching {
             get<FileManager>().getMountedStorageVolumes()
         }.onSuccess { storages ->
@@ -259,7 +262,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState, MainSing
         val uiStatePrototype = MainUiState.Accessible(
             viewModeState = viewModeState
         )
-        uiStatePrototype.copy(loadingState = LoadingState(isLoading = true)).setup()
+        uiStatePrototype.copy(loadState = LoadState.DirectoryLoading).setup()
         runCatching {
             File(directoryPath.toString()).listFiles()?.asList() ?: emptyList()
         }.onSuccess { files ->
@@ -275,5 +278,80 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState, MainSing
                 errorMessage = exception.message ?: get<AppLibs>().getString(R.string.unknown_error)
             ).setup()
         }
+    }
+
+    /**
+     * 粘贴模式底部菜单被点击
+     */
+    @UiIntentObserver(MainUiIntent.PasteMenuClick::class)
+    private fun onPasteMenuClick(intent: MainUiIntent.PasteMenuClick) {
+        when (intent.menu) {
+            MainPasteMenuEnum.Paste -> doPasteFiles(
+                targetDirectoryPath = intent.targetDirectoryPath
+            )
+
+            else -> doCancelPasteMode()
+        }
+
+    }
+
+    private fun doPasteFiles(targetDirectoryPath: Path) = viewModelScope.launch {
+        val state = fetchUiState() as? MainUiState.Accessible ?: return@launch
+        val viewMode = state.viewModeState as? MainListViewModeState.Paste ?: return@launch
+        val targetDirectoryFile = File(targetDirectoryPath.toString())
+
+        // 粘贴失败的列表
+        val failureList = mutableListOf<File>()
+
+        // 整体数量与已经完成的数量
+        val totality = viewMode.sourceFiles.size
+        var quantityCompleted = 0
+
+        // 逐个粘贴文件
+        viewMode.sourceFiles.forEach {
+            val dest = File(targetDirectoryFile, it.name)
+            // 更新加载状态
+            LoadState.Pasting(
+                isMoving = viewMode.isMoving,
+                src = it,
+                dest = dest,
+                totality = totality,
+                quantityCompleted = quantityCompleted
+            ).run { state.copy(loadState = this).setup() }
+            // 移动或拷贝文件
+            val isSuccess = if (dest.exists()) {
+                false
+            } else if (viewMode.isMoving) {
+                it.appMoveTo(dest)
+            } else {
+                it.appCopyTo(dest)
+            }
+            if (!isSuccess) failureList.add(it)
+            quantityCompleted += 1
+        }
+
+        // 取消加载状态
+        state.copy(loadState = LoadState.None).setup()
+
+        doCancelPasteMode(forcedRefresh = viewMode.isMoving)
+    }
+
+    private fun doCancelPasteMode(forcedRefresh: Boolean = false) {
+        val state = fetchUiState() as? MainUiState.Accessible ?: return
+        val viewMode = state.viewModeState as? MainListViewModeState.Paste ?: return
+        // 如果当前用户所在的目录就是粘贴触发的目录则只需要将模式切回通常模式即可
+        if (!forcedRefresh &&
+            state.listState is MainListState.Directory &&
+            state.listState.storageData == viewMode.sourceStorageData &&
+            state.listState.directoryPath == viewMode.sourceDirectoryPath
+        ) {
+            state.copy(viewModeState = MainListViewModeState.Normal).setup()
+            return
+        }
+        // 重新加载目录数据
+        doLoadDirectory(
+            viewMode.sourceStorageData,
+            viewMode.sourceDirectoryPath
+        )
     }
 }

@@ -22,5 +22,9 @@
     <string name="archive">Archive</string>
     <string name="back">Back</string>
     <string name="select_destination_path">Select destination path…</string>
-    <string name="entry_pause_is_empty_message">Please select at least one file or directory.</string>
+    <string name="entry_paste_is_empty_message">Please select at least one file or directory.</string>
+    <string name="paste">Paste</string>
+    <string name="cancel">Cancel</string>
+    <string name="copying_message">Copying %s</string>
+    <string name="moving_message">Moving %s</string>
 </resources>

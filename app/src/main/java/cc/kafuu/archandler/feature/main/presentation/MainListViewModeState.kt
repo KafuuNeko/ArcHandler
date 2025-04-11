@@ -11,7 +11,7 @@ sealed class MainListViewModeState {
         val selected: Set<File> = emptySet()
     ) : MainListViewModeState()
 
-    data class Pause(
+    data class Paste(
         val sourceStorageData: StorageData,
         val sourceDirectoryPath: Path,
         val sourceFiles: List<File>,

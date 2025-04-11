@@ -1,5 +1,6 @@
 [versions]
 agp = "8.7.2"
+commonsIo = "2.18.0"
 koinAndroid = "4.0.0-RC1"
 kotlin = "2.0.21"
 coreKtx = "1.15.0"
@@ -16,6 +17,7 @@ xZipJbindingXandroid = "Release-16.02-2.02"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+commons-io = { module = "commons-io:commons-io", version.ref = "commonsIo" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }

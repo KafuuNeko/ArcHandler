@@ -1,7 +1,9 @@
 package cc.kafuu.archandler.libs.ext
 
 import cc.kafuu.archandler.R
+import org.apache.commons.io.FileUtils
 import java.io.File
+import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -70,4 +72,32 @@ fun File.getReadableSize(): String {
     val readableSize = size / 1024.0.pow(unitIndex.toDouble())
 
     return "%.2f %s".format(readableSize, units[unitIndex])
+}
+
+fun File.appMoveTo(dest: File): Boolean {
+    try {
+        if (isDirectory) {
+            FileUtils.moveDirectory(this, dest)
+        } else {
+            FileUtils.moveFile(this, dest)
+        }
+        return true
+    } catch (e: IOException) {
+        e.printStackTrace()
+        return false
+    }
+}
+
+fun File.appCopyTo(dest: File): Boolean {
+    try {
+        if (isDirectory) {
+            FileUtils.copyDirectory(this, dest)
+        } else {
+            FileUtils.copyFile(this, dest)
+        }
+        return true
+    } catch (e: IOException) {
+        e.printStackTrace()
+        return false
+    }
 }

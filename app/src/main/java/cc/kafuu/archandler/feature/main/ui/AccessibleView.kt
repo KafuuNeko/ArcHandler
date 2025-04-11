@@ -17,14 +17,14 @@ fun AccessibleView(
 
         is MainListState.StorageVolume -> StorageVolumeView(
             modifier = modifier,
-            loadingState = uiState.loadingState,
+            loadState = uiState.loadState,
             listState = listState,
             emitIntent = emitIntent
         )
 
         is MainListState.Directory -> DirectoryView(
             modifier = modifier,
-            loadingState = uiState.loadingState,
+            loadState = uiState.loadState,
             listState = listState,
             viewMode = uiState.viewModeState,
             emitIntent = emitIntent

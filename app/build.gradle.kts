@@ -72,6 +72,9 @@ dependencies {
     // XXPermissions
     implementation(libs.xxpermissions)
 
+    // Apache Commons IO
+    implementation(libs.commons.io)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
