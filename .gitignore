@@ -1,4 +1,5 @@
 *.iml
+*.log
 .gradle
 /local.properties
 /.idea/caches
@@ -8,6 +9,9 @@
 /.idea/navEditor.xml
 /.idea/assetWizardSettings.xml
 /.idea/AndroidProjectSystem.xml
+/.idea/git_toolbox_blame.xml
+/.idea/git_toolbox_prj.xml
+/.idea/material_theme_project_new.xml
 .DS_Store
 /build
 /captures
