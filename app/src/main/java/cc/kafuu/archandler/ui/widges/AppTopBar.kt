@@ -22,7 +22,7 @@ import cc.kafuu.archandler.R
 import cc.kafuu.archandler.libs.core.ActivityPreview
 
 @Composable
-fun AppTitleBar(
+fun AppTopBar(
     modifier: Modifier = Modifier,
     title: String,
     height: Dp = 50.dp,
@@ -55,7 +55,7 @@ fun AppTitleBar(
 @Composable
 private fun TitleBarDarkPreview() {
     ActivityPreview(darkTheme = true) {
-        AppTitleBar(title = "Test")
+        AppTopBar(title = "Test")
     }
 }
 
@@ -63,6 +63,6 @@ private fun TitleBarDarkPreview() {
 @Composable
 private fun TitleBarLightPreview() {
     ActivityPreview(darkTheme = false) {
-        AppTitleBar(title = "Test")
+        AppTopBar(title = "Test")
     }
 }

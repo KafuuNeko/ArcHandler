@@ -20,7 +20,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import cc.kafuu.archandler.R
-import cc.kafuu.archandler.ui.widges.AppTitleBar
+import cc.kafuu.archandler.ui.widges.AppTopBar
 
 @Composable
 fun AboutViewBody(
@@ -30,7 +30,7 @@ fun AboutViewBody(
         modifier = Modifier
             .statusBarsPadding(),
         topBar = {
-            AppTitleBar(
+            AppTopBar(
                 title = stringResource(R.string.about),
                 onBack = onBack
             )

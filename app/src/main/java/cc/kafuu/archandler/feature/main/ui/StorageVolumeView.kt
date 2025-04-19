@@ -14,17 +14,17 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import cc.kafuu.archandler.R
-import cc.kafuu.archandler.feature.main.presentation.LoadState
+import cc.kafuu.archandler.feature.main.presentation.MainLoadState
 import cc.kafuu.archandler.feature.main.presentation.MainListState
 import cc.kafuu.archandler.feature.main.presentation.MainUiIntent
 import cc.kafuu.archandler.feature.main.ui.common.IconMessageView
 import cc.kafuu.archandler.ui.widges.AppIconTextItemCard
-import cc.kafuu.archandler.ui.widges.LazyList
+import cc.kafuu.archandler.ui.widges.AppLazyColumn
 
 @Composable
 fun StorageVolumeView(
     modifier: Modifier = Modifier,
-    loadState: LoadState,
+    loadState: MainLoadState,
     listState: MainListState.StorageVolume,
     emitIntent: (uiIntent: MainUiIntent) -> Unit = {},
 ) {
@@ -37,11 +37,11 @@ fun StorageVolumeView(
             text = stringResource(R.string.storage_volume),
             style = MaterialTheme.typography.headlineMedium
         )
-        LazyList(
+        AppLazyColumn(
             modifier = Modifier
                 .padding(top = 10.dp),
             emptyState = {
-                if (loadState !is LoadState.None) return@LazyList
+                if (loadState !is MainLoadState.None) return@AppLazyColumn
                 IconMessageView(
                     modifier = Modifier.fillMaxSize(),
                     icon = painterResource(R.drawable.ic_storage),

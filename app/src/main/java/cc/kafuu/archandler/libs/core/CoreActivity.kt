@@ -37,15 +37,6 @@ abstract class CoreActivity : ComponentActivity() {
     }
 }
 
-inline fun <I, S, E> CoreActivity.attachEventListener(
-    viewModel: CoreViewModelWithEvent<I, S, E>,
-    crossinline onSingleEvent: (event: E) -> Unit
-) = lifecycleScope.launch {
-    repeatOnLifecycle(Lifecycle.State.STARTED) {
-        viewModel.singleEventFlow.collect { it?.run { onSingleEvent(this) } }
-    }
-}
-
 @Composable
 fun ActivityPreview(darkTheme: Boolean, content: @Composable () -> Unit) {
     AppTheme(darkTheme = darkTheme) {

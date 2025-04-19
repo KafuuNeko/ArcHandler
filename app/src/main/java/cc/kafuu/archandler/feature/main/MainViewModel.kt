@@ -6,16 +6,17 @@ import cc.kafuu.archandler.R
 import cc.kafuu.archandler.feature.main.model.MainDrawerMenuEnum
 import cc.kafuu.archandler.feature.main.model.MainMultipleMenuEnum
 import cc.kafuu.archandler.feature.main.model.MainPasteMenuEnum
-import cc.kafuu.archandler.feature.main.presentation.LoadState
+import cc.kafuu.archandler.feature.main.presentation.MainLoadState
 import cc.kafuu.archandler.feature.main.presentation.MainListState
 import cc.kafuu.archandler.feature.main.presentation.MainListViewModeState
-import cc.kafuu.archandler.feature.main.presentation.MainSingleEvent
 import cc.kafuu.archandler.feature.main.presentation.MainUiIntent
 import cc.kafuu.archandler.feature.main.presentation.MainUiState
+import cc.kafuu.archandler.feature.main.presentation.MainViewEvent
 import cc.kafuu.archandler.libs.AppLibs
 import cc.kafuu.archandler.libs.AppModel
-import cc.kafuu.archandler.libs.core.CoreViewModelWithEvent
+import cc.kafuu.archandler.libs.core.CoreViewModel
 import cc.kafuu.archandler.libs.core.UiIntentObserver
+import cc.kafuu.archandler.libs.core.ViewEventWrapper
 import cc.kafuu.archandler.libs.ext.appCopyTo
 import cc.kafuu.archandler.libs.ext.appMoveTo
 import cc.kafuu.archandler.libs.ext.getParentPath
@@ -32,7 +33,7 @@ import java.io.File
 import java.nio.file.Path
 import kotlin.io.path.Path
 
-class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState, MainSingleEvent>(
+class MainViewModel : CoreViewModel<MainUiIntent, MainUiState>(
     initStatus = MainUiState.None
 ), KoinComponent {
     @UiIntentObserver(MainUiIntent.Init::class)
@@ -50,7 +51,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState, MainSing
     @UiIntentObserver(MainUiIntent.Back::class)
     private fun onBack() {
         val state = fetchUiState() as? MainUiState.Accessible ?: return
-        if (state.loadState !is LoadState.None) return
+        if (state.loadState !is MainLoadState.None) return
 
         when (val viewMode = state.viewModeState) {
             MainListViewModeState.Normal -> {
@@ -96,7 +97,8 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState, MainSing
      */
     @UiIntentObserver(MainUiIntent.JumpFilePermissionSetting::class)
     private fun onJumpFilePermissionSetting() {
-        dispatchingEvent(MainSingleEvent.JumpFilePermissionSetting)
+        val state = fetchUiState() as? MainUiState.Accessible ?: return
+        state.copy(viewEvent = ViewEventWrapper(MainViewEvent.JumpFilePermissionSetting)).setup()
     }
 
     /**
@@ -104,6 +106,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState, MainSing
      */
     @UiIntentObserver(MainUiIntent.MainDrawerMenuClick::class)
     private fun onProcessingIntent(intent: MainUiIntent.MainDrawerMenuClick) {
+        val state = fetchUiState() as? MainUiState.Accessible ?: return
         when (intent.menu) {
             MainDrawerMenuEnum.Code -> {
                 get<AppLibs>().jumpToUrl(AppModel.CODE_REPOSITORY_URL)
@@ -118,7 +121,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState, MainSing
             }
 
             MainDrawerMenuEnum.About -> {
-                dispatchingEvent(event = MainSingleEvent.JumpAboutPage)
+                state.copy(viewEvent = ViewEventWrapper(MainViewEvent.JumpAboutPage)).setup()
             }
         }
     }
@@ -223,7 +226,9 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState, MainSing
         val state = fetchUiState() as? MainUiState.Accessible ?: return
         if (sourceFiles.isEmpty()) {
             val message = get<Context>().getString(R.string.entry_paste_is_empty_message)
-            dispatchingEvent(MainSingleEvent.PopupToastMessage(message))
+            state.copy(
+                viewEvent = ViewEventWrapper(MainViewEvent.PopupToastMessage(message))
+            ).setup()
             return
         }
         state.copy(
@@ -240,7 +245,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState, MainSing
         viewMode: MainListViewModeState = MainListViewModeState.Normal
     ) = viewModelScope.launch(Dispatchers.IO) {
         val uiStatePrototype = MainUiState.Accessible(viewModeState = viewMode)
-        uiStatePrototype.copy(loadState = LoadState.ExternalStoragesLoading).setup()
+        uiStatePrototype.copy(loadState = MainLoadState.ExternalStoragesLoading).setup()
         runCatching {
             get<FileManager>().getMountedStorageVolumes()
         }.onSuccess { storages ->
@@ -262,7 +267,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState, MainSing
         val uiStatePrototype = MainUiState.Accessible(
             viewModeState = viewModeState
         )
-        uiStatePrototype.copy(loadState = LoadState.DirectoryLoading).setup()
+        uiStatePrototype.copy(loadState = MainLoadState.DirectoryLoading).setup()
         runCatching {
             File(directoryPath.toString()).listFiles()?.asList() ?: emptyList()
         }.onSuccess { files ->
@@ -311,7 +316,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState, MainSing
         viewMode.sourceFiles.forEach {
             val dest = File(targetDirectoryFile, it.name)
             // 更新加载状态
-            LoadState.Pasting(
+            MainLoadState.Pasting(
                 isMoving = viewMode.isMoving,
                 src = it,
                 dest = dest,
@@ -331,7 +336,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState, MainSing
         }
 
         // 取消加载状态
-        state.copy(loadState = LoadState.None).setup()
+        state.copy(loadState = MainLoadState.None).setup()
 
         doCancelPasteMode(forcedRefresh = viewMode.isMoving)
     }

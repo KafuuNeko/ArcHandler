@@ -18,22 +18,22 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import cc.kafuu.archandler.R
-import cc.kafuu.archandler.feature.main.presentation.LoadState
+import cc.kafuu.archandler.feature.main.presentation.MainLoadState
 import cc.kafuu.archandler.ui.theme.MarkColor
 import cc.kafuu.archandler.ui.theme.MarkDarkColor
 
 @Composable
 fun AppLoadSwitch(
     modifier: Modifier = Modifier,
-    loadState: LoadState
+    loadState: MainLoadState
 ) {
     when (loadState) {
-        LoadState.None -> Unit
+        MainLoadState.None -> Unit
 
-        LoadState.ExternalStoragesLoading,
-        LoadState.DirectoryLoading -> GeneralFullLoadingView(modifier)
+        MainLoadState.ExternalStoragesLoading,
+        MainLoadState.DirectoryLoading -> GeneralFullLoadingView(modifier)
 
-        is LoadState.Pasting -> GeneralFullLoadingView(
+        is MainLoadState.Pasting -> GeneralFullLoadingView(
             modifier = modifier,
             isDisplayMark = true,
             message = stringResource(

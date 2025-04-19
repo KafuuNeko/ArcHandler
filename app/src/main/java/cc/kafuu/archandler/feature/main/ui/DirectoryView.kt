@@ -15,7 +15,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import cc.kafuu.archandler.R
-import cc.kafuu.archandler.feature.main.presentation.LoadState
+import cc.kafuu.archandler.feature.main.presentation.MainLoadState
 import cc.kafuu.archandler.feature.main.presentation.MainListState
 import cc.kafuu.archandler.feature.main.presentation.MainListViewModeState
 import cc.kafuu.archandler.feature.main.presentation.MainUiIntent
@@ -25,13 +25,13 @@ import cc.kafuu.archandler.libs.ext.getLastModifiedDate
 import cc.kafuu.archandler.libs.ext.getReadableSize
 import cc.kafuu.archandler.libs.model.StorageData
 import cc.kafuu.archandler.ui.widges.AppOptionalIconTextItemCard
-import cc.kafuu.archandler.ui.widges.LazyList
+import cc.kafuu.archandler.ui.widges.AppLazyColumn
 import java.io.File
 
 @Composable
 fun DirectoryView(
     modifier: Modifier = Modifier,
-    loadState: LoadState,
+    loadState: MainLoadState,
     listState: MainListState.Directory,
     viewMode: MainListViewModeState,
     emitIntent: (uiIntent: MainUiIntent) -> Unit = {},
@@ -47,14 +47,14 @@ fun DirectoryView(
             style = MaterialTheme.typography.headlineMedium
         )
 
-        LazyList(
+        AppLazyColumn(
             modifier = Modifier
                 .padding(top = 10.dp)
                 .padding(horizontal = 10.dp)
                 .weight(1f),
             items = listState.files,
             emptyState = {
-                if (loadState !is LoadState.None) return@LazyList
+                if (loadState !is MainLoadState.None) return@AppLazyColumn
                 IconMessageView(
                     modifier = Modifier.fillMaxWidth().weight(1f),
                     icon = painterResource(R.drawable.ic_empty_folder),

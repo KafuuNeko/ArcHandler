@@ -2,12 +2,12 @@ package cc.kafuu.archandler.feature.main.presentation
 
 import java.io.File
 
-sealed class LoadState {
-    data object None : LoadState()
+sealed class MainLoadState {
+    data object None : MainLoadState()
 
-    data object ExternalStoragesLoading : LoadState()
+    data object ExternalStoragesLoading : MainLoadState()
 
-    data object DirectoryLoading : LoadState()
+    data object DirectoryLoading : MainLoadState()
 
     data class Pasting(
         val isMoving: Boolean,
@@ -15,5 +15,5 @@ sealed class LoadState {
         val dest: File,
         val totality: Int,
         val quantityCompleted: Int
-    ) : LoadState()
+    ) : MainLoadState()
 }

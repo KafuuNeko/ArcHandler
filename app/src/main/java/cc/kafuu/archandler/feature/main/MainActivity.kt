@@ -12,12 +12,12 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import cc.kafuu.archandler.feature.about.AboutActivity
-import cc.kafuu.archandler.feature.main.presentation.MainSingleEvent
 import cc.kafuu.archandler.feature.main.presentation.MainUiIntent
 import cc.kafuu.archandler.feature.main.presentation.MainUiState
+import cc.kafuu.archandler.feature.main.presentation.MainViewEvent
 import cc.kafuu.archandler.feature.main.ui.MainViewBody
 import cc.kafuu.archandler.libs.core.CoreActivity
-import cc.kafuu.archandler.libs.core.attachEventListener
+import cc.kafuu.archandler.libs.core.ViewEventWrapper
 import com.hjq.permissions.Permission
 import com.hjq.permissions.XXPermissions
 import kotlinx.coroutines.launch
@@ -27,7 +27,6 @@ class MainActivity : CoreActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        attachEventListener(mViewModel) { onSingleEvent(it) }
         mViewModel.emit(MainUiIntent.Init)
     }
 
@@ -48,7 +47,11 @@ class MainActivity : CoreActivity() {
         }
 
         LaunchedEffect(uiState) {
-            if (uiState == MainUiState.Finished) finish()
+            when (val state = uiState) {
+                is MainUiState.Accessible -> tryConsumeEvent(state.viewEvent)
+                MainUiState.Finished -> finish()
+                MainUiState.None, MainUiState.PermissionDenied -> Unit
+            }
         }
 
         MainViewBody(
@@ -58,10 +61,14 @@ class MainActivity : CoreActivity() {
         )
     }
 
-    private fun onSingleEvent(singleEvent: MainSingleEvent) = when (singleEvent) {
-        MainSingleEvent.JumpFilePermissionSetting -> onJumpFilePermissionSetting()
-        MainSingleEvent.JumpAboutPage -> AboutActivity.start(this)
-        is MainSingleEvent.PopupToastMessage -> onPopupToastMessage(singleEvent)
+    private suspend fun tryConsumeEvent(
+        viewEvent: ViewEventWrapper<MainViewEvent>?
+    ) = viewEvent?.consumeIfNotHandled {
+        when (val event = it) {
+            MainViewEvent.JumpFilePermissionSetting -> onJumpFilePermissionSetting()
+            MainViewEvent.JumpAboutPage -> AboutActivity.start(this)
+            is MainViewEvent.PopupToastMessage -> onPopupToastMessage(event)
+        }
     }
 
     private fun onJumpFilePermissionSetting() {
@@ -70,7 +77,7 @@ class MainActivity : CoreActivity() {
             .request { _: List<String?>?, _: Boolean -> mViewModel.emit(MainUiIntent.Init) }
     }
 
-    private fun onPopupToastMessage(singleEvent: MainSingleEvent.PopupToastMessage) {
+    private fun onPopupToastMessage(singleEvent: MainViewEvent.PopupToastMessage) {
         Toast.makeText(this, singleEvent.message, Toast.LENGTH_SHORT).show()
     }
 }
