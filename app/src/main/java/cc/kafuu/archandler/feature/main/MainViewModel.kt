@@ -6,9 +6,9 @@ import cc.kafuu.archandler.R
 import cc.kafuu.archandler.feature.main.model.MainDrawerMenuEnum
 import cc.kafuu.archandler.feature.main.model.MainMultipleMenuEnum
 import cc.kafuu.archandler.feature.main.model.MainPasteMenuEnum
-import cc.kafuu.archandler.feature.main.presentation.MainLoadState
 import cc.kafuu.archandler.feature.main.presentation.MainListState
 import cc.kafuu.archandler.feature.main.presentation.MainListViewModeState
+import cc.kafuu.archandler.feature.main.presentation.MainLoadState
 import cc.kafuu.archandler.feature.main.presentation.MainUiIntent
 import cc.kafuu.archandler.feature.main.presentation.MainUiState
 import cc.kafuu.archandler.feature.main.presentation.MainViewEvent
@@ -16,7 +16,7 @@ import cc.kafuu.archandler.libs.AppLibs
 import cc.kafuu.archandler.libs.AppModel
 import cc.kafuu.archandler.libs.core.CoreViewModel
 import cc.kafuu.archandler.libs.core.UiIntentObserver
-import cc.kafuu.archandler.libs.core.ViewEventWrapper
+import cc.kafuu.archandler.libs.core.toViewEvent
 import cc.kafuu.archandler.libs.ext.appCopyTo
 import cc.kafuu.archandler.libs.ext.appMoveTo
 import cc.kafuu.archandler.libs.ext.getParentPath
@@ -98,7 +98,7 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState>(
     @UiIntentObserver(MainUiIntent.JumpFilePermissionSetting::class)
     private fun onJumpFilePermissionSetting() {
         val state = fetchUiState() as? MainUiState.Accessible ?: return
-        state.copy(viewEvent = ViewEventWrapper(MainViewEvent.JumpFilePermissionSetting)).setup()
+        state.copy(viewEvent = MainViewEvent.JumpFilePermissionSetting.toViewEvent()).setup()
     }
 
     /**
@@ -121,7 +121,7 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState>(
             }
 
             MainDrawerMenuEnum.About -> {
-                state.copy(viewEvent = ViewEventWrapper(MainViewEvent.JumpAboutPage)).setup()
+                state.copy(viewEvent = MainViewEvent.JumpAboutPage.toViewEvent()).setup()
             }
         }
     }
@@ -227,7 +227,7 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState>(
         if (sourceFiles.isEmpty()) {
             val message = get<Context>().getString(R.string.entry_paste_is_empty_message)
             state.copy(
-                viewEvent = ViewEventWrapper(MainViewEvent.PopupToastMessage(message))
+                viewEvent = MainViewEvent.PopupToastMessage(message).toViewEvent()
             ).setup()
             return
         }

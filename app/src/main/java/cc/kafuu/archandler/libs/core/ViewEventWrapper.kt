@@ -22,3 +22,5 @@ class ViewEventWrapper<out T>(private val content: T) {
         mHasHandled.filter { it }.collect()
     }
 }
+
+inline fun <reified E> E.toViewEvent(): ViewEventWrapper<E> = ViewEventWrapper(this)
