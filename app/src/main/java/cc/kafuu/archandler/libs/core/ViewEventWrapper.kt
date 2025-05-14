@@ -23,4 +23,8 @@ class ViewEventWrapper<out T>(private val content: T) {
     }
 }
 
+interface IViewEventOwner<out T> {
+    val viewEvent: ViewEventWrapper<T>?
+}
+
 inline fun <reified E> E.toViewEvent(): ViewEventWrapper<E> = ViewEventWrapper(this)

@@ -17,6 +17,7 @@ import cc.kafuu.archandler.feature.main.presentation.MainUiState
 import cc.kafuu.archandler.feature.main.presentation.MainViewEvent
 import cc.kafuu.archandler.feature.main.ui.MainViewBody
 import cc.kafuu.archandler.libs.core.CoreActivity
+import cc.kafuu.archandler.libs.core.IViewEventOwner
 import cc.kafuu.archandler.libs.core.ViewEventWrapper
 import com.hjq.permissions.Permission
 import com.hjq.permissions.XXPermissions
@@ -48,9 +49,9 @@ class MainActivity : CoreActivity() {
 
         LaunchedEffect(uiState) {
             when (val state = uiState) {
-                is MainUiState.Accessible -> tryConsumeEvent(state.viewEvent)
+                is IViewEventOwner<*> -> tryConsumeEvent(state.viewEvent)
                 MainUiState.Finished -> finish()
-                MainUiState.None, MainUiState.PermissionDenied -> Unit
+                else -> Unit
             }
         }
 
@@ -62,7 +63,7 @@ class MainActivity : CoreActivity() {
     }
 
     private suspend fun tryConsumeEvent(
-        viewEvent: ViewEventWrapper<MainViewEvent>?
+        viewEvent: ViewEventWrapper<*>?
     ) = viewEvent?.consumeIfNotHandled {
         when (val event = it) {
             MainViewEvent.JumpFilePermissionSetting -> onJumpFilePermissionSetting()

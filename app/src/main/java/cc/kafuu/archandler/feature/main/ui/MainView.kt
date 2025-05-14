@@ -38,7 +38,7 @@ fun MainViewBody(
     when (uiState) {
         MainUiState.None, MainUiState.Finished -> Unit
 
-        MainUiState.PermissionDenied -> PermissionDeniedView(
+        is MainUiState.PermissionDenied -> PermissionDeniedView(
             emitIntent = emitIntent
         )
 
@@ -110,7 +110,7 @@ private fun MainLayout(
 private fun PermissionDeniedPreview() {
     AppTheme(dynamicColor = false) {
         MainViewBody(
-            uiState = MainUiState.PermissionDenied,
+            uiState = MainUiState.PermissionDenied(),
             drawerState = rememberDrawerState(DrawerValue.Closed)
         )
     }

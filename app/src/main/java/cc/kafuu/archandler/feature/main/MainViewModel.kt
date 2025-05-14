@@ -39,7 +39,7 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState>(
     @UiIntentObserver(MainUiIntent.Init::class)
     private fun onInit() {
         if (!XXPermissions.isGranted(get(), Permission.MANAGE_EXTERNAL_STORAGE)) {
-            MainUiState.PermissionDenied.setup()
+            MainUiState.PermissionDenied().setup()
         } else {
             loadExternalStorages()
         }
@@ -97,7 +97,7 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState>(
      */
     @UiIntentObserver(MainUiIntent.JumpFilePermissionSetting::class)
     private fun onJumpFilePermissionSetting() {
-        val state = fetchUiState() as? MainUiState.Accessible ?: return
+        val state = fetchUiState() as? MainUiState.PermissionDenied ?: return
         state.copy(viewEvent = MainViewEvent.JumpFilePermissionSetting.toViewEvent()).setup()
     }
 
@@ -226,9 +226,7 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState>(
         val state = fetchUiState() as? MainUiState.Accessible ?: return
         if (sourceFiles.isEmpty()) {
             val message = get<Context>().getString(R.string.entry_paste_is_empty_message)
-            state.copy(
-                viewEvent = MainViewEvent.PopupToastMessage(message).toViewEvent()
-            ).setup()
+            state.copy(viewEvent = MainViewEvent.PopupToastMessage(message).toViewEvent()).setup()
             return
         }
         state.copy(
@@ -291,13 +289,9 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState>(
     @UiIntentObserver(MainUiIntent.PasteMenuClick::class)
     private fun onPasteMenuClick(intent: MainUiIntent.PasteMenuClick) {
         when (intent.menu) {
-            MainPasteMenuEnum.Paste -> doPasteFiles(
-                targetDirectoryPath = intent.targetDirectoryPath
-            )
-
+            MainPasteMenuEnum.Paste -> doPasteFiles(intent.targetDirectoryPath)
             else -> doCancelPasteMode()
         }
-
     }
 
     private fun doPasteFiles(targetDirectoryPath: Path) = viewModelScope.launch {
