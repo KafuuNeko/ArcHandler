@@ -29,4 +29,7 @@
     <string name="moving_message">Moving…</string>
     <string name="directory_loading_message">Directory loading…</string>
     <string name="storage_loading_message">Storage loading…</string>
+    <string name="archive_open_failed_message">Unable to open the archive</string>
+    <string name="archive_unpacking_failed_message">Unpacking failure</string>
+    <string name="unpacking_file_message">Unpacking…</string>
 </resources>

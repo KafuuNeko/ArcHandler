@@ -101,3 +101,26 @@ fun File.appCopyTo(dest: File): Boolean {
         return false
     }
 }
+
+fun File.createUniqueDirectory(): File? {
+    var dir = this
+    var index = 1
+    while (dir.exists()) {
+        val baseName = this.nameWithoutExtension
+        val parent = this.parentFile
+        val newName = "$baseName($index)"
+        dir = File(parent, newName)
+        index++
+    }
+    if (!dir.mkdirs()) return null
+    return dir
+}
+
+fun File.getSameNameDirectory(): File {
+    val name = if (this.isFile) {
+        this.nameWithoutExtension
+    } else {
+        this.name
+    }
+    return File(this.parentFile, name)
+}

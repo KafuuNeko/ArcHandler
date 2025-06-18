@@ -14,12 +14,16 @@ import cc.kafuu.archandler.feature.main.presentation.MainUiState
 import cc.kafuu.archandler.feature.main.presentation.MainViewEvent
 import cc.kafuu.archandler.libs.AppLibs
 import cc.kafuu.archandler.libs.AppModel
+import cc.kafuu.archandler.libs.archive.ArchiveManager
+import cc.kafuu.archandler.libs.archive.IPasswordProvider
 import cc.kafuu.archandler.libs.core.CoreViewModel
 import cc.kafuu.archandler.libs.core.UiIntentObserver
 import cc.kafuu.archandler.libs.core.toViewEvent
 import cc.kafuu.archandler.libs.ext.appCopyTo
 import cc.kafuu.archandler.libs.ext.appMoveTo
+import cc.kafuu.archandler.libs.ext.createUniqueDirectory
 import cc.kafuu.archandler.libs.ext.getParentPath
+import cc.kafuu.archandler.libs.ext.getSameNameDirectory
 import cc.kafuu.archandler.libs.ext.isSameFileOrDirectory
 import cc.kafuu.archandler.libs.manager.FileManager
 import cc.kafuu.archandler.libs.model.StorageData
@@ -29,6 +33,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
+import org.koin.core.component.inject
 import java.io.File
 import java.nio.file.Path
 import kotlin.io.path.Path
@@ -36,6 +41,13 @@ import kotlin.io.path.Path
 class MainViewModel : CoreViewModel<MainUiIntent, MainUiState>(
     initStatus = MainUiState.None
 ), KoinComponent {
+    // 应用通用工具
+    private val mAppLibs by inject<AppLibs>()
+
+    // 压缩包管理器
+    private val mArchiveManager by inject<ArchiveManager>()
+
+
     /**
      * 页面初始化
      */
@@ -151,8 +163,12 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState>(
      * 用户选择文件
      */
     @UiIntentObserver(MainUiIntent.FileSelected::class)
-    private fun onProcessingIntent(intent: MainUiIntent.FileSelected) {
-        val state = fetchUiState() as? MainUiState.Accessible ?: return
+    private fun onProcessingIntent(intent: MainUiIntent.FileSelected) = viewModelScope.launch(
+        Dispatchers.IO
+    ) {
+        val state = fetchUiState() as? MainUiState.Accessible ?: return@launch
+        val listState = state.listState as? MainListState.Directory ?: return@launch
+
         // 文件多选模式用户选择行为为切换选中模式
         if (state.viewModeState is MainListViewModeState.MultipleSelect) {
             val viewMode = state.viewModeState
@@ -160,7 +176,7 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState>(
                 if (viewMode.selected.contains(intent.file)) remove(intent.file) else add(intent.file)
             }
             state.copy(viewModeState = viewMode.copy(selected = selected)).setup()
-            return
+            return@launch
         }
         // 如果用户选择的是目录则切换进目录
         if (intent.file.isDirectory) {
@@ -169,9 +185,49 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState>(
                 directoryPath = Path(intent.file.path),
                 viewModeState = state.viewModeState
             )
-            return
+            return@launch
         }
+        // 非压缩包文件的情况
+        if (!mArchiveManager.isArchive(intent.file)) {
+            state.copy(viewEvent = MainViewEvent.OpenFile(intent.file).toViewEvent()).setup()
+            return@launch
+        }
+        // 开始解压压缩包
+        val destDir = doDecompress(intent.file) ?: run {
+            // 解压失败
+            state.copy(
+                viewEvent = MainViewEvent.PopupToastMessage(mAppLibs.getString(R.string.archive_unpacking_failed_message))
+                    .toViewEvent(),
+                loadState = MainLoadState.None
+            ).setup()
+            return@launch
+        }
+        // 解压成功，进入解压后的目录
+        doLoadDirectory(listState.storageData, Path(destDir.path))
     }
+
+    /**
+     * 执行压缩包解压流程
+     */
+    private fun doDecompress(file: File): File? = runCatching {
+        val state = fetchUiState() as? MainUiState.Accessible ?: return null
+        val passwordProvider = object : IPasswordProvider {
+            override fun getPassword(): String? {
+                return "123"
+            }
+        }
+        // 尝试打开压缩包
+        val archive = mArchiveManager.openArchive(file) ?: return null
+        if (!archive.open(passwordProvider)) return null
+        // 提取压缩包文件
+        archive.use { archive ->
+            val destDir = file.getSameNameDirectory().createUniqueDirectory() ?: return@use null
+            archive.extractAll(destDir) { index, path, target ->
+                state.copy(loadState = MainLoadState.Unpacking(file, index, path, target)).setup()
+            }
+            return@use destDir
+        }
+    }.getOrNull()
 
     /**
      * 切换用户多选模式
@@ -198,27 +254,34 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState>(
     @UiIntentObserver(MainUiIntent.MultipleMenuClick::class)
     private fun onProcessingIntent(
         intent: MainUiIntent.MultipleMenuClick
-    ) = when (intent.menu) {
-        MainMultipleMenuEnum.Copy -> doEntryPasteMode(
-            sourceStorageData = intent.sourceStorageData,
-            sourceDirectoryPath = intent.sourceDirectoryPath,
-            sourceFiles = intent.sourceFiles,
-            isMoving = false
-        )
+    ) {
+        val state = fetchUiState() as? MainUiState.Accessible ?: return
+        val listState = state.listState as? MainListState.Directory ?: return
+        val viewModel = state.viewModeState as? MainListViewModeState.MultipleSelect ?: return
+        when (intent.menu) {
+            MainMultipleMenuEnum.Copy -> doEntryPasteMode(
+                sourceStorageData = intent.sourceStorageData,
+                sourceDirectoryPath = intent.sourceDirectoryPath,
+                sourceFiles = intent.sourceFiles,
+                isMoving = false
+            )
 
-        MainMultipleMenuEnum.Move -> doEntryPasteMode(
-            sourceStorageData = intent.sourceStorageData,
-            sourceDirectoryPath = intent.sourceDirectoryPath,
-            sourceFiles = intent.sourceFiles,
-            isMoving = true
-        )
+            MainMultipleMenuEnum.Move -> doEntryPasteMode(
+                sourceStorageData = intent.sourceStorageData,
+                sourceDirectoryPath = intent.sourceDirectoryPath,
+                sourceFiles = intent.sourceFiles,
+                isMoving = true
+            )
 
-        MainMultipleMenuEnum.Delete -> {
-            // TODO:
-        }
+            MainMultipleMenuEnum.Delete -> {
+                //TODO: 文件删除功能等待实现
+//                viewModel.selected.forEach { it.delete() }
+//                doLoadDirectory(listState.storageData, listState.directoryPath)
+            }
 
-        MainMultipleMenuEnum.Archive -> {
-            // TODO:
+            MainMultipleMenuEnum.Archive -> {
+                // TODO:
+            }
         }
     }
 

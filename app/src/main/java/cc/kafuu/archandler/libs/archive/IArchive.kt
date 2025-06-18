@@ -1,11 +1,18 @@
 package cc.kafuu.archandler.libs.archive
 
 import cc.kafuu.archandler.libs.archive.model.ArchiveEntry
+import java.io.Closeable
 import java.io.File
 
-interface IArchive {
+interface IArchive : Closeable {
     /**
-     * 读取压缩包内容
+     * 尝试打开压缩包
+     */
+    fun open(provider: IPasswordProvider? = null): Boolean
+
+    /**
+     * 读取压缩包内容（不递归读取）
+     * @param dir 当前压缩包相对路径[dir]下的所有文件或目录
      */
     fun list(dir: String = ""): List<ArchiveEntry>
 
@@ -15,17 +22,10 @@ interface IArchive {
     fun extract(entry: ArchiveEntry, dest: File)
 
     /**
-     * 解压整个压缩包
+     * 解压整个压缩包到指定目录下
      */
-    fun extractAll(destDir: File)
-
-    /**
-     * 添加文件到压缩包内的destPath下
-     */
-    fun add(source: File, rootPath: String = "")
-
-    /**
-     * 设置压缩包密码提供者
-     */
-    fun setPasswordProvider(provider: IPasswordProvider)
+    fun extractAll(
+        destDir: File,
+        onProgress: (index: Int, path: String, target: Int) -> Unit = { _, _, _ -> }
+    )
 }

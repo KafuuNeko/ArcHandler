@@ -5,5 +5,6 @@ data class ArchiveEntry(
     val name: String,
     val isDirectory: Boolean,
     val size: Long,
-    val compressedSize: Long
+    val compressedSize: Long,
+    val lastModified: Long
 )

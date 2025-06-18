@@ -19,6 +19,7 @@ import cc.kafuu.archandler.feature.main.ui.MainViewBody
 import cc.kafuu.archandler.libs.core.CoreActivity
 import cc.kafuu.archandler.libs.core.IViewEventOwner
 import cc.kafuu.archandler.libs.core.ViewEventWrapper
+import cc.kafuu.archandler.libs.ext.tryOpenFile
 import com.hjq.permissions.Permission
 import com.hjq.permissions.XXPermissions
 import kotlinx.coroutines.launch
@@ -69,6 +70,7 @@ class MainActivity : CoreActivity() {
             MainViewEvent.JumpFilePermissionSetting -> onJumpFilePermissionSetting()
             MainViewEvent.JumpAboutPage -> AboutActivity.start(this)
             is MainViewEvent.PopupToastMessage -> onPopupToastMessage(event)
+            is MainViewEvent.OpenFile -> onOpenFile(event)
         }
     }
 
@@ -80,5 +82,9 @@ class MainActivity : CoreActivity() {
 
     private fun onPopupToastMessage(singleEvent: MainViewEvent.PopupToastMessage) {
         Toast.makeText(this, singleEvent.message, Toast.LENGTH_SHORT).show()
+    }
+
+    private fun onOpenFile(event: MainViewEvent.OpenFile) {
+        tryOpenFile(event.file.name, event.file)
     }
 }

@@ -123,6 +123,14 @@ fun MainLoadDialogSwitch(loadState: MainLoadState) {
             val progress = "${loadState.quantityCompleted + 1}/${loadState.totality}"
             AppLoadDialog(messages = listOf(message, progress))
         }
+
+        is MainLoadState.Unpacking -> {
+            val message = stringResource(R.string.unpacking_file_message)
+            val filename = File(loadState.path).name
+            val progress = "${loadState.index}/${loadState.target}"
+            AppLoadDialog(messages = listOf(message, filename, progress))
+        }
+
     }
 }
 

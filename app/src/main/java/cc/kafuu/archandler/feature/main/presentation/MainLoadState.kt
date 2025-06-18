@@ -16,4 +16,11 @@ sealed class MainLoadState {
         val totality: Int,
         val quantityCompleted: Int
     ) : MainLoadState()
+
+    data class Unpacking(
+        val file: File,
+        val index: Int,
+        val path: String,
+        val target: Int
+    ) : MainLoadState()
 }
