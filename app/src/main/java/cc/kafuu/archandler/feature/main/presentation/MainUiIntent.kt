@@ -6,6 +6,7 @@ import cc.kafuu.archandler.feature.main.model.MainPasteMenuEnum
 import cc.kafuu.archandler.libs.model.StorageData
 import java.io.File
 import java.nio.file.Path
+import kotlin.io.path.Path
 
 sealed class MainUiIntent {
     data object Init : MainUiIntent()
@@ -40,7 +41,7 @@ sealed class MainUiIntent {
 
     data class PasteMenuClick(
         val menu: MainPasteMenuEnum,
-        val targetStorageData: StorageData,
-        val targetDirectoryPath: Path,
+        val targetStorageData: StorageData = StorageData(),
+        val targetDirectoryPath: Path = Path(""),
     ) : MainUiIntent()
 }

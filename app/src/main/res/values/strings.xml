@@ -25,6 +25,8 @@
     <string name="entry_paste_is_empty_message">Please select at least one file or directory.</string>
     <string name="paste">Paste</string>
     <string name="cancel">Cancel</string>
-    <string name="copying_message">Copying %s</string>
-    <string name="moving_message">Moving %s</string>
+    <string name="copying_message">Copying…</string>
+    <string name="moving_message">Moving…</string>
+    <string name="directory_loading_message">Directory loading…</string>
+    <string name="storage_loading_message">Storage loading…</string>
 </resources>

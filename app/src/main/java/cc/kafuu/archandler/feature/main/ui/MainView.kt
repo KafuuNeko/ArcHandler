@@ -2,6 +2,7 @@ package cc.kafuu.archandler.feature.main.ui
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.DrawerState
@@ -17,14 +18,15 @@ import androidx.compose.ui.tooling.preview.Preview
 import cc.kafuu.archandler.R
 import cc.kafuu.archandler.feature.main.presentation.MainListState
 import cc.kafuu.archandler.feature.main.presentation.MainListViewModeState
+import cc.kafuu.archandler.feature.main.presentation.MainLoadState
 import cc.kafuu.archandler.feature.main.presentation.MainUiIntent
 import cc.kafuu.archandler.feature.main.presentation.MainUiState
 import cc.kafuu.archandler.feature.main.ui.scaffold.MainScaffoldDrawer
 import cc.kafuu.archandler.feature.main.ui.scaffold.MainScaffoldTopBar
 import cc.kafuu.archandler.libs.model.StorageData
 import cc.kafuu.archandler.libs.utils.TestUtils
+import cc.kafuu.archandler.ui.dialogs.AppLoadDialog
 import cc.kafuu.archandler.ui.theme.AppTheme
-import cc.kafuu.archandler.ui.widges.AppLoadSwitch
 import kotlinx.coroutines.launch
 import java.io.File
 import kotlin.io.path.Path
@@ -38,19 +40,20 @@ fun MainViewBody(
     when (uiState) {
         MainUiState.None, MainUiState.Finished -> Unit
 
-        is MainUiState.PermissionDenied -> PermissionDeniedView(
-            emitIntent = emitIntent
-        )
+        is MainUiState.PermissionDenied -> PermissionDeniedView(emitIntent = emitIntent)
 
-        is MainUiState.Accessible -> MainLayout(
-            uiState = uiState,
-            drawerState = drawerState,
-            emitIntent = emitIntent
-        ) {
-            AccessibleView(
+        is MainUiState.Accessible -> Box(modifier = Modifier.fillMaxSize()) {
+            MainLayout(
                 uiState = uiState,
+                drawerState = drawerState,
                 emitIntent = emitIntent
-            )
+            ) {
+                AccessibleView(
+                    uiState = uiState,
+                    emitIntent = emitIntent
+                )
+            }
+            MainLoadDialogSwitch(uiState.loadState)
         }
     }
 }
@@ -95,12 +98,30 @@ private fun MainLayout(
                 )
             },
         ) { padding ->
-            Box(
-                modifier = Modifier.padding(padding)
-            ) {
-                content()
-                AppLoadSwitch(loadState = uiState.loadState)
-            }
+            Box(modifier = Modifier.padding(padding)) { content() }
+        }
+    }
+}
+
+@Composable
+fun MainLoadDialogSwitch(loadState: MainLoadState) {
+    when (loadState) {
+        MainLoadState.None -> Unit
+
+        MainLoadState.ExternalStoragesLoading -> {
+            AppLoadDialog(message = stringResource(R.string.storage_loading_message))
+        }
+
+        MainLoadState.DirectoryLoading -> {
+            AppLoadDialog(message = stringResource(R.string.directory_loading_message))
+        }
+
+        is MainLoadState.Pasting -> {
+            val message = stringResource(
+                if (loadState.isMoving) R.string.moving_message else R.string.copying_message
+            )
+            val progress = "${loadState.quantityCompleted + 1}/${loadState.totality}"
+            AppLoadDialog(messages = listOf(message, progress))
         }
     }
 }

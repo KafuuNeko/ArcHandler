@@ -19,6 +19,7 @@ fun AccessibleView(
             modifier = modifier,
             loadState = uiState.loadState,
             listState = listState,
+            viewMode = uiState.viewModeState,
             emitIntent = emitIntent
         )
 
