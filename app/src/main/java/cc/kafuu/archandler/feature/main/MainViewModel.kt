@@ -36,8 +36,16 @@ import kotlin.io.path.Path
 class MainViewModel : CoreViewModel<MainUiIntent, MainUiState>(
     initStatus = MainUiState.None
 ), KoinComponent {
+    /**
+     * 页面初始化
+     */
     @UiIntentObserver(MainUiIntent.Init::class)
     private fun onInit() {
+        // 只有在空页或者未授权状态下才可继续执行
+        when (fetchUiState()) {
+            MainUiState.None, is MainUiState.PermissionDenied -> Unit
+            else -> return
+        }
         if (!XXPermissions.isGranted(get(), Permission.MANAGE_EXTERNAL_STORAGE)) {
             MainUiState.PermissionDenied().setup()
         } else {
@@ -239,6 +247,9 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState>(
         ).setup()
     }
 
+    /**
+     * 加载挂载的存储设备
+     */
     private fun loadExternalStorages(
         viewMode: MainListViewModeState = MainListViewModeState.Normal
     ) = viewModelScope.launch(Dispatchers.IO) {
@@ -257,6 +268,9 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState>(
         }
     }
 
+    /**
+     * 加载目录信息
+     */
     private fun doLoadDirectory(
         storageData: StorageData,
         directoryPath: Path,
@@ -288,13 +302,28 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState>(
      */
     @UiIntentObserver(MainUiIntent.PasteMenuClick::class)
     private fun onPasteMenuClick(intent: MainUiIntent.PasteMenuClick) {
+        val state = fetchUiState() as? MainUiState.Accessible ?: return
+        val viewMode = state.viewModeState as? MainListViewModeState.Paste ?: return
         when (intent.menu) {
-            MainPasteMenuEnum.Paste -> doPasteFiles(intent.targetDirectoryPath)
-            else -> doCancelPasteMode()
+            MainPasteMenuEnum.Paste -> doPasteFiles(
+                targetStorageData = intent.targetStorageData,
+                targetDirectoryPath = intent.targetDirectoryPath
+            )
+
+            else -> doLoadDirectory(
+                storageData = viewMode.sourceStorageData,
+                directoryPath = viewMode.sourceDirectoryPath
+            )
         }
     }
 
-    private fun doPasteFiles(targetDirectoryPath: Path) = viewModelScope.launch {
+    /**
+     * 粘贴文件
+     */
+    private fun doPasteFiles(
+        targetStorageData: StorageData,
+        targetDirectoryPath: Path,
+    ) = viewModelScope.launch {
         val state = fetchUiState() as? MainUiState.Accessible ?: return@launch
         val viewMode = state.viewModeState as? MainListViewModeState.Paste ?: return@launch
         val targetDirectoryFile = File(targetDirectoryPath.toString())
@@ -332,25 +361,6 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState>(
         // 取消加载状态
         state.copy(loadState = MainLoadState.None).setup()
 
-        doCancelPasteMode(forcedRefresh = viewMode.isMoving)
-    }
-
-    private fun doCancelPasteMode(forcedRefresh: Boolean = false) {
-        val state = fetchUiState() as? MainUiState.Accessible ?: return
-        val viewMode = state.viewModeState as? MainListViewModeState.Paste ?: return
-        // 如果当前用户所在的目录就是粘贴触发的目录则只需要将模式切回通常模式即可
-        if (!forcedRefresh &&
-            state.listState is MainListState.Directory &&
-            state.listState.storageData == viewMode.sourceStorageData &&
-            state.listState.directoryPath == viewMode.sourceDirectoryPath
-        ) {
-            state.copy(viewModeState = MainListViewModeState.Normal).setup()
-            return
-        }
-        // 重新加载目录数据
-        doLoadDirectory(
-            viewMode.sourceStorageData,
-            viewMode.sourceDirectoryPath
-        )
+        doLoadDirectory(targetStorageData, targetDirectoryPath)
     }
 }

@@ -1,7 +1,9 @@
 package cc.kafuu.archandler.feature.main.ui
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -15,10 +17,13 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import cc.kafuu.archandler.R
+import cc.kafuu.archandler.feature.main.model.MainMultipleMenuEnum
+import cc.kafuu.archandler.feature.main.model.MainPasteMenuEnum
 import cc.kafuu.archandler.feature.main.presentation.MainLoadState
 import cc.kafuu.archandler.feature.main.presentation.MainListState
 import cc.kafuu.archandler.feature.main.presentation.MainListViewModeState
 import cc.kafuu.archandler.feature.main.presentation.MainUiIntent
+import cc.kafuu.archandler.feature.main.ui.common.BottomMenu
 import cc.kafuu.archandler.feature.main.ui.common.IconMessageView
 import cc.kafuu.archandler.libs.ext.getIcon
 import cc.kafuu.archandler.libs.ext.getLastModifiedDate
@@ -134,3 +139,58 @@ private fun FileItem(
     }
 }
 
+@Composable
+private fun MultipleMenuView(
+    modifier: Modifier = Modifier,
+    listData: MainListState.Directory,
+    viewMode: MainListViewModeState.MultipleSelect,
+    emitIntent: (uiIntent: MainUiIntent) -> Unit = {},
+) {
+    Row(
+        modifier = modifier
+            .fillMaxHeight()
+    ) {
+        val files = viewMode.selected.toList()
+        MainMultipleMenuEnum.entries.forEach {
+            BottomMenu(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight(),
+                icon = painterResource(it.icon),
+                title = stringResource(it.title)
+            ) {
+                MainUiIntent.MultipleMenuClick(
+                    menu = it,
+                    sourceStorageData = listData.storageData,
+                    sourceDirectoryPath = listData.directoryPath,
+                    sourceFiles = files,
+                ).also(emitIntent)
+            }
+        }
+    }
+}
+
+@Composable
+private fun PasteMenuView(
+    modifier: Modifier = Modifier,
+    listState: MainListState.Directory,
+    emitIntent: (uiIntent: MainUiIntent) -> Unit = {},
+) {
+    Row(modifier = modifier) {
+        MainPasteMenuEnum.entries.forEach {
+            BottomMenu(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight(),
+                icon = painterResource(it.icon),
+                title = stringResource(it.title)
+            ) {
+                MainUiIntent.PasteMenuClick(
+                    menu = it,
+                    targetStorageData = listState.storageData,
+                    targetDirectoryPath = listState.directoryPath
+                ).also(emitIntent)
+            }
+        }
+    }
+}
