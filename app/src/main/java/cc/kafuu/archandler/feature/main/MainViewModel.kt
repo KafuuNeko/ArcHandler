@@ -187,8 +187,8 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState>(
             )
             return@launch
         }
-        // 非压缩包文件的情况
-        if (!mArchiveManager.isArchive(intent.file)) {
+        // 判断当前打开的文件是否可解压
+        if (!mArchiveManager.isExtractable(intent.file)) {
             state.copy(viewEvent = MainViewEvent.OpenFile(intent.file).toViewEvent()).setup()
             return@launch
         }
@@ -209,10 +209,10 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState>(
     /**
      * 执行压缩包解压流程
      */
-    private fun doDecompress(file: File): File? = runCatching {
+    private suspend fun doDecompress(file: File): File? = runCatching {
         val state = fetchUiState() as? MainUiState.Accessible ?: return null
         val passwordProvider = object : IPasswordProvider {
-            override fun getPassword(): String? {
+            override suspend fun getPassword(): String? {
                 return "123"
             }
         }

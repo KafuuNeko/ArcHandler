@@ -13,8 +13,9 @@ import kotlin.math.pow
 private val EXTENSION_ICON_MAP = mapOf(
     // archive
     R.drawable.ic_archive to setOf(
-        ".zip", ".rar", ".tar", ".gz", ".7z", ".bz2", ".xz", ".tar.gz", ".tar.bz2", ".tar.xz",
-        ".lzma", ".lz", ".cab", ".iso", ".apk", ".tgz", ".tar.Z", ".cpio", ".ar", ".jar", ".war"
+        ".zip", ".rar", ".tar", ".gz", ".7z", ".bz2",
+        ".tar.gz", ".tar.bz2", ".lzma", ".cab", ".iso",
+        ".tgz", ".tar.z", ".cpio", ".ar"
     ),
 
     // image

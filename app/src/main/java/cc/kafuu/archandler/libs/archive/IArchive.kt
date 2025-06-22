@@ -8,7 +8,7 @@ interface IArchive : Closeable {
     /**
      * 尝试打开压缩包
      */
-    fun open(provider: IPasswordProvider? = null): Boolean
+    suspend fun open(provider: IPasswordProvider? = null): Boolean
 
     /**
      * 读取压缩包内容（不递归读取）

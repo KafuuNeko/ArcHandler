@@ -1,5 +1,5 @@
 package cc.kafuu.archandler.libs.archive
 
 interface IPasswordProvider {
-    fun getPassword(): String?
+    suspend fun getPassword(): String?
 }

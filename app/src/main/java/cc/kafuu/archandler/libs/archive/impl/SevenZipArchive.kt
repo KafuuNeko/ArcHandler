@@ -21,7 +21,7 @@ class SevenZipArchive(
     private var mSimpleArchive: ISimpleInArchive? = null
     private var mPassword: String? = null
 
-    override fun open(provider: IPasswordProvider?): Boolean {
+    override suspend fun open(provider: IPasswordProvider?): Boolean {
         if (tryOpen()) {
             if (hasEncryptedEntries()) {
                 mPassword = provider?.getPassword() ?: return false
