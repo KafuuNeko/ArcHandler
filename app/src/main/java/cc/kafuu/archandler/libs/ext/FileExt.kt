@@ -125,3 +125,19 @@ fun File.getSameNameDirectory(): File {
     }
     return File(this.parentFile, name)
 }
+
+fun List<File>.deletes(
+    onStartDelete: ((file: File) -> Unit)? = null,
+    onFinishedDelete: ((file: File, isSuccessful: Boolean) -> Unit)? = null
+) {
+    for (file in this) {
+        if (file.isDirectory) {
+            file.listFiles()?.asList()?.deletes(onStartDelete, onFinishedDelete)
+            file.delete()
+            continue
+        }
+        onStartDelete?.invoke(file)
+        val isSuccessful = file.delete()
+        onFinishedDelete?.invoke(file, isSuccessful)
+    }
+}

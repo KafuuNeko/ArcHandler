@@ -27,6 +27,11 @@ sealed class MainUiState {
 sealed class MainDialogState() {
     data class PasswordInput(
         val file: File,
-        val resultFuture: ResultFuture<String> = ResultFuture<String>()
+        val resultFuture: ResultFuture<String> = ResultFuture()
+    ) : MainDialogState()
+
+    data class FileDeleteConfirm(
+        val fileSet: Set<File>,
+        val resultFuture: ResultFuture<Boolean> = ResultFuture()
     ) : MainDialogState()
 }

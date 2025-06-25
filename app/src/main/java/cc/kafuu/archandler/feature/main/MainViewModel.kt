@@ -23,6 +23,7 @@ import cc.kafuu.archandler.libs.core.toViewEvent
 import cc.kafuu.archandler.libs.ext.appCopyTo
 import cc.kafuu.archandler.libs.ext.appMoveTo
 import cc.kafuu.archandler.libs.ext.createUniqueDirectory
+import cc.kafuu.archandler.libs.ext.deletes
 import cc.kafuu.archandler.libs.ext.getParentPath
 import cc.kafuu.archandler.libs.ext.getSameNameDirectory
 import cc.kafuu.archandler.libs.ext.isSameFileOrDirectory
@@ -50,16 +51,10 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState>(
 
     // 压缩包密码提供请求接口
     val mPasswordProvider = object : IPasswordProvider {
-        override suspend fun getPassword(file: File): String? {
-            val dialog = MainDialogState.PasswordInput(file = file)
-            val result = awaitUiStateOfType<MainUiState.Accessible>().run {
-                copy(dialogStates = dialogStates.toMutableSet().apply { add(dialog) }).setup()
-                dialog.resultFuture.awaitResult()
-            }
-            awaitUiStateOfType<MainUiState.Accessible>().run {
-                copy(dialogStates = dialogStates.toMutableSet().apply { remove(dialog) }).setup()
-            }
-            return result.getOrNull()
+        override suspend fun getPassword(
+            file: File
+        ): String? = MainDialogState.PasswordInput(file = file).run {
+            popupAwaitDialogResult { resultFuture.awaitResult() }
         }
     }
 
@@ -284,10 +279,10 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState>(
                 isMoving = true
             )
 
-            MainMultipleMenuEnum.Delete -> {
-                //TODO: 文件删除功能等待实现
-//                viewModel.selected.forEach { it.delete() }
-//                doLoadDirectory(listState.storageData, listState.directoryPath)
+            MainMultipleMenuEnum.Delete -> viewModelScope.launch(Dispatchers.IO) {
+                if (doDeleteFiles(viewModel.selected)) {
+                    doLoadDirectory(listState.storageData, listState.directoryPath)
+                }
             }
 
             MainMultipleMenuEnum.Archive -> {
@@ -372,6 +367,28 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState>(
     }
 
     /**
+     * 执行删除文件操作
+     */
+    private suspend fun doDeleteFiles(fileSet: Set<File>): Boolean {
+        // 询问用户是否确认删除
+        val isAgree = MainDialogState.FileDeleteConfirm(fileSet).run {
+            popupAwaitDialogResult { resultFuture.awaitResult() }
+        } == true
+        if (!isAgree) return false
+        // 执行文件删除逻辑
+        fileSet.toList().deletes(onStartDelete = {
+            (fetchUiState() as? MainUiState.Accessible)?.copy(
+                loadState = MainLoadState.FilesDeleting(it)
+            )?.setup()
+        })
+        // 重置页面当前loading状态为空
+        awaitUiStateOfType<MainUiState.Accessible>().copy(
+            loadState = MainLoadState.None
+        ).setup()
+        return true
+    }
+
+    /**
      * 粘贴模式底部菜单被点击
      */
     @UiIntentObserver(MainUiIntent.PasteMenuClick::class)
@@ -436,5 +453,22 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState>(
         state.copy(loadState = MainLoadState.None).setup()
 
         doLoadDirectory(targetStorageData, targetDirectoryPath)
+    }
+
+    /**
+     * 主页弹窗通用流程
+     */
+    private suspend fun <R> MainDialogState.popupAwaitDialogResult(
+        onAwaitResult: suspend () -> Result<R>
+    ): R? {
+        val dialog = this
+        val result = awaitUiStateOfType<MainUiState.Accessible>().run {
+            copy(dialogStates = dialogStates.toMutableSet().apply { add(dialog) }).setup()
+            onAwaitResult()
+        }
+        awaitUiStateOfType<MainUiState.Accessible>().run {
+            copy(dialogStates = dialogStates.toMutableSet().apply { remove(dialog) }).setup()
+        }
+        return result.getOrNull()
     }
 }

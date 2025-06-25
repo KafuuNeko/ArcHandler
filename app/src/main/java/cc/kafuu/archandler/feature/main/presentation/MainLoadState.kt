@@ -23,4 +23,8 @@ sealed class MainLoadState {
         val path: String,
         val target: Int
     ) : MainLoadState()
+
+    data class FilesDeleting(
+        val file: File
+    ) : MainLoadState()
 }

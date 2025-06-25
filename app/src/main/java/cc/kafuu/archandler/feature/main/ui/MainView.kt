@@ -9,10 +9,12 @@ import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import cc.kafuu.archandler.R
@@ -27,6 +29,7 @@ import cc.kafuu.archandler.feature.main.ui.scaffold.MainScaffoldTopBar
 import cc.kafuu.archandler.libs.model.StorageData
 import cc.kafuu.archandler.libs.utils.TestUtils
 import cc.kafuu.archandler.ui.dialogs.AppLoadDialog
+import cc.kafuu.archandler.ui.dialogs.ConfirmDialog
 import cc.kafuu.archandler.ui.dialogs.PasswordInputDialog
 import cc.kafuu.archandler.ui.theme.AppTheme
 import kotlinx.coroutines.CancellationException
@@ -135,6 +138,10 @@ private fun MainLoadDialogSwitch(loadState: MainLoadState) {
             AppLoadDialog(messages = listOf(message, filename, progress))
         }
 
+        is MainLoadState.FilesDeleting -> {
+            val message = stringResource(R.string.files_deleting)
+            AppLoadDialog(messages = listOf(message, loadState.file.name))
+        }
     }
 }
 
@@ -154,6 +161,27 @@ private fun MainDialogSwitch(
             onConfirmRequest = {
                 coroutineScope.launch {
                     dialogState.resultFuture.setResult(Result.success(it))
+                }
+            }
+        )
+
+        is MainDialogState.FileDeleteConfirm -> ConfirmDialog(
+            message = if (dialogState.fileSet.size > 1) {
+                stringResource(R.string.delete_files_message, dialogState.fileSet.size)
+            } else {
+                stringResource(
+                    R.string.delete_file_message, dialogState.fileSet.firstOrNull()?.name ?: ""
+                )
+            },
+            confirmContent = { Text(stringResource(R.string.delete), color = Color.Red) },
+            onDismissRequest = {
+                coroutineScope.launch {
+                    dialogState.resultFuture.setResult(Result.failure(CancellationException()))
+                }
+            },
+            onConfirmRequest = {
+                coroutineScope.launch {
+                    dialogState.resultFuture.setResult(Result.success(true))
                 }
             }
         )
