@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import cc.kafuu.archandler.R
+import cc.kafuu.archandler.feature.main.presentation.MainDialogState
 import cc.kafuu.archandler.feature.main.presentation.MainListState
 import cc.kafuu.archandler.feature.main.presentation.MainListViewModeState
 import cc.kafuu.archandler.feature.main.presentation.MainLoadState
@@ -26,7 +27,9 @@ import cc.kafuu.archandler.feature.main.ui.scaffold.MainScaffoldTopBar
 import cc.kafuu.archandler.libs.model.StorageData
 import cc.kafuu.archandler.libs.utils.TestUtils
 import cc.kafuu.archandler.ui.dialogs.AppLoadDialog
+import cc.kafuu.archandler.ui.dialogs.PasswordInputDialog
 import cc.kafuu.archandler.ui.theme.AppTheme
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import java.io.File
 import kotlin.io.path.Path
@@ -54,6 +57,7 @@ fun MainViewBody(
                 )
             }
             MainLoadDialogSwitch(uiState.loadState)
+            uiState.dialogStates.firstOrNull()?.run { MainDialogSwitch(this) }
         }
     }
 }
@@ -104,7 +108,7 @@ private fun MainLayout(
 }
 
 @Composable
-fun MainLoadDialogSwitch(loadState: MainLoadState) {
+private fun MainLoadDialogSwitch(loadState: MainLoadState) {
     when (loadState) {
         MainLoadState.None -> Unit
 
@@ -131,6 +135,28 @@ fun MainLoadDialogSwitch(loadState: MainLoadState) {
             AppLoadDialog(messages = listOf(message, filename, progress))
         }
 
+    }
+}
+
+@Composable
+private fun MainDialogSwitch(
+    dialogState: MainDialogState
+) {
+    val coroutineScope = rememberCoroutineScope()
+    when (dialogState) {
+        is MainDialogState.PasswordInput -> PasswordInputDialog(
+            message = stringResource(R.string.enter_password_message, dialogState.file.name),
+            onDismissRequest = {
+                coroutineScope.launch {
+                    dialogState.resultFuture.setResult(Result.failure(CancellationException()))
+                }
+            },
+            onConfirmRequest = {
+                coroutineScope.launch {
+                    dialogState.resultFuture.setResult(Result.success(it))
+                }
+            }
+        )
     }
 }
 

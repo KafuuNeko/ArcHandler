@@ -32,4 +32,9 @@
     <string name="archive_open_failed_message">Unable to open the archive</string>
     <string name="archive_unpacking_failed_message">Unpacking failure</string>
     <string name="unpacking_file_message">Unpacking…</string>
+    <string name="confirm">Confirm</string>
+    <string name="enter_password">Enter password</string>
+    <string name="enter_password_message">Enter password for %s</string>
+    <string name="hide_password">Hide password</string>
+    <string name="show_password">Show password</string>
 </resources>

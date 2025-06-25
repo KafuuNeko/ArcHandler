@@ -6,6 +6,7 @@ import cc.kafuu.archandler.R
 import cc.kafuu.archandler.feature.main.model.MainDrawerMenuEnum
 import cc.kafuu.archandler.feature.main.model.MainMultipleMenuEnum
 import cc.kafuu.archandler.feature.main.model.MainPasteMenuEnum
+import cc.kafuu.archandler.feature.main.presentation.MainDialogState
 import cc.kafuu.archandler.feature.main.presentation.MainListState
 import cc.kafuu.archandler.feature.main.presentation.MainListViewModeState
 import cc.kafuu.archandler.feature.main.presentation.MainLoadState
@@ -47,6 +48,20 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState>(
     // 压缩包管理器
     private val mArchiveManager by inject<ArchiveManager>()
 
+    // 压缩包密码提供请求接口
+    val mPasswordProvider = object : IPasswordProvider {
+        override suspend fun getPassword(file: File): String? {
+            val dialog = MainDialogState.PasswordInput(file = file)
+            val result = awaitUiStateOfType<MainUiState.Accessible>().run {
+                copy(dialogStates = dialogStates.toMutableSet().apply { add(dialog) }).setup()
+                dialog.resultFuture.awaitResult()
+            }
+            awaitUiStateOfType<MainUiState.Accessible>().run {
+                copy(dialogStates = dialogStates.toMutableSet().apply { remove(dialog) }).setup()
+            }
+            return result.getOrNull()
+        }
+    }
 
     /**
      * 页面初始化
@@ -211,14 +226,10 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState>(
      */
     private suspend fun doDecompress(file: File): File? = runCatching {
         val state = fetchUiState() as? MainUiState.Accessible ?: return null
-        val passwordProvider = object : IPasswordProvider {
-            override suspend fun getPassword(): String? {
-                return "123"
-            }
-        }
+
         // 尝试打开压缩包
         val archive = mArchiveManager.openArchive(file) ?: return null
-        if (!archive.open(passwordProvider)) return null
+        if (!archive.open(mPasswordProvider)) return null
         // 提取压缩包文件
         archive.use { archive ->
             val destDir = file.getSameNameDirectory().createUniqueDirectory() ?: return@use null

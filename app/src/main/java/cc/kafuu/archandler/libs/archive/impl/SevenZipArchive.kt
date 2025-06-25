@@ -24,11 +24,11 @@ class SevenZipArchive(
     override suspend fun open(provider: IPasswordProvider?): Boolean {
         if (tryOpen()) {
             if (hasEncryptedEntries()) {
-                mPassword = provider?.getPassword() ?: return false
+                mPassword = provider?.getPassword(archiveFile) ?: return false
                 if (!tryOpen(mPassword)) return false
             }
         } else {
-            mPassword = provider?.getPassword() ?: return false
+            mPassword = provider?.getPassword(archiveFile) ?: return false
             if (!tryOpen(mPassword)) return false
         }
         return mArchive != null && mSimpleArchive != null

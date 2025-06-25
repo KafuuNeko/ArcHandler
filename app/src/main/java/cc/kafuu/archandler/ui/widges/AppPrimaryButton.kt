@@ -12,12 +12,14 @@ import androidx.compose.ui.text.TextStyle
 fun AppPrimaryButton(
     modifier: Modifier,
     text: String,
+    enable: Boolean = true,
     onClick: () -> Unit = {},
     textStyle: TextStyle = MaterialTheme.typography.displayMedium
 ) {
     Button(
         modifier = modifier,
         onClick = onClick,
+        enabled = enable,
         colors = ButtonColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer,
             contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
