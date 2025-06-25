@@ -131,6 +131,11 @@ private fun MainLoadDialogSwitch(loadState: MainLoadState) {
             AppLoadDialog(messages = listOf(message, progress))
         }
 
+        is MainLoadState.ArchiveOpening -> {
+            val message = stringResource(R.string.opening_archive_message)
+            AppLoadDialog(messages = listOf(message, loadState.file.name))
+        }
+
         is MainLoadState.Unpacking -> {
             val message = stringResource(R.string.unpacking_file_message)
             val filename = File(loadState.path).name

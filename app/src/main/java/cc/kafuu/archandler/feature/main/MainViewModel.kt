@@ -27,7 +27,9 @@ import cc.kafuu.archandler.libs.ext.deletes
 import cc.kafuu.archandler.libs.ext.getParentPath
 import cc.kafuu.archandler.libs.ext.getSameNameDirectory
 import cc.kafuu.archandler.libs.ext.isSameFileOrDirectory
+import cc.kafuu.archandler.libs.manager.CacheManager
 import cc.kafuu.archandler.libs.manager.FileManager
+import cc.kafuu.archandler.libs.model.AppCacheType
 import cc.kafuu.archandler.libs.model.StorageData
 import com.hjq.permissions.Permission
 import com.hjq.permissions.XXPermissions
@@ -49,6 +51,9 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState>(
     // 压缩包管理器
     private val mArchiveManager by inject<ArchiveManager>()
 
+    // 应用缓存管理器
+    private val mCacheManager by inject<CacheManager>()
+
     // 压缩包密码提供请求接口
     val mPasswordProvider = object : IPasswordProvider {
         override suspend fun getPassword(
@@ -68,6 +73,8 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState>(
             MainUiState.None, is MainUiState.PermissionDenied -> Unit
             else -> return
         }
+        // 清理缓存
+        mCacheManager.clearCache(AppCacheType.MERGE_SPLIT_ARCHIVE)
         if (!XXPermissions.isGranted(get(), Permission.MANAGE_EXTERNAL_STORAGE)) {
             MainUiState.PermissionDenied().setup()
         } else {
@@ -198,7 +205,7 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState>(
             return@launch
         }
         // 判断当前打开的文件是否可解压
-        if (!mArchiveManager.isExtractable(intent.file)) {
+        if (!ArchiveManager.isExtractable(intent.file)) {
             state.copy(viewEvent = MainViewEvent.OpenFile(intent.file).toViewEvent()).setup()
             return@launch
         }
@@ -221,10 +228,13 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState>(
      */
     private suspend fun doDecompress(file: File): File? = runCatching {
         val state = fetchUiState() as? MainUiState.Accessible ?: return null
-
         // 尝试打开压缩包
-        val archive = mArchiveManager.openArchive(file) ?: return null
-        if (!archive.open(mPasswordProvider)) return null
+        state.copy(loadState = MainLoadState.ArchiveOpening(file)).setup()
+        val archive = mArchiveManager.openArchive(file)
+        if (archive?.open(mPasswordProvider) != true) {
+            state.copy(loadState = MainLoadState.None).setup()
+            return null
+        }
         // 提取压缩包文件
         archive.use { archive ->
             val destDir = file.getSameNameDirectory().createUniqueDirectory() ?: return@use null

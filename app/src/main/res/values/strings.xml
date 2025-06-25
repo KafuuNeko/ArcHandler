@@ -40,5 +40,6 @@
     <string name="delete_files_message">Delete %d files? \nWarring: This will permanently delete them and cannot be undone.</string>
     <string name="delete_file_message">Delete “%s”? \nWarring: This will permanently delete it and cannot be undone.</string>
     <string name="files_deleting">Deleting files…</string>
+    <string name="opening_archive_message">Opening…</string>
 
 </resources>

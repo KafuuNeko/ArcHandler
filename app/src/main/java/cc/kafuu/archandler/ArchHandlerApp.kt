@@ -4,6 +4,7 @@ import android.app.Application
 import android.util.Log
 import cc.kafuu.archandler.libs.AppLibs
 import cc.kafuu.archandler.libs.archive.ArchiveManager
+import cc.kafuu.archandler.libs.manager.CacheManager
 import cc.kafuu.archandler.libs.manager.FileManager
 import com.chibatching.kotpref.Kotpref
 import net.sf.sevenzipjbinding.SevenZip
@@ -43,4 +44,5 @@ private val appModules = module {
     singleOf(::AppLibs)
     singleOf(::FileManager)
     singleOf(::ArchiveManager)
+    singleOf(::CacheManager)
 }

@@ -1,6 +1,7 @@
 package cc.kafuu.archandler.libs.ext
 
 import cc.kafuu.archandler.R
+import cc.kafuu.archandler.libs.archive.ArchiveManager
 import org.apache.commons.io.FileUtils
 import java.io.File
 import java.io.IOException
@@ -11,13 +12,6 @@ import kotlin.math.log10
 import kotlin.math.pow
 
 private val EXTENSION_ICON_MAP = mapOf(
-    // archive
-    R.drawable.ic_archive to setOf(
-        ".zip", ".rar", ".tar", ".gz", ".7z", ".bz2",
-        ".tar.gz", ".tar.bz2", ".lzma", ".cab", ".iso",
-        ".tgz", ".tar.z", ".cpio", ".ar"
-    ),
-
     // image
     R.drawable.ic_file_image to setOf(
         ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".tiff", ".raw", ".svg", ".heif"
@@ -56,6 +50,7 @@ fun File.getIcon(): Int {
             return icon
         }
     }
+    if (ArchiveManager.isExtractable(this)) return R.drawable.ic_archive
     return R.drawable.ic_file
 }
 
