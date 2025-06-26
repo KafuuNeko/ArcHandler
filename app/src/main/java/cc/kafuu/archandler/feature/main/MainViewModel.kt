@@ -17,6 +17,7 @@ import cc.kafuu.archandler.libs.AppLibs
 import cc.kafuu.archandler.libs.AppModel
 import cc.kafuu.archandler.libs.archive.ArchiveManager
 import cc.kafuu.archandler.libs.archive.IPasswordProvider
+import cc.kafuu.archandler.libs.archive.model.CompressionOption
 import cc.kafuu.archandler.libs.core.CoreViewModel
 import cc.kafuu.archandler.libs.core.UiIntentObserver
 import cc.kafuu.archandler.libs.core.toViewEvent
@@ -295,8 +296,14 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState>(
                 }
             }
 
-            MainMultipleMenuEnum.Archive -> {
-                // TODO:
+            MainMultipleMenuEnum.Archive -> viewModelScope.launch {
+                //TODO: 压缩测试代码
+                val file = File(listState.directoryPath.toString(), "archive.zip")
+                mArchiveManager.createPacker(
+                    file,
+                    CompressionOption.Zip(viewModel.selected.toList())
+                ).pack { _, _, _ -> }
+                doLoadDirectory(listState.storageData, listState.directoryPath)
             }
         }
     }

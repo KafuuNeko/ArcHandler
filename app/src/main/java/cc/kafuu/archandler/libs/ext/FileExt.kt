@@ -136,3 +136,14 @@ fun List<File>.deletes(
         onFinishedDelete?.invoke(file, isSuccessful)
     }
 }
+
+fun File.collectFilesWithRelativePaths(baseDir: File): List<Pair<File, String>> {
+    val basePathLength = baseDir.parentFile?.absolutePath?.length?.plus(1) ?: 0
+    val relativePath = absolutePath.substring(basePathLength).replace(File.separatorChar, '/')
+    if (isDirectory) {
+        val children = listFiles()?.flatMap { it.collectFilesWithRelativePaths(baseDir) }
+            ?: emptyList()
+        return listOf(this to "$relativePath/") + children
+    }
+    return listOf(this to relativePath)
+}

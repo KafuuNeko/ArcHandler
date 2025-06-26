@@ -1,4 +1,4 @@
-package cc.kafuu.archandler.libs.archive.impl
+package cc.kafuu.archandler.libs.archive.impl.archive
 
 import cc.kafuu.archandler.libs.archive.IArchive
 import cc.kafuu.archandler.libs.archive.IPasswordProvider

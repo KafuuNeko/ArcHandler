@@ -26,6 +26,7 @@ class ArchHandlerApp : Application() {
             androidContext(this@ArchHandlerApp)
             modules(appModules)
         }
+        SevenZip.initSevenZipFromPlatformJAR()
         testVersion()
     }
 
