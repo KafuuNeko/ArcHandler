@@ -18,10 +18,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import cc.kafuu.archandler.R
 import cc.kafuu.archandler.feature.main.model.MainMultipleMenuEnum
+import cc.kafuu.archandler.feature.main.model.MainPackMenuEnum
 import cc.kafuu.archandler.feature.main.model.MainPasteMenuEnum
-import cc.kafuu.archandler.feature.main.presentation.MainLoadState
 import cc.kafuu.archandler.feature.main.presentation.MainListState
 import cc.kafuu.archandler.feature.main.presentation.MainListViewModeState
+import cc.kafuu.archandler.feature.main.presentation.MainLoadState
 import cc.kafuu.archandler.feature.main.presentation.MainUiIntent
 import cc.kafuu.archandler.feature.main.ui.common.BottomMenu
 import cc.kafuu.archandler.feature.main.ui.common.IconMessageView
@@ -29,8 +30,8 @@ import cc.kafuu.archandler.libs.ext.getIcon
 import cc.kafuu.archandler.libs.ext.getLastModifiedDate
 import cc.kafuu.archandler.libs.ext.getReadableSize
 import cc.kafuu.archandler.libs.model.StorageData
-import cc.kafuu.archandler.ui.widges.AppOptionalIconTextItemCard
 import cc.kafuu.archandler.ui.widges.AppLazyColumn
+import cc.kafuu.archandler.ui.widges.AppOptionalIconTextItemCard
 import java.io.File
 
 @Composable
@@ -61,7 +62,9 @@ fun DirectoryView(
             emptyState = {
                 if (loadState !is MainLoadState.None) return@AppLazyColumn
                 IconMessageView(
-                    modifier = Modifier.fillMaxWidth().weight(1f),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
                     icon = painterResource(R.drawable.ic_empty_folder),
                     message = stringResource(R.string.empty_directory),
                 )
@@ -95,6 +98,14 @@ fun DirectoryView(
             )
 
             is MainListViewModeState.Paste -> PasteMenuView(
+                modifier = Modifier
+                    .height(50.dp)
+                    .padding(horizontal = 10.dp),
+                listState = listState,
+                emitIntent = emitIntent
+            )
+
+            is MainListViewModeState.Pack -> PackMenuView(
                 modifier = Modifier
                     .height(50.dp)
                     .padding(horizontal = 10.dp),
@@ -186,6 +197,31 @@ private fun PasteMenuView(
                 title = stringResource(it.title)
             ) {
                 MainUiIntent.PasteMenuClick(
+                    menu = it,
+                    targetStorageData = listState.storageData,
+                    targetDirectoryPath = listState.directoryPath
+                ).also(emitIntent)
+            }
+        }
+    }
+}
+
+@Composable
+private fun PackMenuView(
+    modifier: Modifier = Modifier,
+    listState: MainListState.Directory,
+    emitIntent: (uiIntent: MainUiIntent) -> Unit = {},
+) {
+    Row(modifier = modifier) {
+        MainPackMenuEnum.entries.forEach {
+            BottomMenu(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight(),
+                icon = painterResource(it.icon),
+                title = stringResource(it.title)
+            ) {
+                MainUiIntent.PackMenuClick(
                     menu = it,
                     targetStorageData = listState.storageData,
                     targetDirectoryPath = listState.directoryPath

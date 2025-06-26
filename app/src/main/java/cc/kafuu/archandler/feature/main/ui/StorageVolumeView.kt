@@ -17,6 +17,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import cc.kafuu.archandler.R
+import cc.kafuu.archandler.feature.main.model.MainPackMenuEnum
 import cc.kafuu.archandler.feature.main.model.MainPasteMenuEnum
 import cc.kafuu.archandler.feature.main.presentation.MainListState
 import cc.kafuu.archandler.feature.main.presentation.MainListViewModeState
@@ -80,6 +81,16 @@ fun StorageVolumeView(
                 )
             }
 
+            is MainListViewModeState.Pack -> {
+                HorizontalDivider(modifier = Modifier.fillMaxWidth())
+                StoragePackMenuView(
+                    modifier = Modifier
+                        .height(50.dp)
+                        .padding(horizontal = 10.dp),
+                    emitIntent = emitIntent
+                )
+            }
+
             else -> Unit
         }
     }
@@ -99,6 +110,24 @@ private fun StoragePasteMenuView(
             title = stringResource(MainPasteMenuEnum.Cancel.title)
         ) {
             MainUiIntent.PasteMenuClick(menu = MainPasteMenuEnum.Cancel).also(emitIntent)
+        }
+    }
+}
+
+@Composable
+private fun StoragePackMenuView(
+    modifier: Modifier = Modifier,
+    emitIntent: (uiIntent: MainUiIntent) -> Unit = {},
+) {
+    Row(modifier = modifier) {
+        BottomMenu(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight(),
+            icon = painterResource(MainPackMenuEnum.Cancel.icon),
+            title = stringResource(MainPackMenuEnum.Cancel.title)
+        ) {
+            MainUiIntent.PackMenuClick(menu = MainPackMenuEnum.Cancel).also(emitIntent)
         }
     }
 }

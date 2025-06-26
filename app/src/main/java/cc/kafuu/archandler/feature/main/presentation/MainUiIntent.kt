@@ -2,6 +2,7 @@ package cc.kafuu.archandler.feature.main.presentation
 
 import cc.kafuu.archandler.feature.main.model.MainDrawerMenuEnum
 import cc.kafuu.archandler.feature.main.model.MainMultipleMenuEnum
+import cc.kafuu.archandler.feature.main.model.MainPackMenuEnum
 import cc.kafuu.archandler.feature.main.model.MainPasteMenuEnum
 import cc.kafuu.archandler.libs.model.StorageData
 import java.io.File
@@ -44,4 +45,10 @@ sealed class MainUiIntent {
         val targetStorageData: StorageData = StorageData(),
         val targetDirectoryPath: Path = Path(""),
     ) : MainUiIntent()
+
+    data class PackMenuClick(
+        val menu: MainPackMenuEnum,
+        val targetStorageData: StorageData = StorageData(),
+        val targetDirectoryPath: Path = Path(""),
+    ): MainUiIntent()
 }

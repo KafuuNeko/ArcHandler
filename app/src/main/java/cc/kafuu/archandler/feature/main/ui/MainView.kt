@@ -74,8 +74,11 @@ private fun MainLayout(
     content: @Composable BoxScope.() -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
-    val title = (uiState.viewModeState as? MainListViewModeState.Paste)?.let {
-        stringResource(R.string.select_destination_path)
+    val title = when (uiState.viewModeState) {
+        is MainListViewModeState.Pack,
+        is MainListViewModeState.Paste -> stringResource(R.string.select_destination_path)
+
+        else -> null
     } ?: when (val listData = uiState.listState) {
         is MainListState.Directory -> {
             (uiState.viewModeState as? MainListViewModeState.MultipleSelect)?.let {

@@ -41,5 +41,5 @@
     <string name="delete_file_message">Delete “%s”? \nWarring: This will permanently delete it and cannot be undone.</string>
     <string name="files_deleting">Deleting files…</string>
     <string name="opening_archive_message">Opening…</string>
-
+    <string name="entry_pack_is_empty_message">Please select at least one file or directory.</string>
 </resources>

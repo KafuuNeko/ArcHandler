@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import cc.kafuu.archandler.R
 import cc.kafuu.archandler.feature.main.model.MainDrawerMenuEnum
 import cc.kafuu.archandler.feature.main.model.MainMultipleMenuEnum
+import cc.kafuu.archandler.feature.main.model.MainPackMenuEnum
 import cc.kafuu.archandler.feature.main.model.MainPasteMenuEnum
 import cc.kafuu.archandler.feature.main.presentation.MainDialogState
 import cc.kafuu.archandler.feature.main.presentation.MainListState
@@ -17,7 +18,6 @@ import cc.kafuu.archandler.libs.AppLibs
 import cc.kafuu.archandler.libs.AppModel
 import cc.kafuu.archandler.libs.archive.ArchiveManager
 import cc.kafuu.archandler.libs.archive.IPasswordProvider
-import cc.kafuu.archandler.libs.archive.model.CompressionOption
 import cc.kafuu.archandler.libs.core.CoreViewModel
 import cc.kafuu.archandler.libs.core.UiIntentObserver
 import cc.kafuu.archandler.libs.core.toViewEvent
@@ -105,6 +105,14 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState>(
             }
 
             is MainListViewModeState.Paste -> {
+                if (state.listState is MainListState.Directory) {
+                    doBackToParent(state.listState.storageData, state.listState.directoryPath)
+                } else {
+                    doLoadDirectory(viewMode.sourceStorageData, viewMode.sourceDirectoryPath)
+                }
+            }
+
+            is MainListViewModeState.Pack -> {
                 if (state.listState is MainListState.Directory) {
                     doBackToParent(state.listState.storageData, state.listState.directoryPath)
                 } else {
@@ -296,15 +304,11 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState>(
                 }
             }
 
-            MainMultipleMenuEnum.Archive -> viewModelScope.launch {
-                //TODO: 压缩测试代码
-                val file = File(listState.directoryPath.toString(), "archive.zip")
-                mArchiveManager.createPacker(
-                    file,
-                    CompressionOption.Zip(viewModel.selected.toList())
-                ).pack { _, _, _ -> }
-                doLoadDirectory(listState.storageData, listState.directoryPath)
-            }
+            MainMultipleMenuEnum.Archive -> doEntryPackMode(
+                sourceStorageData = intent.sourceStorageData,
+                sourceDirectoryPath = intent.sourceDirectoryPath,
+                sourceFiles = intent.sourceFiles
+            )
         }
     }
 
@@ -329,6 +333,29 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState>(
                 sourceDirectoryPath = sourceDirectoryPath,
                 sourceFiles = sourceFiles,
                 isMoving = isMoving
+            )
+        ).setup()
+    }
+
+    /**
+     * 切换入打包模式
+     */
+    private fun doEntryPackMode(
+        sourceStorageData: StorageData,
+        sourceDirectoryPath: Path,
+        sourceFiles: List<File>,
+    ) {
+        val state = fetchUiState() as? MainUiState.Accessible ?: return
+        if (sourceFiles.isEmpty()) {
+            val message = get<Context>().getString(R.string.entry_pack_is_empty_message)
+            state.copy(viewEvent = MainViewEvent.PopupToastMessage(message).toViewEvent()).setup()
+            return
+        }
+        state.copy(
+            viewModeState = MainListViewModeState.Pack(
+                sourceStorageData = sourceStorageData,
+                sourceDirectoryPath = sourceDirectoryPath,
+                sourceFiles = sourceFiles
             )
         ).setup()
     }
@@ -470,6 +497,51 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState>(
         state.copy(loadState = MainLoadState.None).setup()
 
         doLoadDirectory(targetStorageData, targetDirectoryPath)
+    }
+
+    /**
+     * 打包菜单被选择
+     */
+    @UiIntentObserver(MainUiIntent.PackMenuClick::class)
+    private fun onPackMenuClick(
+        intent: MainUiIntent.PackMenuClick
+    ) {
+        val state = fetchUiState() as? MainUiState.Accessible ?: return
+        val viewMode = state.viewModeState as? MainListViewModeState.Paste ?: return
+        when (intent.menu) {
+            MainPackMenuEnum.Pack -> doPackFiles(
+                targetStorageData = intent.targetStorageData,
+                targetDirectoryPath = intent.targetDirectoryPath
+            )
+
+            MainPackMenuEnum.Cancel -> doLoadDirectory(
+                storageData = viewMode.sourceStorageData,
+                directoryPath = viewMode.sourceDirectoryPath
+            )
+        }
+    }
+
+    /**
+     * 执行具体的打包操作
+     */
+    private fun doPackFiles(
+        targetStorageData: StorageData = StorageData(),
+        targetDirectoryPath: Path = Path(""),
+    ) = viewModelScope.launch {
+        val state = fetchUiState() as? MainUiState.Accessible ?: return@launch
+        val viewMode = state.viewModeState as? MainListViewModeState.Pack ?: return@launch
+        val targetDirectoryFile = File(targetDirectoryPath.toString())
+        //TODO: 与用户交互 用户选择打包类型 之后开始打包 逻辑待补充
+//        viewModelScope.launch {
+//            //TODO: 压缩测试代码
+//            val file = File(listState.directoryPath.toString(), "archive.zip")
+//            mArchiveManager.createPacker(
+//                file,
+//                CompressionOption.Zip(viewModel.selected.toList())
+//            ).pack { _, _, _ -> }
+//            doLoadDirectory(listState.storageData, listState.directoryPath)
+//        }
+
     }
 
     /**

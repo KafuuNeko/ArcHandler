@@ -17,4 +17,10 @@ sealed class MainListViewModeState {
         val sourceFiles: List<File>,
         val isMoving: Boolean = false
     ) : MainListViewModeState()
+
+    data class Pack(
+        val sourceStorageData: StorageData,
+        val sourceDirectoryPath: Path,
+        val sourceFiles: List<File>,
+    ) : MainListViewModeState()
 }
