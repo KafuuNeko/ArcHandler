@@ -1,5 +1,7 @@
 package cc.kafuu.archandler.feature.main.ui
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -8,10 +10,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -33,6 +41,7 @@ import cc.kafuu.archandler.libs.model.StorageData
 import cc.kafuu.archandler.ui.widges.AppLazyColumn
 import cc.kafuu.archandler.ui.widges.AppOptionalIconTextItemCard
 import java.io.File
+import java.nio.file.Path
 
 @Composable
 fun DirectoryView(
@@ -46,11 +55,8 @@ fun DirectoryView(
         modifier = modifier
             .fillMaxSize()
     ) {
-        Text(
-            modifier = Modifier
-                .padding(horizontal = 10.dp),
-            text = listState.directoryPath.toString(),
-            style = MaterialTheme.typography.headlineMedium
+        DirectoryPathBar(
+            listState.storageData, listState.directoryPath, emitIntent
         )
 
         AppLazyColumn(
@@ -114,6 +120,62 @@ fun DirectoryView(
             )
         }
     }
+}
+
+@Composable
+private fun DirectoryPathBar(
+    storageData: StorageData,
+    directoryPath: Path,
+    emitIntent: (uiIntent: MainUiIntent) -> Unit,
+) {
+    val listState = rememberLazyListState()
+    val baseURI = storageData.directory.toURI()
+    val targetURI = File(directoryPath.toString()).toURI()
+    val segments = baseURI.relativize(targetURI).path.takeIf {
+        it.isNotEmpty()
+    }?.trim('/')?.split('/') ?: emptyList()
+    LaunchedEffect(segments, directoryPath) {
+        if (segments.isNotEmpty()) listState.scrollToItem(segments.lastIndex)
+    }
+    LazyRow(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 10.dp),
+        state = listState,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        item {
+            Text(
+                modifier = Modifier
+                    .clickable {
+                        emitIntent(MainUiIntent.FileSelected(storageData, storageData.directory))
+                    },
+                text = storageData.name,
+                style = MaterialTheme.typography.headlineMedium
+            )
+        }
+        var parentFile = storageData.directory
+        items(segments) {
+            val currentFile = File(parentFile, it)
+            Image(
+                modifier = Modifier
+                    .padding(horizontal = 3.dp)
+                    .size(12.dp),
+                painter = painterResource(R.drawable.ic_arrow_forward),
+                contentDescription = null
+            )
+            Text(
+                modifier = Modifier
+                    .clickable {
+                        emitIntent(MainUiIntent.FileSelected(storageData, currentFile))
+                    },
+                text = it,
+                style = MaterialTheme.typography.headlineMedium
+            )
+            parentFile = currentFile
+        }
+    }
+
 }
 
 @Composable

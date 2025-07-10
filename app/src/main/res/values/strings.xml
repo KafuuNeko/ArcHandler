@@ -42,4 +42,5 @@
     <string name="files_deleting">Deleting files…</string>
     <string name="opening_archive_message">Opening…</string>
     <string name="entry_pack_is_empty_message">Please select at least one file or directory.</string>
+    <string name="create_archive">Create Archive</string>
 </resources>
