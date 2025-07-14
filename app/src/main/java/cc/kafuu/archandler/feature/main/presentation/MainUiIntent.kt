@@ -30,7 +30,8 @@ sealed class MainUiIntent {
     ) : MainUiIntent()
 
     data class FileMultipleSelectMode(
-        val enable: Boolean
+        val enable: Boolean,
+        val file: File
     ) : MainUiIntent()
 
     data class MultipleMenuClick(

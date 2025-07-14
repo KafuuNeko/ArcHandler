@@ -34,10 +34,10 @@ fun IconMessageView(
             painter = icon,
             contentDescription = null
         )
-        Spacer(modifier = Modifier.height(5.dp))
         Text(
             text = message,
-            style = MaterialTheme.typography.displayMedium
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
         )
     }
 }

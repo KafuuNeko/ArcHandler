@@ -238,12 +238,12 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState>(
                 mAppLibs.getString(R.string.archive_unpacking_failed_message)
             ).toViewEvent().awaitViewEvent()
             // 解压失败
-            awaitUiStateOfType<MainUiState.Accessible>().copy(
-                loadState = MainLoadState.None
-            ).setup()
+            awaitUiStateOfType<MainUiState.Accessible>().copy(loadState = MainLoadState.None)
+                .setup()
             return@launch
         }
         // 解压成功，进入解压后的目录
+        awaitUiStateOfType<MainUiState.Accessible>().copy(loadState = MainLoadState.None).setup()
         doLoadDirectory(listState.storageData, Path(destDir.path))
     }
 
@@ -281,7 +281,7 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState>(
         }
         state.copy(
             viewModeState = if (intent.enable) {
-                MainListViewModeState.MultipleSelect()
+                MainListViewModeState.MultipleSelect(setOf(intent.file))
             } else {
                 MainListViewModeState.Normal
             }
@@ -402,7 +402,9 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState>(
         directoryPath: Path,
         viewModeState: MainListViewModeState = MainListViewModeState.Normal,
     ) = viewModelScope.launch(Dispatchers.IO) {
-        val uiStatePrototype = MainUiState.Accessible(
+        val uiStatePrototype = (fetchUiState() as? MainUiState.Accessible)?.copy(
+            viewModeState = viewModeState
+        ) ?: MainUiState.Accessible(
             viewModeState = viewModeState
         )
         uiStatePrototype.copy(loadState = MainLoadState.DirectoryLoading).setup()
@@ -427,6 +429,11 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState>(
      * 执行删除文件操作
      */
     private suspend fun doDeleteFiles(fileSet: Set<File>): Boolean {
+        if (fileSet.isEmpty()) {
+            val message = get<Context>().getString(R.string.entry_paste_is_empty_message)
+            MainViewEvent.PopupToastMessage(message).toViewEvent().awaitViewEvent()
+            return false
+        }
         // 询问用户是否确认删除
         val isAgree = MainDialogState.FileDeleteConfirm(fileSet).run {
             popupAwaitDialogResult { resultFuture.awaitResult() }
@@ -520,7 +527,7 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState>(
         intent: MainUiIntent.PackMenuClick
     ) {
         val state = fetchUiState() as? MainUiState.Accessible ?: return
-        val viewMode = state.viewModeState as? MainListViewModeState.Paste ?: return
+        val viewMode = state.viewModeState as? MainListViewModeState.Pack ?: return
         when (intent.menu) {
             MainPackMenuEnum.Pack -> doPackFiles(
                 targetStorageData = intent.targetStorageData,

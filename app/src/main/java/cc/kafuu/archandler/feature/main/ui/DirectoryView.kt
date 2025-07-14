@@ -155,16 +155,21 @@ private fun DirectoryPathBar(
                     emitIntent(MainUiIntent.FileSelected(storageData, storageData.directory))
                 },
             text = storageData.name,
-            style = MaterialTheme.typography.headlineMedium
+            style = MaterialTheme.typography.headlineMedium,
+            color = if (segments.isEmpty()) {
+                MaterialTheme.colorScheme.onBackground.copy(alpha = 1f)
+            } else {
+                MaterialTheme.colorScheme.onBackground.copy(alpha = 0.75f)
+            }
         )
 
         var parentFile = storageData.directory
-        segments.forEach { segment ->
+        segments.forEachIndexed { index, segment ->
             val currentFile = File(parentFile, segment)
 
             Image(
                 modifier = Modifier
-                    .padding(horizontal = 3.dp)
+                    .padding(horizontal = 2.5.dp)
                     .size(12.dp),
                 painter = painterResource(R.drawable.ic_arrow_forward),
                 contentDescription = null
@@ -176,7 +181,12 @@ private fun DirectoryPathBar(
                         emitIntent(MainUiIntent.FileSelected(storageData, currentFile))
                     },
                 text = segment,
-                style = MaterialTheme.typography.headlineMedium
+                style = MaterialTheme.typography.headlineMedium,
+                color = if (segments.size == index + 1) {
+                    MaterialTheme.colorScheme.onBackground.copy(alpha = 1f)
+                } else {
+                    MaterialTheme.colorScheme.onBackground.copy(alpha = 0.75f)
+                }
             )
 
             parentFile = currentFile
@@ -209,7 +219,9 @@ private fun FileItem(
         checked = checked,
         secondaryText = secondaryText,
         displaySelectBox = multipleSelectMode,
-        onLongClick = { emitIntent(MainUiIntent.FileMultipleSelectMode(!multipleSelectMode)) }
+        onLongClick = {
+            emitIntent(MainUiIntent.FileMultipleSelectMode(!multipleSelectMode, file))
+        }
     ) {
         MainUiIntent.FileSelected(
             storageData = storageData,

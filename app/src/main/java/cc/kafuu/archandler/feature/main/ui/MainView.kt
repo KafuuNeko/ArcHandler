@@ -36,6 +36,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import java.io.File
 import kotlin.io.path.Path
+import kotlin.io.path.name
 
 @Composable
 fun MainViewBody(
@@ -83,7 +84,11 @@ private fun MainLayout(
         is MainListState.Directory -> {
             (uiState.viewModeState as? MainListViewModeState.MultipleSelect)?.let {
                 stringResource(R.string.n_files_selected, it.selected.size)
-            } ?: listData.storageData.name
+            } ?: if (listData.storageData.directory.path == listData.directoryPath.toString()) {
+                listData.storageData.name
+            } else {
+                listData.directoryPath.name
+            }
         }
 
         else -> stringResource(R.string.app_name)
