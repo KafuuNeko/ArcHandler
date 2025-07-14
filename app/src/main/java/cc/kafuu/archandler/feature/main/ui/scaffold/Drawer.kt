@@ -27,7 +27,6 @@ import androidx.compose.ui.unit.dp
 import cc.kafuu.archandler.R
 import cc.kafuu.archandler.feature.main.model.MainDrawerMenuEnum
 import cc.kafuu.archandler.feature.main.presentation.MainUiIntent
-import cc.kafuu.archandler.libs.AppModel
 
 @Composable
 fun MainScaffoldDrawer(
@@ -78,15 +77,9 @@ private fun DrawerHeader() {
         Spacer(modifier = Modifier.height(5.dp))
 
         Text(
-            text = appVersionName,
-            style = MaterialTheme.typography.bodyMedium
-        )
-
-        Spacer(modifier = Modifier.height(5.dp))
-
-        Text(
-            text = AppModel.EMAIL,
-            style = MaterialTheme.typography.bodyMedium
+            text = "Version: $appVersionName",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onBackground.copy(0.5f)
         )
     }
 }

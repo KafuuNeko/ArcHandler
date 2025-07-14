@@ -20,6 +20,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import cc.kafuu.archandler.R
+import cc.kafuu.archandler.libs.AppModel
 import cc.kafuu.archandler.ui.widges.AppTopBar
 
 @Composable
@@ -71,8 +72,17 @@ private fun AboutViewContent(
         Spacer(modifier = Modifier.height(5.dp))
 
         Text(
+            text = AppModel.EMAIL,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onBackground.copy(0.5f)
+        )
+
+        Spacer(modifier = Modifier.height(5.dp))
+
+        Text(
             text = appVersionName,
-            style = MaterialTheme.typography.bodyMedium
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onBackground.copy(0.5f)
         )
     }
 }
