@@ -86,6 +86,12 @@ dependencies {
     // Apache Commons IO
     implementation(libs.commons.io)
 
+    // Coil
+    implementation(libs.coil.compose)
+
+    // Glide
+    implementation(libs.glide)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

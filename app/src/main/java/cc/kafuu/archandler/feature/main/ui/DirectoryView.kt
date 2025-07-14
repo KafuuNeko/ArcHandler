@@ -12,9 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -23,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -36,12 +34,15 @@ import cc.kafuu.archandler.feature.main.presentation.MainLoadState
 import cc.kafuu.archandler.feature.main.presentation.MainUiIntent
 import cc.kafuu.archandler.feature.main.ui.common.BottomMenu
 import cc.kafuu.archandler.feature.main.ui.common.IconMessageView
-import cc.kafuu.archandler.libs.ext.getIcon
+import cc.kafuu.archandler.libs.ext.getFileType
 import cc.kafuu.archandler.libs.ext.getLastModifiedDate
 import cc.kafuu.archandler.libs.ext.getReadableSize
+import cc.kafuu.archandler.libs.model.FileType
 import cc.kafuu.archandler.libs.model.StorageData
+import cc.kafuu.archandler.ui.utils.rememberVideoThumbnailPainter
 import cc.kafuu.archandler.ui.widges.AppLazyColumn
 import cc.kafuu.archandler.ui.widges.AppOptionalIconTextItemCard
+import coil.compose.rememberAsyncImagePainter
 import java.io.File
 import java.nio.file.Path
 
@@ -210,12 +211,20 @@ private fun FileItem(
         )
     }
     val checked = selectedSet?.contains(file) == true
-
+    val painter = file.getFileType().let { type ->
+        val defaultIcon = painterResource(type.icon)
+        when (type) {
+            FileType.Image -> rememberAsyncImagePainter(model = file, placeholder = defaultIcon)
+            FileType.Movie -> rememberVideoThumbnailPainter(model = file, placeholder = defaultIcon)
+            else -> defaultIcon
+        }
+    }
     AppOptionalIconTextItemCard(
         modifier = Modifier
             .fillMaxWidth(),
-        painter = painterResource(file.getIcon()),
+        painter = painter,
         text = text,
+        contentScale = ContentScale.Crop,
         checked = checked,
         secondaryText = secondaryText,
         displaySelectBox = multipleSelectMode,

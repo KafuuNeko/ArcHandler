@@ -2,6 +2,7 @@ package cc.kafuu.archandler.libs.ext
 
 import cc.kafuu.archandler.R
 import cc.kafuu.archandler.libs.archive.ArchiveManager
+import cc.kafuu.archandler.libs.model.FileType
 import org.apache.commons.io.FileUtils
 import java.io.File
 import java.io.IOException
@@ -13,47 +14,46 @@ import kotlin.math.pow
 
 private val EXTENSION_ICON_MAP = mapOf(
     // image
-    R.drawable.ic_file_image to setOf(
-        ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".tiff", ".raw", ".svg", ".heif"
+    FileType.Image to setOf(
+        ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".tiff", ".raw", ".svg", ".heif", ".heic"
     ),
 
     // pdf
-    R.drawable.ic_file_pdf to setOf(".pdf"),
+    FileType.Pdf to setOf(".pdf"),
 
     // docs
-    R.drawable.ic_file_docs to setOf(
+    FileType.Docs to setOf(
         ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx", ".odt", ".ods", ".odp", ".txt", ".rtf",
         ".md"
     ),
 
     // movie
-    R.drawable.ic_file_movie to setOf(
+    FileType.Movie to setOf(
         ".mp4", ".avi", ".mkv", ".mov", ".wmv", ".flv", ".webm", ".mpg", ".mpeg", ".3gp", ".ogg"
     ),
 
     // music
-    R.drawable.ic_file_music to setOf(
+    FileType.Music to setOf(
         ".mp3", ".wav", ".aac", ".flac", ".ogg", ".m4a", ".wma", ".aiff"
     ),
 
     // database
-    R.drawable.ic_file_database to setOf(
+    FileType.Database to setOf(
         ".db", ".sqlite", ".sqlite3", ".db3", ".mdb", ".accdb"
     )
 )
 
-fun File.getIcon(): Int {
-    if (isDirectory) return R.drawable.ic_folder
+fun File.getFileType(): FileType {
+    if (isDirectory) return FileType.Folder
     val extension = name.lowercase()
     for ((icon, extensions) in EXTENSION_ICON_MAP) {
         if (extensions.any { extension.endsWith(it, true) }) {
             return icon
         }
     }
-    if (ArchiveManager.isExtractable(this)) return R.drawable.ic_archive
-    return R.drawable.ic_file
+    if (ArchiveManager.isExtractable(this)) return FileType.Archive
+    return FileType.Unknow
 }
-
 
 fun File.getLastModifiedDate(format: String = "yyyy-MM-dd HH:mm:ss"): String {
     return SimpleDateFormat(format, Locale.getDefault()).format(Date(lastModified()))

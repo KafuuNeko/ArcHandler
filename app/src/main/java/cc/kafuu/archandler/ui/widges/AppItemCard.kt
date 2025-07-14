@@ -24,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -104,6 +105,7 @@ fun AppOptionalIconTextItemCard(
     modifier: Modifier = Modifier,
     painter: Painter,
     text: String,
+    contentScale: ContentScale = ContentScale.Fit,
     textMaxLine: Int = 1,
     checked: Boolean = false,
     onCheckedChange: ((Boolean) -> Unit)? = null,
@@ -133,6 +135,7 @@ fun AppOptionalIconTextItemCard(
         ) {
             Image(
                 modifier = Modifier.size(38.dp),
+                contentScale = contentScale,
                 painter = painter,
                 contentDescription = text
             )
