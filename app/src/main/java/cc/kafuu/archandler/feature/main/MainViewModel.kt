@@ -19,7 +19,10 @@ import cc.kafuu.archandler.libs.AppModel
 import cc.kafuu.archandler.libs.archive.ArchiveManager
 import cc.kafuu.archandler.libs.archive.IPasswordProvider
 import cc.kafuu.archandler.libs.core.CoreViewModel
+import cc.kafuu.archandler.libs.core.IViewEventOwner
 import cc.kafuu.archandler.libs.core.UiIntentObserver
+import cc.kafuu.archandler.libs.core.ViewEventWrapper
+import cc.kafuu.archandler.libs.core.isViewEventValid
 import cc.kafuu.archandler.libs.core.toViewEvent
 import cc.kafuu.archandler.libs.ext.appCopyTo
 import cc.kafuu.archandler.libs.ext.appMoveTo
@@ -62,6 +65,18 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState>(
         ): String? = MainDialogState.PasswordInput(file = file).run {
             popupAwaitDialogResult { resultFuture.awaitResult() }
         }
+    }
+
+    /**
+     * 等待当前事件被消费完成后发送新的事件并等待其处理完成
+     */
+    suspend fun ViewEventWrapper<MainViewEvent>.awaitViewEvent() = apply {
+        when (val state = awaitUiStateOfType<IViewEventOwner<*>> { !it.isViewEventValid() }) {
+            is MainUiState.PermissionDenied -> state.copy(viewEvent = this)
+            is MainUiState.Accessible -> state.copy(viewEvent = this)
+            else -> return@apply
+        }.setup()
+        waitForConsumption()
     }
 
     /**
@@ -142,9 +157,8 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState>(
      * 跳转到文件权限设置
      */
     @UiIntentObserver(MainUiIntent.JumpFilePermissionSetting::class)
-    private fun onJumpFilePermissionSetting() {
-        val state = fetchUiState() as? MainUiState.PermissionDenied ?: return
-        state.copy(viewEvent = MainViewEvent.JumpFilePermissionSetting.toViewEvent()).setup()
+    private fun onJumpFilePermissionSetting() = viewModelScope.launch {
+        MainViewEvent.JumpFilePermissionSetting.toViewEvent().awaitViewEvent()
     }
 
     /**
@@ -166,8 +180,8 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState>(
                 get<AppLibs>().jumpToUrl(AppModel.GOOGLE_PLAY_URL)
             }
 
-            MainDrawerMenuEnum.About -> {
-                state.copy(viewEvent = MainViewEvent.JumpAboutPage.toViewEvent()).setup()
+            MainDrawerMenuEnum.About -> viewModelScope.launch {
+                MainViewEvent.JumpAboutPage.toViewEvent().awaitViewEvent()
             }
         }
     }
@@ -215,15 +229,16 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState>(
         }
         // 判断当前打开的文件是否可解压
         if (!ArchiveManager.isExtractable(intent.file)) {
-            state.copy(viewEvent = MainViewEvent.OpenFile(intent.file).toViewEvent()).setup()
+            MainViewEvent.OpenFile(intent.file).toViewEvent().awaitViewEvent()
             return@launch
         }
         // 开始解压压缩包
         val destDir = doDecompress(intent.file) ?: run {
+            MainViewEvent.PopupToastMessage(
+                mAppLibs.getString(R.string.archive_unpacking_failed_message)
+            ).toViewEvent().awaitViewEvent()
             // 解压失败
-            state.copy(
-                viewEvent = MainViewEvent.PopupToastMessage(mAppLibs.getString(R.string.archive_unpacking_failed_message))
-                    .toViewEvent(),
+            awaitUiStateOfType<MainUiState.Accessible>().copy(
                 loadState = MainLoadState.None
             ).setup()
             return@launch
@@ -320,21 +335,20 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState>(
         sourceDirectoryPath: Path,
         sourceFiles: List<File>,
         isMoving: Boolean = false
-    ) {
-        val state = fetchUiState() as? MainUiState.Accessible ?: return
+    ) = viewModelScope.launch {
         if (sourceFiles.isEmpty()) {
             val message = get<Context>().getString(R.string.entry_paste_is_empty_message)
-            state.copy(viewEvent = MainViewEvent.PopupToastMessage(message).toViewEvent()).setup()
-            return
+            MainViewEvent.PopupToastMessage(message).toViewEvent().awaitViewEvent()
+            return@launch
         }
-        state.copy(
+        (fetchUiState() as? MainUiState.Accessible)?.copy(
             viewModeState = MainListViewModeState.Paste(
                 sourceStorageData = sourceStorageData,
                 sourceDirectoryPath = sourceDirectoryPath,
                 sourceFiles = sourceFiles,
                 isMoving = isMoving
             )
-        ).setup()
+        )?.setup()
     }
 
     /**
@@ -344,20 +358,19 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState>(
         sourceStorageData: StorageData,
         sourceDirectoryPath: Path,
         sourceFiles: List<File>,
-    ) {
-        val state = fetchUiState() as? MainUiState.Accessible ?: return
+    ) = viewModelScope.launch {
         if (sourceFiles.isEmpty()) {
             val message = get<Context>().getString(R.string.entry_pack_is_empty_message)
-            state.copy(viewEvent = MainViewEvent.PopupToastMessage(message).toViewEvent()).setup()
-            return
+            MainViewEvent.PopupToastMessage(message).toViewEvent().awaitViewEvent()
+            return@launch
         }
-        state.copy(
+        (fetchUiState() as? MainUiState.Accessible)?.copy(
             viewModeState = MainListViewModeState.Pack(
                 sourceStorageData = sourceStorageData,
                 sourceDirectoryPath = sourceDirectoryPath,
                 sourceFiles = sourceFiles
             )
-        ).setup()
+        )?.setup()
     }
 
     /**

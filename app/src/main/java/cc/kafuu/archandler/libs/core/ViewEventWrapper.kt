@@ -17,6 +17,7 @@ class ViewEventWrapper<out T>(private val content: T) {
         return@withLock true
     }
 
+    fun isHandled() = mHasHandled.value
 
     suspend fun waitForConsumption() {
         mHasHandled.filter { it }.collect()
@@ -25,6 +26,11 @@ class ViewEventWrapper<out T>(private val content: T) {
 
 interface IViewEventOwner<out T> {
     val viewEvent: ViewEventWrapper<T>?
+}
+
+fun<T> IViewEventOwner<T>.isViewEventValid(): Boolean {
+    val event = viewEvent
+    return event != null && !event.isHandled()
 }
 
 inline fun <reified E> E.toViewEvent(): ViewEventWrapper<E> = ViewEventWrapper(this)

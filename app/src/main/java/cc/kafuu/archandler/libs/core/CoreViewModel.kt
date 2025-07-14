@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
@@ -96,6 +97,12 @@ abstract class CoreViewModel<I, S>(initStatus: S) : ViewModel() {
      */
     protected suspend inline fun <reified T> awaitUiStateOfType(): T {
         return uiStateFlow.filterIsInstance<T>().first()
+    }
+
+    protected suspend inline fun <reified T> awaitUiStateOfType(
+        crossinline predicate: suspend (T) -> Boolean
+    ): T {
+        return uiStateFlow.filterIsInstance<T>().filter(predicate).first()
     }
 
     /**
