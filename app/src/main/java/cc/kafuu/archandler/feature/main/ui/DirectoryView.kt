@@ -2,6 +2,7 @@ package cc.kafuu.archandler.feature.main.ui
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -128,35 +130,38 @@ private fun DirectoryPathBar(
     directoryPath: Path,
     emitIntent: (uiIntent: MainUiIntent) -> Unit,
 ) {
-    val listState = rememberLazyListState()
     val baseURI = storageData.directory.toURI()
     val targetURI = File(directoryPath.toString()).toURI()
-    val segments = baseURI.relativize(targetURI).path.takeIf {
-        it.isNotEmpty()
-    }?.trim('/')?.split('/') ?: emptyList()
+    val segments = baseURI.relativize(targetURI).path
+        .takeIf { it.isNotEmpty() }
+        ?.trim('/')?.split('/') ?: emptyList()
+
+    val scrollState = rememberScrollState()
+
     LaunchedEffect(segments, directoryPath) {
-        if (segments.isNotEmpty()) listState.scrollToItem(segments.lastIndex)
+        scrollState.animateScrollTo(scrollState.maxValue)
     }
-    LazyRow(
+
+    Row(
         modifier = Modifier
             .fillMaxWidth()
+            .horizontalScroll(scrollState)
             .padding(horizontal = 10.dp),
-        state = listState,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        item {
-            Text(
-                modifier = Modifier
-                    .clickable {
-                        emitIntent(MainUiIntent.FileSelected(storageData, storageData.directory))
-                    },
-                text = storageData.name,
-                style = MaterialTheme.typography.headlineMedium
-            )
-        }
+        Text(
+            modifier = Modifier
+                .clickable {
+                    emitIntent(MainUiIntent.FileSelected(storageData, storageData.directory))
+                },
+            text = storageData.name,
+            style = MaterialTheme.typography.headlineMedium
+        )
+
         var parentFile = storageData.directory
-        items(segments) {
-            val currentFile = File(parentFile, it)
+        segments.forEach { segment ->
+            val currentFile = File(parentFile, segment)
+
             Image(
                 modifier = Modifier
                     .padding(horizontal = 3.dp)
@@ -164,18 +169,19 @@ private fun DirectoryPathBar(
                 painter = painterResource(R.drawable.ic_arrow_forward),
                 contentDescription = null
             )
+
             Text(
                 modifier = Modifier
                     .clickable {
                         emitIntent(MainUiIntent.FileSelected(storageData, currentFile))
                     },
-                text = it,
+                text = segment,
                 style = MaterialTheme.typography.headlineMedium
             )
+
             parentFile = currentFile
         }
     }
-
 }
 
 @Composable
