@@ -13,11 +13,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import cc.kafuu.archandler.feature.about.AboutActivity
 import cc.kafuu.archandler.feature.main.presentation.MainUiIntent
-import cc.kafuu.archandler.feature.main.presentation.MainUiState
 import cc.kafuu.archandler.feature.main.presentation.MainViewEvent
 import cc.kafuu.archandler.feature.main.ui.MainViewBody
 import cc.kafuu.archandler.libs.core.CoreActivity
-import cc.kafuu.archandler.libs.core.IViewEventOwner
 import cc.kafuu.archandler.libs.core.ViewEventWrapper
 import cc.kafuu.archandler.libs.ext.tryOpenFile
 import com.hjq.permissions.Permission
@@ -35,6 +33,7 @@ class MainActivity : CoreActivity() {
     @Composable
     override fun ViewContent() {
         val uiState by mViewModel.uiStateFlow.collectAsState()
+
         val coroutineScope = rememberCoroutineScope()
         val drawerState = rememberDrawerState(DrawerValue.Closed)
 
@@ -48,12 +47,8 @@ class MainActivity : CoreActivity() {
             mViewModel.emit(MainUiIntent.Back)
         }
 
-        LaunchedEffect(uiState) {
-            when (val state = uiState) {
-                is IViewEventOwner<*> -> tryConsumeEvent(state.viewEvent)
-                MainUiState.Finished -> finish()
-                else -> Unit
-            }
+        LaunchedEffect(Unit) {
+            mViewModel.collectEvent { onViewEvent(it) }
         }
 
         MainViewBody(
@@ -63,15 +58,11 @@ class MainActivity : CoreActivity() {
         )
     }
 
-    private suspend fun tryConsumeEvent(
-        viewEvent: ViewEventWrapper<*>?
-    ) = viewEvent?.consumeIfNotHandled {
-        when (val event = it) {
-            MainViewEvent.JumpFilePermissionSetting -> onJumpFilePermissionSetting()
-            MainViewEvent.JumpAboutPage -> AboutActivity.start(this)
-            is MainViewEvent.PopupToastMessage -> onPopupToastMessage(event)
-            is MainViewEvent.OpenFile -> onOpenFile(event)
-        }
+    private fun onViewEvent(event: MainViewEvent) = when (event) {
+        MainViewEvent.JumpFilePermissionSetting -> onJumpFilePermissionSetting()
+        MainViewEvent.JumpAboutPage -> AboutActivity.start(this)
+        is MainViewEvent.PopupToastMessage -> onPopupToastMessage(event)
+        is MainViewEvent.OpenFile -> onOpenFile(event)
     }
 
     private fun onJumpFilePermissionSetting() {

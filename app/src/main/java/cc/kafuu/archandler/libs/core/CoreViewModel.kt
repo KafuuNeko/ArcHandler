@@ -1,5 +1,7 @@
 package cc.kafuu.archandler.libs.core
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.Flow
@@ -15,6 +17,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
+import kotlin.reflect.full.callSuspend
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.memberFunctions
 import kotlin.reflect.jvm.isAccessible
@@ -31,8 +34,13 @@ abstract class CoreViewModel<I, S>(initStatus: S) : ViewModel() {
     // Ui Intent (View -> Model)
     private val mUiIntentFlow = MutableSharedFlow<I>(extraBufferCapacity = 64)
 
-    // UiIntent 于其观察者函数映射缓存表
+    // UiIntent观察者函数映射缓存表
     private val mUiIntentObserverMap: MutableMap<KClass<*>, List<KFunction<*>>> = mutableMapOf()
+
+    /**
+     * 已注册的Live观察者与Live的关系表
+     */
+    private val mForeverObservers: MutableMap<LiveData<*>, MutableSet<Observer<*>>> = mutableMapOf()
 
     /**
      * 此构造函数将扫描所有UiIntent观察者并缓存后启动UiIntent收集
@@ -40,6 +48,28 @@ abstract class CoreViewModel<I, S>(initStatus: S) : ViewModel() {
     init {
         doCacheUiIntentObservers()
         viewModelScope.launch { mUiIntentFlow.collect { onReceivedUiIntent(it) } }
+    }
+
+    /**
+     * ViewModel清理函数，将清理所有LiveData观察者
+     */
+    override fun onCleared() {
+        super.onCleared()
+        mForeverObservers.forEach { (liveData, observers) ->
+            @Suppress("UNCHECKED_CAST")
+            observers.forEach { observer ->
+                (liveData as LiveData<Any>).removeObserver(observer as Observer<Any>)
+            }
+        }
+        mForeverObservers.clear()
+    }
+
+    /**
+     * 注册 observeForever 并自动在 onCleared 中移除
+     */
+    protected fun <T> LiveData<T>.observeForeverAutoRemove(observer: Observer<T>) {
+        observeForever(observer)
+        mForeverObservers.getOrPut(this) { mutableSetOf() }.add(observer)
     }
 
     /**
@@ -68,15 +98,17 @@ abstract class CoreViewModel<I, S>(initStatus: S) : ViewModel() {
     /**
      * 接收到ui意图并处理
      */
-    private fun onReceivedUiIntent(uiIntent: I) {
+    private suspend fun onReceivedUiIntent(uiIntent: I) {
         val clazz = (uiIntent ?: return)::class
         val observers = mUiIntentObserverMap[clazz] ?: return
         for (func in observers) {
+            // @formatter:off
             when (val size = func.parameters.size) {
-                1 -> func.call(this)
-                2 -> func.call(this, uiIntent)
+                1 -> if (func.isSuspend) func.callSuspend(this) else func.call(this)
+                2 -> if (func.isSuspend) func.callSuspend(this, uiIntent) else func.callSuspend(this, uiIntent)
                 else -> throw IllegalArgumentException("Unsupported number of parameters: $size")
             }
+            // @formatter:on
         }
     }
 
@@ -88,18 +120,26 @@ abstract class CoreViewModel<I, S>(initStatus: S) : ViewModel() {
     }
 
     /**
-     * 立即获取当前UiState
+     * 获取指定类型UiState
      */
-    protected fun fetchUiState() = mUiStateFlow.value
+    protected inline fun <reified T : S> getOrNull(): T? = uiStateFlow.value as? T
+
+    /**
+     * 判断当前State类型
+     */
+    protected inline fun <reified T : S> isStateOf() = uiStateFlow.value is T
 
     /**
      * 等待uiState变更为指定状态类型后返回
      */
-    protected suspend inline fun <reified T> awaitUiStateOfType(): T {
+    protected suspend inline fun <reified T> awaitStateOf(): T {
         return uiStateFlow.filterIsInstance<T>().first()
     }
 
-    protected suspend inline fun <reified T> awaitUiStateOfType(
+    /**
+     * 等待uiState变更为指定状态类型且满足自定义条件后返回
+     */
+    protected suspend inline fun <reified T> awaitStateOf(
         crossinline predicate: suspend (T) -> Boolean
     ): T {
         return uiStateFlow.filterIsInstance<T>().filter(predicate).first()

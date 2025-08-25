@@ -1,25 +1,20 @@
 package cc.kafuu.archandler.feature.main.presentation
 
-import cc.kafuu.archandler.libs.core.IViewEventOwner
-import cc.kafuu.archandler.libs.core.ViewEventWrapper
 import cc.kafuu.archandler.libs.utils.ResultFuture
 import java.io.File
 
 sealed class MainUiState {
     data object None : MainUiState()
 
-    data class PermissionDenied(
-        override val viewEvent: ViewEventWrapper<MainViewEvent>? = null
-    ) : MainUiState(), IViewEventOwner<MainViewEvent>
+    data object PermissionDenied : MainUiState()
 
     data class Accessible(
-        override val viewEvent: ViewEventWrapper<MainViewEvent>? = null,
         val loadState: MainLoadState = MainLoadState.None,
         val dialogStates: Set<MainDialogState> = emptySet(),
         val errorMessage: String? = null,
         val viewModeState: MainListViewModeState = MainListViewModeState.Normal,
         val listState: MainListState = MainListState.Undecided,
-    ) : MainUiState(), IViewEventOwner<MainViewEvent>
+    ) : MainUiState()
 
     data object Finished : MainUiState()
 }

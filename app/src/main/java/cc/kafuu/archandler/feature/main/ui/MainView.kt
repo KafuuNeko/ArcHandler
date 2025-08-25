@@ -206,7 +206,7 @@ private fun MainDialogSwitch(
 private fun PermissionDeniedPreview() {
     AppTheme(dynamicColor = false) {
         MainViewBody(
-            uiState = MainUiState.PermissionDenied(),
+            uiState = MainUiState.PermissionDenied,
             drawerState = rememberDrawerState(DrawerValue.Closed)
         )
     }
