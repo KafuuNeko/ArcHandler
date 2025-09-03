@@ -26,6 +26,7 @@ import cc.kafuu.archandler.libs.ext.deletes
 import cc.kafuu.archandler.libs.ext.getParentPath
 import cc.kafuu.archandler.libs.ext.getSameNameDirectory
 import cc.kafuu.archandler.libs.ext.isSameFileOrDirectory
+import cc.kafuu.archandler.libs.ext.sha256Of
 import cc.kafuu.archandler.libs.manager.CacheManager
 import cc.kafuu.archandler.libs.manager.FileManager
 import cc.kafuu.archandler.libs.model.AppCacheType
@@ -33,6 +34,7 @@ import cc.kafuu.archandler.libs.model.StorageData
 import com.hjq.permissions.Permission
 import com.hjq.permissions.XXPermissions
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
@@ -206,47 +208,61 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState, MainView
         // 判断当前打开的文件是否可解压
         if (!ArchiveManager.isExtractable(intent.file)) {
             MainViewEvent.OpenFile(intent.file).emit()
-            return
+        } else {
+            startFilePacking(intent.file)
         }
-        // 开始解压压缩包
-        val destDir = withContext(context = Dispatchers.IO) {
-            doDecompress(intent.file)
-        } ?: run {
-            MainViewEvent.PopupToastMessage(
-                mAppLibs.getString(R.string.archive_unpacking_failed_message)
-            ).emit()
-            // 解压失败
-            awaitStateOf<MainUiState.Accessible>()
-                .copy(loadState = MainLoadState.None)
-                .setup()
-            return
-        }
-        // 解压成功，进入解压后的目录
-        awaitStateOf<MainUiState.Accessible>().copy(loadState = MainLoadState.None).setup()
-        doLoadDirectory(listState.storageData, Path(destDir.path))
     }
 
     /**
-     * 执行压缩包解压流程
+     * 启动压缩包解压任务
      */
-    private suspend fun doDecompress(file: File): File? = runCatching {
-        val state = getOrNull<MainUiState.Accessible>() ?: return null
+    private suspend fun startFilePacking(
+        file: File
+    ) = enqueueAsyncTask(Dispatchers.IO) {
+        val state = getOrNull<MainUiState.Accessible>() ?: return@enqueueAsyncTask
+        val listState = state.listState as? MainListState.Directory ?: return@enqueueAsyncTask
         // 尝试打开压缩包
         state.copy(loadState = MainLoadState.ArchiveOpening(file)).setup()
-        val archive = mArchiveManager.openArchive(file)
-        if (archive?.open(mPasswordProvider) != true) {
-            state.copy(loadState = MainLoadState.None).setup()
-            return null
-        }
-        // 提取压缩包文件
-        archive.use { archive ->
-            val destDir = file.getSameNameDirectory().createUniqueDirectory() ?: return@use null
-            archive.extractAll(destDir) { index, path, target ->
-                state.copy(loadState = MainLoadState.Unpacking(file, index, path, target)).setup()
+        // 开始压缩包解压流程
+        val dest = runCatching {
+            mArchiveManager.openArchive(file)?.run {
+                if (!open(mPasswordProvider)) null else this
+            }?.use { archive ->
+                val destDir = file.getSameNameDirectory().createUniqueDirectory() ?: return@use null
+                archive.extractAll(destDir) { index, path, target ->
+                    state.copy(loadState = MainLoadState.Unpacking(file, index, path, target))
+                        .setup()
+                }
+                return@use destDir
             }
-            return@use destDir
+        }.getOrNull()
+        coroutineContext.ensureActive()
+        // 解压流程完成，取消加载弹窗
+        state.copy(loadState = MainLoadState.None).setup()
+        if (dest == null) {
+            // 解压失败
+            MainViewEvent.PopupToastMessage(
+                mAppLibs.getString(R.string.archive_unpacking_failed_message)
+            ).emit()
+            doLoadDirectory(listState.storageData, listState.directoryPath)
+        } else {
+            // 解压成功
+            doLoadDirectory(listState.storageData, Path(dest.path))
         }
-    }.getOrNull()
+    }
+
+    /**
+     * 中断压缩包解压流程
+     */
+    @UiIntentObserver(MainUiIntent.CancelUnpackingJob::class)
+    private suspend fun onCancelUnpackingJob() {
+        val uiState = getOrNull<MainUiState.Accessible>() ?: return
+        val listState = uiState.listState as? MainListState.Directory ?: return
+        if (uiState.loadState is MainLoadState.Unpacking) {
+            cancelActiveTaskAndRestore()
+            doLoadDirectory(listState.storageData, listState.directoryPath)
+        }
+    }
 
     /**
      * 切换用户多选模式
@@ -561,4 +577,67 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState, MainView
         }
         return result.getOrNull()
     }
+
+    @UiIntentObserver(MainUiIntent.SelectAllClick::class)
+    private fun onSelectAllClick() {
+        val uiState = getOrNull<MainUiState.Accessible>() ?: return
+        val listState = uiState.listState as? MainListState.Directory ?: return
+        val viewModeState = uiState.viewModeState as? MainListViewModeState.MultipleSelect ?: return
+        uiState.copy(
+            viewModeState = viewModeState.copy(selected = listState.files.toSet())
+        ).setup()
+    }
+
+    @UiIntentObserver(MainUiIntent.DeselectClick::class)
+    private fun onDeselectClick() {
+        val uiState = getOrNull<MainUiState.Accessible>() ?: return
+        val viewModeState = uiState.viewModeState as? MainListViewModeState.MultipleSelect ?: return
+        uiState.copy(viewModeState = viewModeState.copy(selected = emptySet())).setup()
+    }
+
+    @UiIntentObserver(MainUiIntent.SelectAllNoDuplicatesClick::class)
+    private suspend fun onSelectAllNoDuplicatesClick() = enqueueAsyncTask {
+        // @formatter:off
+        val uiState = getOrNull<MainUiState.Accessible>() ?: return@enqueueAsyncTask
+        val listState = uiState.listState as? MainListState.Directory ?: return@enqueueAsyncTask
+        val viewModeState = uiState.viewModeState as? MainListViewModeState.MultipleSelect ?: return@enqueueAsyncTask
+        // @formatter:on
+        if (uiState.loadState !is MainLoadState.None) return@enqueueAsyncTask
+        val fileMap = hashMapOf<String, File>()
+        uiState.copy(loadState = MainLoadState.QueryDuplicateFiles()).setup()
+        listState.files.forEach { file ->
+            if (!(file.isFile && file.canRead())) return@forEach
+            uiState.copy(loadState = MainLoadState.QueryDuplicateFiles(file)).setup()
+            file.sha256Of().run {
+                if (fileMap.contains(this)) return@forEach
+                fileMap[this] = file
+            }
+            coroutineContext.ensureActive()
+        }
+        uiState.copy(
+            viewModeState = viewModeState.copy(selected = fileMap.map { it.value }.toSet())
+        ).setup()
+    }
+
+    @UiIntentObserver(MainUiIntent.CancelSelectNoDuplicatesJob::class)
+    private suspend fun onCancelSelectNoDuplicatesJob() {
+        val uiState = getOrNull<MainUiState.Accessible>() ?: return
+        if (uiState.loadState is MainLoadState.QueryDuplicateFiles) {
+            cancelActiveTaskAndRestore()
+        }
+    }
+
+    @UiIntentObserver(MainUiIntent.InvertSelectionClick::class)
+    private fun onInvertSelectionClick() {
+        val uiState = getOrNull<MainUiState.Accessible>() ?: return
+        val listState = uiState.listState as? MainListState.Directory ?: return
+        val viewModeState = uiState.viewModeState as? MainListViewModeState.MultipleSelect ?: return
+        val all = listState.files.toSet()
+        val inverted = all - viewModeState.selected
+        uiState.copy(
+            viewModeState = viewModeState.copy(selected = inverted)
+        ).setup()
+    }
+
+
 }

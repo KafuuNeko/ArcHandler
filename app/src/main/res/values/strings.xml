@@ -38,9 +38,15 @@
     <string name="hide_password">Hide password</string>
     <string name="show_password">Show password</string>
     <string name="delete_files_message">Delete %d files? \nWarring: This will permanently delete them and cannot be undone.</string>
-    <string name="delete_file_message">Delete “%s”? \nWarring: This will permanently delete it and cannot be undone.</string>
+    <string name="delete_file_message">Delete "%s"? \nWarring: This will permanently delete it and cannot be undone.</string>
     <string name="files_deleting">Deleting files…</string>
     <string name="opening_archive_message">Opening…</string>
     <string name="entry_pack_is_empty_message">Please select at least one file or directory.</string>
     <string name="create_archive">Create Archive</string>
+    <string name="select_all_no_duplicates">Select All (No Duplicates)</string>
+    <string name="select_all">Select All</string>
+    <string name="deselect">Deselect</string>
+    <string name="invert_selection">Invert Selection</string>
+    <string name="query_duplicate_files_message">Checking for duplicate files…</string>
+    <string name="waiting">Waiting…</string>
 </resources>

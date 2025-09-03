@@ -2,6 +2,7 @@ package cc.kafuu.archandler.feature.main.ui.scaffold
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -19,7 +20,8 @@ import cc.kafuu.archandler.R
 @Composable
 fun MainScaffoldTopBar(
     title: String,
-    onMenuClick: () -> Unit
+    actions: @Composable (RowScope.() -> Unit),
+    onMenuClick: () -> Unit,
 ) {
     TopAppBar(
         title = {
@@ -39,5 +41,6 @@ fun MainScaffoldTopBar(
                 contentDescription = stringResource(R.string.home_menu)
             )
         },
+        actions = actions
     )
 }

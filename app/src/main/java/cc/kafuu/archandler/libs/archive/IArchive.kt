@@ -24,8 +24,8 @@ interface IArchive : Closeable {
     /**
      * 解压整个压缩包到指定目录下
      */
-    fun extractAll(
+    suspend fun extractAll(
         destDir: File,
-        onProgress: (index: Int, path: String, target: Int) -> Unit = { _, _, _ -> }
+        onProgress: suspend (index: Int, path: String, target: Int) -> Unit = { _, _, _ -> }
     )
 }

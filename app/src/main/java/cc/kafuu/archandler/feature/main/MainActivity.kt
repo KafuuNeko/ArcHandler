@@ -13,10 +13,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import cc.kafuu.archandler.feature.about.AboutActivity
 import cc.kafuu.archandler.feature.main.presentation.MainUiIntent
+import cc.kafuu.archandler.feature.main.presentation.MainUiState
 import cc.kafuu.archandler.feature.main.presentation.MainViewEvent
 import cc.kafuu.archandler.feature.main.ui.MainViewBody
 import cc.kafuu.archandler.libs.core.CoreActivity
-import cc.kafuu.archandler.libs.core.ViewEventWrapper
 import cc.kafuu.archandler.libs.ext.tryOpenFile
 import com.hjq.permissions.Permission
 import com.hjq.permissions.XXPermissions
@@ -49,6 +49,10 @@ class MainActivity : CoreActivity() {
 
         LaunchedEffect(Unit) {
             mViewModel.collectEvent { onViewEvent(it) }
+        }
+
+        LaunchedEffect(uiState) {
+            if (uiState is MainUiState.Finished) finish()
         }
 
         MainViewBody(

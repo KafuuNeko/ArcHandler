@@ -60,7 +60,7 @@ fun MainViewBody(
                     emitIntent = emitIntent
                 )
             }
-            MainLoadDialogSwitch(uiState.loadState)
+            MainLoadDialogSwitch(uiState.loadState, emitIntent)
             uiState.dialogStates.firstOrNull()?.run { MainDialogSwitch(this) }
         }
     }
@@ -109,6 +109,7 @@ private fun MainLayout(
             topBar = {
                 MainScaffoldTopBar(
                     title = title,
+                    actions = { TopBarAction(uiState, emitIntent) },
                     onMenuClick = { coroutineScope.launch { drawerState.open() } }
                 )
             },
@@ -119,7 +120,10 @@ private fun MainLayout(
 }
 
 @Composable
-private fun MainLoadDialogSwitch(loadState: MainLoadState) {
+private fun MainLoadDialogSwitch(
+    loadState: MainLoadState,
+    emitIntent: (uiIntent: MainUiIntent) -> Unit,
+) {
     when (loadState) {
         MainLoadState.None -> Unit
 
@@ -148,12 +152,32 @@ private fun MainLoadDialogSwitch(loadState: MainLoadState) {
             val message = stringResource(R.string.unpacking_file_message)
             val filename = File(loadState.path).name
             val progress = "${loadState.index}/${loadState.target}"
-            AppLoadDialog(messages = listOf(message, filename, progress))
+            AppLoadDialog(
+                messages = listOf(message, filename, progress),
+                buttonText = stringResource(R.string.cancel),
+                onClickButton = {
+                    emitIntent(MainUiIntent.CancelUnpackingJob)
+                }
+            )
         }
 
         is MainLoadState.FilesDeleting -> {
             val message = stringResource(R.string.files_deleting)
             AppLoadDialog(messages = listOf(message, loadState.file.name))
+        }
+
+        is MainLoadState.QueryDuplicateFiles -> {
+            val message = stringResource(R.string.query_duplicate_files_message)
+            AppLoadDialog(
+                messages = listOf(
+                    message,
+                    loadState.file?.name ?: stringResource(R.string.waiting)
+                ),
+                buttonText = stringResource(R.string.cancel),
+                onClickButton = {
+                    emitIntent(MainUiIntent.CancelSelectNoDuplicatesJob)
+                }
+            )
         }
     }
 }

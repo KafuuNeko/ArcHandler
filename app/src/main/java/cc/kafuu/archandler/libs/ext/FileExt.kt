@@ -3,9 +3,16 @@ package cc.kafuu.archandler.libs.ext
 import cc.kafuu.archandler.R
 import cc.kafuu.archandler.libs.archive.ArchiveManager
 import cc.kafuu.archandler.libs.model.FileType
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.withContext
 import org.apache.commons.io.FileUtils
 import java.io.File
+import java.io.FileInputStream
 import java.io.IOException
+import java.io.InputStream
+import java.nio.file.Files
+import java.security.MessageDigest
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -146,4 +153,28 @@ fun File.collectFilesWithRelativePaths(baseDir: File): List<Pair<File, String>> 
         return listOf(this to "$relativePath/") + children
     }
     return listOf(this to relativePath)
+}
+
+suspend fun File.sha256Of(bufferSize: Int = 1 * 1024 * 1024): String {
+    suspend fun digestStreaming(
+        input: InputStream,
+        md: MessageDigest,
+        bufferSize: Int
+    ) {
+        val buf = ByteArray(bufferSize)
+        while (true) {
+            kotlin.coroutines.coroutineContext.ensureActive()
+            val read = input.read(buf)
+            if (read <= 0) break
+            md.update(buf, 0, read)
+        }
+    }
+    return withContext(Dispatchers.IO) {
+        require(isFile && exists()) { "Not a regular file: $path" }
+        val md = MessageDigest.getInstance("SHA-256")
+        FileInputStream(this@sha256Of).use { input ->
+            digestStreaming(input, md, bufferSize)
+        }
+        md.digest().joinToString("") { "%02x".format(it) }
+    }
 }

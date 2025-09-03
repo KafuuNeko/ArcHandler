@@ -51,5 +51,17 @@ sealed class MainUiIntent {
         val menu: MainPackMenuEnum,
         val targetStorageData: StorageData = StorageData(),
         val targetDirectoryPath: Path = Path(""),
-    ): MainUiIntent()
+    ) : MainUiIntent()
+
+    data object SelectAllClick : MainUiIntent()
+
+    data object DeselectClick : MainUiIntent()
+
+    data object SelectAllNoDuplicatesClick : MainUiIntent()
+
+    data object CancelSelectNoDuplicatesJob : MainUiIntent()
+
+    data object CancelUnpackingJob : MainUiIntent()
+
+    data object InvertSelectionClick : MainUiIntent()
 }

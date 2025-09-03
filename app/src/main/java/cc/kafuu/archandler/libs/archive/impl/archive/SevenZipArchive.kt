@@ -6,7 +6,10 @@ import cc.kafuu.archandler.libs.archive.model.ArchiveEntry
 import cc.kafuu.archandler.libs.manager.CacheManager
 import cc.kafuu.archandler.libs.model.AppCacheType
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.yield
 import net.sf.sevenzipjbinding.ArchiveFormat
 import net.sf.sevenzipjbinding.IInArchive
 import net.sf.sevenzipjbinding.SevenZip
@@ -18,6 +21,8 @@ import org.koin.core.component.inject
 import java.io.File
 import java.io.FileOutputStream
 import java.io.RandomAccessFile
+import kotlin.coroutines.cancellation.CancellationException
+import kotlin.coroutines.coroutineContext
 
 class SevenZipArchive(
     private val archiveFile: File,
@@ -132,15 +137,16 @@ class SevenZipArchive(
     /**
      * 提取压缩包所有内容
      */
-    override fun extractAll(
+    override suspend fun extractAll(
         destDir: File,
-        onProgress: (index: Int, path: String, target: Int) -> Unit
+        onProgress: suspend (index: Int, path: String, target: Int) -> Unit
     ) {
         var index = 0
         val target = mSimpleArchive?.archiveItems
             ?.count { it.path != null && !it.isFolder } ?: 0
 
         mSimpleArchive?.archiveItems?.forEach { item ->
+            coroutineContext.ensureActive()
             val path = item.path ?: return@forEach
             val outFile = File(destDir, path)
             if (item.isFolder) {
@@ -149,13 +155,22 @@ class SevenZipArchive(
             }
             onProgress(index, path, target)
             outFile.parentFile?.mkdirs()
-            FileOutputStream(outFile).use { out ->
-                item.extractSlow({ data ->
-                    out.write(data)
-                    data.size
-                }, mPassword)
+            try {
+                FileOutputStream(outFile).use { out ->
+                    val ctx = coroutineContext
+                    item.extractSlow({ data ->
+                        if (!ctx.isActive) throw CancellationException()
+                        out.write(data)
+                        data.size
+                    }, mPassword)
+                }
+            } catch (e: Throwable) {
+                // 异常清理半成品
+                outFile.delete()
+                throw e
             }
             index++
+            yield()
         }
     }
 

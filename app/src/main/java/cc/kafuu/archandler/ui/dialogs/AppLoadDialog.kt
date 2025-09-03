@@ -10,8 +10,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSizeIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ElevatedButton
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,6 +29,8 @@ import cc.kafuu.archandler.ui.theme.AppTheme
 @Composable
 fun AppLoadDialog(
     messages: List<String>,
+    buttonText: String? = null,
+    onClickButton: () -> Unit = {},
     onDismissRequest: () -> Unit = {},
 ) {
     Dialog(
@@ -34,21 +40,25 @@ fun AppLoadDialog(
             dismissOnBackPress = false
         )
     ) {
-        DialogView(messages)
+        DialogView(messages, buttonText, onClickButton)
     }
 }
 
 @Composable
 fun AppLoadDialog(
     message: String,
+    buttonText: String? = null,
+    onClickButton: () -> Unit = {},
     onDismissRequest: () -> Unit = {},
 ) {
-    AppLoadDialog(listOf(message), onDismissRequest)
+    AppLoadDialog(listOf(message), buttonText, onClickButton, onDismissRequest)
 }
 
 @Composable
 private fun DialogView(
-    messages: List<String>
+    messages: List<String>,
+    buttonText: String?,
+    onClickButton: () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -69,6 +79,15 @@ private fun DialogView(
                 maxLines = 1
             )
         }
+        buttonText?.let {
+            Spacer(modifier = Modifier.height(10.dp))
+            ExtendedFloatingActionButton (
+                modifier = Modifier.height(36.dp),
+                onClick = onClickButton
+            ) {
+                Text(text = buttonText)
+            }
+        }
     }
 }
 
@@ -83,7 +102,7 @@ private fun DialogViewPreview() {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            DialogView(listOf("Copying...", "1/32"))
+            DialogView(listOf("Copying...", "1/32"), "test", {})
         }
     }
 }
