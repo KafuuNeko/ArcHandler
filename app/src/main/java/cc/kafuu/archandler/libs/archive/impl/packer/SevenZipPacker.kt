@@ -2,7 +2,7 @@ package cc.kafuu.archandler.libs.archive.impl.packer
 
 import cc.kafuu.archandler.libs.archive.IPacker
 import cc.kafuu.archandler.libs.archive.model.CompressionOption
-import cc.kafuu.archandler.libs.ext.collectFilesWithRelativePaths
+import cc.kafuu.archandler.libs.extensions.collectFilesWithRelativePaths
 import net.sf.sevenzipjbinding.ICryptoGetTextPassword
 import net.sf.sevenzipjbinding.IOutCreateArchive
 import net.sf.sevenzipjbinding.IOutCreateCallback

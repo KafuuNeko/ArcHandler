@@ -1,7 +1,6 @@
-package cc.kafuu.archandler.libs.ext
+package cc.kafuu.archandler.libs.extensions
 
 import android.os.Build
-import androidx.annotation.RequiresApi
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path

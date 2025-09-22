@@ -1,6 +1,5 @@
-package cc.kafuu.archandler.libs.ext
+package cc.kafuu.archandler.libs.extensions
 
-import cc.kafuu.archandler.R
 import cc.kafuu.archandler.libs.archive.ArchiveManager
 import cc.kafuu.archandler.libs.model.FileType
 import kotlinx.coroutines.Dispatchers
@@ -11,7 +10,6 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
 import java.io.InputStream
-import java.nio.file.Files
 import java.security.MessageDigest
 import java.text.SimpleDateFormat
 import java.util.Date

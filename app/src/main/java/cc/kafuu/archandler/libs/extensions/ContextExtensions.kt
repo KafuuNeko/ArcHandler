@@ -1,4 +1,4 @@
-package cc.kafuu.archandler.libs.ext
+package cc.kafuu.archandler.libs.extensions
 
 import android.content.Context
 import android.content.Intent

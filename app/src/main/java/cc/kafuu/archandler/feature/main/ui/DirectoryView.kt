@@ -34,9 +34,9 @@ import cc.kafuu.archandler.feature.main.presentation.MainLoadState
 import cc.kafuu.archandler.feature.main.presentation.MainUiIntent
 import cc.kafuu.archandler.feature.main.ui.common.BottomMenu
 import cc.kafuu.archandler.feature.main.ui.common.IconMessageView
-import cc.kafuu.archandler.libs.ext.getFileType
-import cc.kafuu.archandler.libs.ext.getLastModifiedDate
-import cc.kafuu.archandler.libs.ext.getReadableSize
+import cc.kafuu.archandler.libs.extensions.getFileType
+import cc.kafuu.archandler.libs.extensions.getLastModifiedDate
+import cc.kafuu.archandler.libs.extensions.getReadableSize
 import cc.kafuu.archandler.libs.model.FileType
 import cc.kafuu.archandler.libs.model.StorageData
 import cc.kafuu.archandler.ui.utils.rememberVideoThumbnailPainter

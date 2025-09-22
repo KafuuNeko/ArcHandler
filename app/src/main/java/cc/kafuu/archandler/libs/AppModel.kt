@@ -10,4 +10,6 @@ object AppModel : KotprefModel() {
     const val FEEDBACK_URL = "https://github.com/KafuuNeko/ArcHandler/issues"
 
     const val GOOGLE_PLAY_URL = "https://play.google.com"
+
+    const val KEY_DATA = "data"
 }

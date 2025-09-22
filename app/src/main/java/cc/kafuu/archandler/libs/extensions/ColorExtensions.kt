@@ -1,4 +1,4 @@
-package cc.kafuu.archandler.libs.ext
+package cc.kafuu.archandler.libs.extensions
 
 import androidx.compose.ui.graphics.Color
 

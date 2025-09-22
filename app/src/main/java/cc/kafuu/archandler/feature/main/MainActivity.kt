@@ -12,12 +12,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import cc.kafuu.archandler.feature.about.AboutActivity
+import cc.kafuu.archandler.feature.createarchive.CreateArchiveActivity
 import cc.kafuu.archandler.feature.main.presentation.MainUiIntent
 import cc.kafuu.archandler.feature.main.presentation.MainUiState
 import cc.kafuu.archandler.feature.main.presentation.MainViewEvent
 import cc.kafuu.archandler.feature.main.ui.MainViewBody
 import cc.kafuu.archandler.libs.core.CoreActivity
-import cc.kafuu.archandler.libs.ext.tryOpenFile
+import cc.kafuu.archandler.libs.extensions.tryOpenFile
 import com.hjq.permissions.Permission
 import com.hjq.permissions.XXPermissions
 import kotlinx.coroutines.launch
@@ -67,6 +68,7 @@ class MainActivity : CoreActivity() {
         MainViewEvent.JumpAboutPage -> AboutActivity.start(this)
         is MainViewEvent.PopupToastMessage -> onPopupToastMessage(event)
         is MainViewEvent.OpenFile -> onOpenFile(event)
+        is MainViewEvent.CreateArchive -> onCreateArchive(event)
     }
 
     private fun onJumpFilePermissionSetting() {
@@ -81,5 +83,9 @@ class MainActivity : CoreActivity() {
 
     private fun onOpenFile(event: MainViewEvent.OpenFile) {
         tryOpenFile(event.file.name, event.file)
+    }
+
+    private fun onCreateArchive(event: MainViewEvent.CreateArchive) {
+        CreateArchiveActivity.startActivity(this, event.transferId)
     }
 }

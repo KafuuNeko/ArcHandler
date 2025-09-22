@@ -28,7 +28,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import cc.kafuu.archandler.libs.ext.withAlpha
+import cc.kafuu.archandler.libs.extensions.withAlpha
 
 @Composable
 fun AppItemCard(

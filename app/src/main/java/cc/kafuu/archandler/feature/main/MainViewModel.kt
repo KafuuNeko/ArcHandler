@@ -19,17 +19,19 @@ import cc.kafuu.archandler.libs.archive.ArchiveManager
 import cc.kafuu.archandler.libs.archive.IPasswordProvider
 import cc.kafuu.archandler.libs.core.CoreViewModelWithEvent
 import cc.kafuu.archandler.libs.core.UiIntentObserver
-import cc.kafuu.archandler.libs.ext.appCopyTo
-import cc.kafuu.archandler.libs.ext.appMoveTo
-import cc.kafuu.archandler.libs.ext.createUniqueDirectory
-import cc.kafuu.archandler.libs.ext.deletes
-import cc.kafuu.archandler.libs.ext.getParentPath
-import cc.kafuu.archandler.libs.ext.getSameNameDirectory
-import cc.kafuu.archandler.libs.ext.isSameFileOrDirectory
-import cc.kafuu.archandler.libs.ext.sha256Of
+import cc.kafuu.archandler.libs.extensions.appCopyTo
+import cc.kafuu.archandler.libs.extensions.appMoveTo
+import cc.kafuu.archandler.libs.extensions.createUniqueDirectory
+import cc.kafuu.archandler.libs.extensions.deletes
+import cc.kafuu.archandler.libs.extensions.getParentPath
+import cc.kafuu.archandler.libs.extensions.getSameNameDirectory
+import cc.kafuu.archandler.libs.extensions.isSameFileOrDirectory
+import cc.kafuu.archandler.libs.extensions.sha256Of
 import cc.kafuu.archandler.libs.manager.CacheManager
+import cc.kafuu.archandler.libs.manager.DataTransferManager
 import cc.kafuu.archandler.libs.manager.FileManager
 import cc.kafuu.archandler.libs.model.AppCacheType
+import cc.kafuu.archandler.libs.model.CreateArchiveData
 import cc.kafuu.archandler.libs.model.StorageData
 import com.hjq.permissions.Permission
 import com.hjq.permissions.XXPermissions
@@ -54,6 +56,9 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState, MainView
 
     // 应用缓存管理器
     private val mCacheManager by inject<CacheManager>()
+
+    // 数据传递管理器
+    private val mDataTransferManager by inject<DataTransferManager>()
 
     // 压缩包密码提供请求接口
     val mPasswordProvider = object : IPasswordProvider {
@@ -527,7 +532,6 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState, MainView
         val viewMode = state.viewModeState as? MainListViewModeState.Pack ?: return
         when (intent.menu) {
             MainPackMenuEnum.Pack -> doPackFiles(
-                targetStorageData = intent.targetStorageData,
                 targetDirectoryPath = intent.targetDirectoryPath
             )
 
@@ -542,23 +546,17 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState, MainView
      * 执行具体的打包操作
      */
     private suspend fun doPackFiles(
-        targetStorageData: StorageData = StorageData(),
         targetDirectoryPath: Path = Path(""),
     ) {
         val state = getOrNull<MainUiState.Accessible>() ?: return
         val viewMode = state.viewModeState as? MainListViewModeState.Pack ?: return
-        val targetDirectoryFile = File(targetDirectoryPath.toString())
-        //TODO: 与用户交互 用户选择打包类型 之后开始打包 逻辑待补充
-//        withContext(Dispatchers.IO) {
-//            //TODO: 压缩测试代码
-//            val file = File(listState.directoryPath.toString(), "archive.zip")
-//            mArchiveManager.createPacker(
-//                file,
-//                CompressionOption.Zip(viewModel.selected.toList())
-//            ).pack { _, _, _ -> }
-//            doLoadDirectory(listState.storageData, listState.directoryPath)
-//        }
-
+        val transferId = CreateArchiveData(
+            files = viewMode.sourceFiles.toList(),
+            targetDirectory = File(targetDirectoryPath.toString())
+        ).run {
+            mDataTransferManager.push(this)
+        }
+        MainViewEvent.CreateArchive(transferId).emit()
     }
 
     /**
