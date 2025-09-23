@@ -72,4 +72,11 @@
     <string name="volume_size">볼륨 크기</string>
     <string name="unit">단위</string>
     <string name="split_hint">빈칸 또는 0 입력 시 분할 없음. 권장 ≥ 10MB.</string>
+    <string name="preparing_message">준비 중…</string>
+    <string name="packing_message">패킹 중…</string>
+    <string name="compressing_message">압축 중…</string>
+    <string name="archive_name_empty_message">먼저 파일 이름을 입력하세요</string>
+    <string name="archive_name_conflict_message">파일 이름이 충돌합니다</string>
+    <string name="no_directory_write_permission_message">이 디렉터리에 쓸 수 없습니다</string>
+    <string name="packaging_failed_message">패키징 실패</string>
 </resources>

@@ -38,11 +38,11 @@ enum class ArchiveFormat(
         supportsSplit = false,
         levelRange = 1..9
     ),
-    BZip2(
-        displayName = R.string.archive_format_bzip_ii_name,
+    TarWithBZip2(
+        displayName = R.string.archive_format_tar_with_bzip_ii_name,
         supportsPassword = false,
         supportsLevel = true,
         supportsSplit = false,
-        levelRange = 1..9
+        levelRange = 1..9,
     ),
 }

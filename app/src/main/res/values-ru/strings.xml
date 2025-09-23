@@ -72,5 +72,11 @@
     <string name="volume_size">Размер тома</string>
     <string name="unit">Единица</string>
     <string name="split_hint">Оставьте пустым или 0, чтобы не разделять. Рекомендуется ≥ 10 МБ.</string>
-
+    <string name="preparing_message">Подготовка…</string>
+    <string name="packing_message">Упаковка…</string>
+    <string name="compressing_message">Сжатие…</string>
+    <string name="archive_name_empty_message">Сначала введите имя файла</string>
+    <string name="archive_name_conflict_message">Конфликт имени файла</string>
+    <string name="no_directory_write_permission_message">Невозможно записать в этот каталог</string>
+    <string name="packaging_failed_message">Ошибка упаковки</string>
 </resources>

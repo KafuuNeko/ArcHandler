@@ -10,6 +10,6 @@ fun <T> T.withLevel(level: Int): T
         is CreateArchiveOptionState.Zip -> copy(level = level) as T
         is CreateArchiveOptionState.SevenZip -> copy(level = level) as T
         is CreateArchiveOptionState.TarWithGZip -> copy(level = level) as T
-        is CreateArchiveOptionState.BZip2 -> copy(level = level) as T
+        is CreateArchiveOptionState.TarWithBZip2 -> copy(level = level) as T
         else -> this
     }

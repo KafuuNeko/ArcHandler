@@ -72,4 +72,11 @@
     <string name="volume_size">Volumengröße</string>
     <string name="unit">Einheit</string>
     <string name="split_hint">Leer lassen oder 0 für keine Aufteilung. Empfohlen ≥ 10 MB.</string>
+    <string name="preparing_message">Wird vorbereitet…</string>
+    <string name="packing_message">Wird verpackt…</string>
+    <string name="compressing_message">Wird komprimiert…</string>
+    <string name="archive_name_empty_message">Bitte geben Sie zuerst den Dateinamen ein</string>
+    <string name="archive_name_conflict_message">Dateiname steht in Konflikt</string>
+    <string name="no_directory_write_permission_message">In dieses Verzeichnis kann nicht geschrieben werden</string>
+    <string name="packaging_failed_message">Paketierung fehlgeschlagen</string>
 </resources>

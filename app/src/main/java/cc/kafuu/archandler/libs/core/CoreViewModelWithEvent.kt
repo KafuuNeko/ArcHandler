@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
@@ -60,6 +61,7 @@ class ViewEventWrapper<out T>(private val content: T) {
     fun isHandled() = mHasHandled.value
 
     suspend fun waitForConsumption() {
-        mHasHandled.filter { it }.collect()
+        if (mHasHandled.value) return
+        mHasHandled.first { it }
     }
 }

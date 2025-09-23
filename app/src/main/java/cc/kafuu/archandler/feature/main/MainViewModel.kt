@@ -85,6 +85,14 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState, MainView
         }
     }
 
+    @UiIntentObserver(MainUiIntent.Resume::class)
+    private suspend fun onResume() {
+        val listState = getOrNull<MainUiState.Accessible>()?.listState
+        if (listState is MainListState.Directory) {
+            doLoadDirectory(listState.storageData, listState.directoryPath)
+        }
+    }
+
     /**
      * 页面返回逻辑
      */
@@ -532,6 +540,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState, MainView
         val viewMode = state.viewModeState as? MainListViewModeState.Pack ?: return
         when (intent.menu) {
             MainPackMenuEnum.Pack -> doPackFiles(
+                targetStorageData = intent.targetStorageData,
                 targetDirectoryPath = intent.targetDirectoryPath
             )
 
@@ -546,6 +555,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState, MainView
      * 执行具体的打包操作
      */
     private suspend fun doPackFiles(
+        targetStorageData: StorageData,
         targetDirectoryPath: Path = Path(""),
     ) {
         val state = getOrNull<MainUiState.Accessible>() ?: return
@@ -557,6 +567,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState, MainView
             mDataTransferManager.push(this)
         }
         MainViewEvent.CreateArchive(transferId).emit()
+        doLoadDirectory(targetStorageData, targetDirectoryPath)
     }
 
     /**

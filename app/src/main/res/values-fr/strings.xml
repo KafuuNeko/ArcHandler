@@ -72,5 +72,11 @@
     <string name="volume_size">Taille du volume</string>
     <string name="unit">Unité</string>
     <string name="split_hint">Laissez vide ou 0 pour ne pas diviser en volumes. Recommandé ≥ 10 Mo.</string>
-
+    <string name="preparing_message">Préparation…</string>
+    <string name="packing_message">Emballage…</string>
+    <string name="compressing_message">Compression…</string>
+    <string name="archive_name_empty_message">Veuillez d\'abord entrer le nom du fichier</string>
+    <string name="archive_name_conflict_message">Conflit de nom de fichier</string>
+    <string name="no_directory_write_permission_message">Impossible d’écrire dans ce répertoire</string>
+    <string name="packaging_failed_message">Échec du conditionnement</string>
 </resources>

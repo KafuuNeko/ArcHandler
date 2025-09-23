@@ -1,18 +1,13 @@
 package cc.kafuu.archandler.feature.createarchive.ui.cards
 
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Create
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -32,27 +27,18 @@ import java.io.File
 fun SavePathCard(
     dir: File,
     outputName: String,
-    onPick: () -> Unit,
     onNameChange: (String) -> Unit
 ) {
     SectionCard(stringResource(R.string.save_location)) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
         ) {
-            FilledTonalButton(
-                onClick = {
-                    onPick()
-                }
-            ) {
-                Icon(Icons.Default.Edit, contentDescription = null)
-                Spacer(Modifier.width(6.dp))
-                Text(stringResource(R.string.select_directory))
-            }
             Text(
                 text = dir.path.ifBlank { stringResource(R.string.text_not_selected) },
-                modifier = Modifier.weight(1f),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -73,5 +59,5 @@ fun SavePathCard(
 @Preview
 @Composable
 private fun SavePathCardPreview() {
-    SavePathCard(File(""), "test", {}, {})
+    SavePathCard(File(""), "test", {})
 }

@@ -1,5 +1,6 @@
 package cc.kafuu.archandler.feature.createarchive.presentation
 
+import androidx.annotation.StringRes
 import cc.kafuu.archandler.feature.createarchive.capabilities.CompressEncryptable
 import cc.kafuu.archandler.feature.createarchive.capabilities.CompressLevelConfigurable
 import cc.kafuu.archandler.feature.createarchive.capabilities.CompressSplittable
@@ -14,10 +15,21 @@ sealed class CreateArchiveUiState {
         val files: List<File>,
         val targetDirectory: File,
         val targetFileName: String = "",
-        val archiveOptions: CreateArchiveOptionState = CreateArchiveOptionState.Zip()
+        val archiveOptions: CreateArchiveOptionState = CreateArchiveOptionState.Zip(),
+        val loadState: CreateArchiveLoadState = CreateArchiveLoadState.None,
     ) : CreateArchiveUiState()
 
     data object Finished : CreateArchiveUiState()
+}
+
+sealed class CreateArchiveLoadState {
+    data object None : CreateArchiveLoadState()
+
+    data class Packing(
+        @StringRes val message: Int,
+        val currentFile: File? = null,
+        val progression: Pair<Int, Int>? = null
+    ) : CreateArchiveLoadState()
 }
 
 sealed class CreateArchiveOptionState {
@@ -52,8 +64,8 @@ sealed class CreateArchiveOptionState {
         override val level: Int = 5,
     ) : CreateArchiveOptionState(), CompressLevelConfigurable
 
-    data class BZip2(
-        override val format: ArchiveFormat = ArchiveFormat.BZip2,
+    data class TarWithBZip2(
+        override val format: ArchiveFormat = ArchiveFormat.TarWithBZip2,
         override val level: Int = 5,
     ) : CreateArchiveOptionState(), CompressLevelConfigurable
 }

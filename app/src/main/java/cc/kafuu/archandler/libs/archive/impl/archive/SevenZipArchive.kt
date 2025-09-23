@@ -148,7 +148,7 @@ class SevenZipArchive(
         mSimpleArchive?.archiveItems?.forEach { item ->
             coroutineContext.ensureActive()
             val path = item.path ?: return@forEach
-            val outFile = File(destDir, path)
+            val outFile = File(destDir, path.replace("""[\\/:*?"<>|]""".toRegex(), "_"))
             if (item.isFolder) {
                 outFile.mkdirs()
                 return@forEach

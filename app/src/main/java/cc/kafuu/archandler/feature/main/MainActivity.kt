@@ -31,6 +31,11 @@ class MainActivity : CoreActivity() {
         mViewModel.emit(MainUiIntent.Init)
     }
 
+    override fun onResume() {
+        super.onResume()
+        mViewModel.emit(MainUiIntent.Resume)
+    }
+
     @Composable
     override fun ViewContent() {
         val uiState by mViewModel.uiStateFlow.collectAsState()

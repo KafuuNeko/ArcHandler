@@ -72,5 +72,12 @@
     <string name="volume_size">分卷大小</string>
     <string name="unit">单位</string>
     <string name="split_hint">留空或输入 0 表示不分卷。推荐 ≥ 10MB。</string>
+    <string name="preparing_message">准备中…</string>
+    <string name="packing_message">打包中…</string>
+    <string name="compressing_message">压缩中…</string>
+    <string name="archive_name_empty_message">请先输入文件名</string>
+    <string name="archive_name_conflict_message">文件名冲突</string>
+    <string name="no_directory_write_permission_message">无法写入此目录</string>
+    <string name="packaging_failed_message">打包失败</string>
 </resources>
 

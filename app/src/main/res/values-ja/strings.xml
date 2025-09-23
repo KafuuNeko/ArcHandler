@@ -72,4 +72,11 @@
     <string name="volume_size">ボリュームサイズ</string>
     <string name="unit">単位</string>
     <string name="split_hint">空白または 0 の場合は分割しません。推奨値 ≥ 10MB。</string>
+    <string name="preparing_message">準備中…</string>
+    <string name="packing_message">パッキング中…</string>
+    <string name="compressing_message">圧縮中…</string>
+    <string name="archive_name_empty_message">まずファイル名を入力してください</string>
+    <string name="archive_name_conflict_message">ファイル名が重複しています</string>
+    <string name="no_directory_write_permission_message">このディレクトリに書き込めません</string>
+    <string name="packaging_failed_message">パッケージ化に失敗しました</string>
 </resources>

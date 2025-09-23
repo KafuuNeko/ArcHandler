@@ -12,6 +12,8 @@ import kotlin.io.path.Path
 sealed class MainUiIntent {
     data object Init : MainUiIntent()
 
+    data object Resume : MainUiIntent()
+
     data object Back : MainUiIntent()
 
     data object JumpFilePermissionSetting : MainUiIntent()

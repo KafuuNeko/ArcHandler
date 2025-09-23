@@ -5,7 +5,7 @@
     <string name="archive_format_seven_zip_name" translatable="false">7-Zip</string>
     <string name="archive_format_tar_name" translatable="false">Tar</string>
     <string name="archive_format_tar_with_gzip_name" translatable="false">Tar with GZip</string>
-    <string name="archive_format_bzip_ii_name" translatable="false">BZip2</string>
+    <string name="archive_format_tar_with_bzip_ii_name" translatable="false">Tar with BZip2</string>
 
     <string name="unknown_error">Unknown Error</string>
     <string name="not_permission_in_main_view">Permission to access all files is required. Please enable it to proceed.</string>
@@ -79,4 +79,11 @@
     <string name="volume_size">Volume Size</string>
     <string name="unit">Unit</string>
     <string name="split_hint">Leave blank or 0 for no volume split. Recommended ≥ 10MB.</string>
+    <string name="preparing_message">Preparing…</string>
+    <string name="packing_message">Packing…</string>
+    <string name="compressing_message">Compressing…</string>
+    <string name="archive_name_empty_message">Please enter the file name first</string>
+    <string name="archive_name_conflict_message">File name conflict</string>
+    <string name="no_directory_write_permission_message">Cannot write to this directory</string>
+    <string name="packaging_failed_message">Packaging failed</string>
 </resources>

@@ -3,6 +3,7 @@ package cc.kafuu.archandler.feature.createarchive
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -10,6 +11,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import cc.kafuu.archandler.feature.createarchive.presentation.CreateArchiveUiIntent
 import cc.kafuu.archandler.feature.createarchive.presentation.CreateArchiveUiState
+import cc.kafuu.archandler.feature.createarchive.presentation.CreateArchiveViewEvent
 import cc.kafuu.archandler.feature.createarchive.ui.CreateArchiveView
 import cc.kafuu.archandler.libs.AppModel
 import cc.kafuu.archandler.libs.core.CoreActivity
@@ -28,7 +30,7 @@ class CreateArchiveActivity : CoreActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        CreateArchiveUiIntent.OnCreate(
+        CreateArchiveUiIntent.Init(
             transferId = intent.getStringExtra(AppModel.KEY_DATA)
         ).run {
             mViewModel.emit(this)
@@ -42,8 +44,21 @@ class CreateArchiveActivity : CoreActivity() {
             uiState = uiState,
             emitIntent = { intent -> mViewModel.emit(intent) }
         )
+        LaunchedEffect(Unit) {
+            mViewModel.collectEvent { onViewEvent(it) }
+        }
         LaunchedEffect(uiState) {
             if (uiState is CreateArchiveUiState.Finished) finish()
         }
+    }
+
+    private fun onViewEvent(event: CreateArchiveViewEvent) {
+        when (event) {
+            is CreateArchiveViewEvent.ToastMessageByResId -> onToastMessageByResId(event)
+        }
+    }
+
+    private fun onToastMessageByResId(event: CreateArchiveViewEvent.ToastMessageByResId) {
+        Toast.makeText(this, event.message, Toast.LENGTH_SHORT).show()
     }
 }

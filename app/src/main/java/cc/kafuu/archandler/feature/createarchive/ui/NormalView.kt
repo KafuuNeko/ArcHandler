@@ -1,21 +1,30 @@
 package cc.kafuu.archandler.feature.createarchive.ui
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import cc.kafuu.archandler.R
-import cc.kafuu.archandler.feature.createarchive.capabilities.CompressLevelConfigurable
 import cc.kafuu.archandler.feature.createarchive.capabilities.CompressEncryptable
+import cc.kafuu.archandler.feature.createarchive.capabilities.CompressLevelConfigurable
 import cc.kafuu.archandler.feature.createarchive.capabilities.CompressSplittable
 import cc.kafuu.archandler.feature.createarchive.presentation.CreateArchiveUiIntent
 import cc.kafuu.archandler.feature.createarchive.presentation.CreateArchiveUiState
@@ -46,9 +55,38 @@ fun NormalView(
                 .padding(paddingValues)
                 .fillMaxSize()
                 .padding(horizontal = 10.dp)
-                .verticalScroll(rememberScrollState())
         ) {
-            ArchiveOptions(uiState = uiState, emitIntent = emitIntent)
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState())
+            ) {
+                ArchiveOptions(uiState = uiState, emitIntent = emitIntent)
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            FilledIconButton(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp)
+                    .padding(bottom = 10.dp),
+                onClick = {
+                    CreateArchiveUiIntent.CreateArchive.also(emitIntent)
+                }
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        modifier = Modifier.size(32.dp),
+                        painter = painterResource(R.drawable.ic_packing),
+                        contentDescription = null
+                    )
+                    Spacer(Modifier.width(6.dp))
+                    Text(stringResource(R.string.create_archive))
+                }
+            }
         }
     }
 }
@@ -72,7 +110,6 @@ private fun ArchiveOptions(
     SavePathCard(
         dir = uiState.targetDirectory,
         outputName = uiState.targetFileName,
-        onPick = { CreateArchiveUiIntent.PickSavePath.also(emitIntent) },
         onNameChange = { CreateArchiveUiIntent.TargetFileNameChange(it).also(emitIntent) }
     )
     Spacer(modifier = Modifier.height(10.dp))

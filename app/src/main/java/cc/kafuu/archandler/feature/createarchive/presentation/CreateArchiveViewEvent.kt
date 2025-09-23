@@ -1,5 +1,7 @@
 package cc.kafuu.archandler.feature.createarchive.presentation
 
-sealed class CreateArchiveViewEvent {
+import androidx.annotation.StringRes
 
+sealed class CreateArchiveViewEvent {
+    data class ToastMessageByResId(@StringRes val message: Int) : CreateArchiveViewEvent()
 }

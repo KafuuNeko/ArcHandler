@@ -3,6 +3,8 @@ package cc.kafuu.archandler.libs.archive.impl.packer
 import cc.kafuu.archandler.libs.archive.IPacker
 import cc.kafuu.archandler.libs.archive.model.CompressionOption
 import cc.kafuu.archandler.libs.extensions.collectFilesWithRelativePaths
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.isActive
 import net.sf.sevenzipjbinding.ICryptoGetTextPassword
 import net.sf.sevenzipjbinding.IOutCreateArchive
 import net.sf.sevenzipjbinding.IOutCreateCallback
@@ -21,10 +23,11 @@ import net.sf.sevenzipjbinding.impl.RandomAccessFileInStream
 import net.sf.sevenzipjbinding.impl.RandomAccessFileOutStream
 import java.io.File
 import java.io.RandomAccessFile
+import kotlin.coroutines.cancellation.CancellationException
+import kotlin.coroutines.coroutineContext
 
 class SevenZipPacker(
     private val archiveFile: File,
-
     private val option: CompressionOption
 ) : IPacker {
 
@@ -32,32 +35,29 @@ class SevenZipPacker(
      * 创建 OutArchive
      */
     private fun createOutArchive() = when (option) {
-        is CompressionOption.BZip2 -> SevenZip.openOutArchiveBZip2()
-        is CompressionOption.GZip -> SevenZip.openOutArchiveGZip()
         is CompressionOption.Tar -> SevenZip.openOutArchiveTar()
+
+        is CompressionOption.BZip2 -> SevenZip.openOutArchiveBZip2().apply {
+            setLevel(option.compressionLevel)
+        }
+
+        is CompressionOption.GZip -> SevenZip.openOutArchiveGZip().apply {
+            setLevel(option.compressionLevel)
+        }
 
         is CompressionOption.SevenZip -> SevenZip.openOutArchive7z().apply {
             if (option.password != null && this is IOutFeatureSetEncryptHeader) {
                 setHeaderEncryption(true)
             }
+            setLevel(option.compressionLevel)
         }
 
         is CompressionOption.Zip -> SevenZip.openOutArchiveZip().apply {
             if (option.password != null && this is IOutFeatureSetEncryptHeader) {
                 setHeaderEncryption(true)
             }
+            setLevel(option.compressionLevel)
         }
-    }
-
-    /**
-     * 取得要打包的所有文件
-     */
-    private fun getFiles(): List<File> = when (option) {
-        is CompressionOption.BZip2 -> listOf(option.file)
-        is CompressionOption.GZip -> listOf(option.file)
-        is CompressionOption.SevenZip -> option.files
-        is CompressionOption.Tar -> option.files
-        is CompressionOption.Zip -> option.files
     }
 
     /**
@@ -173,15 +173,20 @@ class SevenZipPacker(
     /**
      * 创建 Archive
      */
-    private fun createArchive(
+    private suspend fun createArchive(
         outStream: ISequentialOutStream,
         sourceFiles: List<File>,
         listener: (current: Int, total: Int, filePath: String) -> Unit
     ) {
-        createOutArchive().use {
-            val allEntries = sourceFiles.flatMap { it.collectFilesWithRelativePaths(it) }
+        createOutArchive().use { archive ->
+            val allEntries = sourceFiles.flatMap { file ->
+                file.collectFilesWithRelativePaths(file)
+            }
+            coroutineContext.ensureActive()
+            val ctx = coroutineContext
             val total = allEntries.size
             val callback = createCallback(allEntries) { index ->
+                if (!ctx.isActive) throw CancellationException()
                 val (file, _) = allEntries[index]
                 listener(index + 1, total, file.absolutePath)
                 if (!file.isFile) {
@@ -190,16 +195,20 @@ class SevenZipPacker(
                     RandomAccessFileInStream(RandomAccessFile(file, "r"))
                 }
             }
-            (it as IOutCreateArchive<IOutItemBase>).createArchive(outStream, total, callback)
+            (archive as IOutCreateArchive<IOutItemBase>).createArchive(outStream, total, callback)
         }
     }
 
     /**
      * 执行打包
      */
-    override fun pack(listener: (current: Int, total: Int, filePath: String) -> Unit) = try {
+    override suspend fun pack(
+        files: List<File>,
+        listener: (current: Int, total: Int, filePath: String) -> Unit
+    ) = try {
+        coroutineContext.ensureActive()
         RandomAccessFile(archiveFile, "rw").use { raf ->
-            createArchive(RandomAccessFileOutStream(raf), getFiles(), listener)
+            createArchive(RandomAccessFileOutStream(raf), files, listener)
         }
         true
     } catch (e: Exception) {
