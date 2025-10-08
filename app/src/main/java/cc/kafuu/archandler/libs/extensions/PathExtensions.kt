@@ -23,3 +23,11 @@ fun Path.isSameFileOrDirectory(other: Path): Boolean {
         file1.exists() && file2.exists() && file1.absolutePath == file2.absolutePath
     }
 }
+
+fun Path.toList(): List<Path> {
+    val result = mutableListOf<Path>()
+    for (i in 0 until this.nameCount) {
+        result.add(this.getName(i))
+    }
+    return result
+}

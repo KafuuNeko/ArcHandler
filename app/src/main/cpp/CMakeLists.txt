@@ -41,6 +41,8 @@ set(ENABLE_TEST OFF)
 set(ENABLE_EXAMPLES OFF)
 add_subdirectory(third_party/libarchive)
 
+include_directories(${PROJECT_SOURCE_DIR} third_party/libarchive)
+
 # Creates and names a library, sets it as either STATIC
 # or SHARED, and provides the relative paths to its source code.
 # You can define multiple libraries, and CMake builds them for you.
@@ -56,7 +58,9 @@ add_subdirectory(third_party/libarchive)
 # used in the AndroidManifest.xml file.
 add_library(${CMAKE_PROJECT_NAME} SHARED
         # List C/C++ source files with relative paths to this CMakeLists.txt.
-        native_lib.cpp)
+        src/archive_builder.cc
+        src/archive_extractor.cc
+        src/native_lib.cc)
 
 # Specifies libraries CMake should link to your target library. You
 # can link libraries from various origins, such as libraries defined in this

@@ -176,3 +176,30 @@ suspend fun File.sha256Of(bufferSize: Int = 1 * 1024 * 1024): String {
         md.digest().joinToString("") { "%02x".format(it) }
     }
 }
+
+fun List<File>.commonBaseDir(): File? {
+    if (this.isEmpty()) return null
+    val paths = this.map { it.absoluteFile.toPath().normalize().toList() }
+    val minLength = paths.minOf { it.size }
+    var commonIndex = 0
+
+    loop@ for (i in 0 until minLength) {
+        val segment = paths[0][i]
+        for (path in paths) {
+            if (path[i] != segment) break@loop
+        }
+        commonIndex++
+    }
+
+    return if (commonIndex == 0) {
+        null
+    } else {
+        val segments = paths[0].subList(0, commonIndex)
+        val initial = if (segments[0].toString().isEmpty()) File("/") else File(segments[0].toString())
+        segments.drop(1).fold(initial) { acc, s ->
+            File(acc, s.toString())
+        }
+    }
+
+}
+
