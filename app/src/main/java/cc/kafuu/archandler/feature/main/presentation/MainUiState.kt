@@ -1,7 +1,7 @@
 package cc.kafuu.archandler.feature.main.presentation
 
 import cc.kafuu.archandler.libs.model.StorageData
-import cc.kafuu.archandler.libs.utils.ResultFuture
+import cc.kafuu.archandler.libs.utils.DeferredResult
 import java.io.File
 import java.nio.file.Path
 
@@ -24,12 +24,12 @@ sealed class MainUiState {
 sealed class MainDialogState {
     data class PasswordInput(
         val file: File,
-        val resultFuture: ResultFuture<String> = ResultFuture()
+        val deferredResult: DeferredResult<String?> = DeferredResult()
     ) : MainDialogState()
 
     data class FileDeleteConfirm(
         val fileSet: Set<File>,
-        val resultFuture: ResultFuture<Boolean> = ResultFuture()
+        val deferredResult: DeferredResult<Boolean> = DeferredResult()
     ) : MainDialogState()
 }
 

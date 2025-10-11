@@ -65,7 +65,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState, MainView
         override suspend fun getPassword(
             file: File
         ): String? = MainDialogState.PasswordInput(file = file).run {
-            popupAwaitDialogResult { resultFuture.awaitResult() }
+            popupAwaitDialogResult { deferredResult.awaitCompleted() }
         }
     }
 
@@ -444,7 +444,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState, MainView
         }
         // 询问用户是否确认删除
         val isAgree = MainDialogState.FileDeleteConfirm(fileSet).run {
-            popupAwaitDialogResult { resultFuture.awaitResult() }
+            popupAwaitDialogResult { deferredResult.awaitCompleted() }
         } == true
         if (!isAgree) return false
         // 执行文件删除逻辑
@@ -574,7 +574,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState, MainView
      * 主页弹窗通用流程
      */
     private suspend fun <R> MainDialogState.popupAwaitDialogResult(
-        onAwaitResult: suspend () -> Result<R>
+        onAwaitResult: suspend () -> R
     ): R? {
         val dialog = this
         val result = awaitStateOf<MainUiState.Accessible>().run {
@@ -584,7 +584,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState, MainView
         awaitStateOf<MainUiState.Accessible>().run {
             copy(dialogStates = dialogStates.toMutableSet().apply { remove(dialog) }).setup()
         }
-        return result.getOrNull()
+        return result
     }
 
     @UiIntentObserver(MainUiIntent.SelectAllClick::class)

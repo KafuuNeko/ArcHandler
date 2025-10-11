@@ -32,7 +32,6 @@ import cc.kafuu.archandler.ui.dialogs.AppLoadDialog
 import cc.kafuu.archandler.ui.dialogs.ConfirmDialog
 import cc.kafuu.archandler.ui.dialogs.PasswordInputDialog
 import cc.kafuu.archandler.ui.theme.AppTheme
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import java.io.File
 import kotlin.io.path.Path
@@ -191,14 +190,10 @@ private fun MainDialogSwitch(
         is MainDialogState.PasswordInput -> PasswordInputDialog(
             message = stringResource(R.string.enter_password_message, dialogState.file.name),
             onDismissRequest = {
-                coroutineScope.launch {
-                    dialogState.resultFuture.setResult(Result.failure(CancellationException()))
-                }
+                dialogState.deferredResult.complete(coroutineScope, null)
             },
             onConfirmRequest = {
-                coroutineScope.launch {
-                    dialogState.resultFuture.setResult(Result.success(it))
-                }
+                dialogState.deferredResult.complete(coroutineScope, it)
             }
         )
 
@@ -212,14 +207,10 @@ private fun MainDialogSwitch(
             },
             confirmContent = { Text(stringResource(R.string.delete), color = Color.Red) },
             onDismissRequest = {
-                coroutineScope.launch {
-                    dialogState.resultFuture.setResult(Result.failure(CancellationException()))
-                }
+                dialogState.deferredResult.complete(coroutineScope, false)
             },
             onConfirmRequest = {
-                coroutineScope.launch {
-                    dialogState.resultFuture.setResult(Result.success(true))
-                }
+                dialogState.deferredResult.complete(coroutineScope, true)
             }
         )
     }
