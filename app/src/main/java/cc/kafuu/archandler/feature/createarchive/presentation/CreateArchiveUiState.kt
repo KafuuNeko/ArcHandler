@@ -68,4 +68,28 @@ sealed class CreateArchiveOptionState {
         override val format: ArchiveFormat = ArchiveFormat.TarWithBZip2,
         override val level: Int = 5,
     ) : CreateArchiveOptionState(), CompressLevelConfigurable
+
+    data class TarWithXz(
+        override val format: ArchiveFormat = ArchiveFormat.TarWithXz,
+        override val level: Int = 5,
+    ) : CreateArchiveOptionState(), CompressLevelConfigurable
+
+    data class Cpio(
+        override val format: ArchiveFormat = ArchiveFormat.Cpio
+    ) : CreateArchiveOptionState()
+
+    data class CpioWithGZip(
+        override val format: ArchiveFormat = ArchiveFormat.CpioWithGZip,
+        override val level: Int = 5,
+    ) : CreateArchiveOptionState(), CompressLevelConfigurable
+
+    data class CpioWithBZip2(
+        override val format: ArchiveFormat = ArchiveFormat.CpioWithBZip2,
+        override val level: Int = 5,
+    ) : CreateArchiveOptionState(), CompressLevelConfigurable
+
+    data class CpioWithXz(
+        override val format: ArchiveFormat = ArchiveFormat.CpioWithXz,
+        override val level: Int = 5,
+    ) : CreateArchiveOptionState(), CompressLevelConfigurable
 }

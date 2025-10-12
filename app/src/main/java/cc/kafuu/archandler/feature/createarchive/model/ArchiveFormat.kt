@@ -45,4 +45,39 @@ enum class ArchiveFormat(
         supportsSplit = false,
         levelRange = 1..9,
     ),
+    TarWithXz(
+        displayName = R.string.archive_format_tar_with_xz_ii_name,
+        supportsPassword = false,
+        supportsLevel = true,
+        supportsSplit = false,
+        levelRange = 1..9,
+    ),
+    Cpio(
+        displayName = R.string.archive_format_cpio_name,
+        supportsPassword = false,
+        supportsLevel = false,
+        supportsSplit = false,
+        levelRange = null
+    ),
+    CpioWithGZip(
+        displayName = R.string.archive_format_cpio_with_gzip_name,
+        supportsPassword = false,
+        supportsLevel = true,
+        supportsSplit = false,
+        levelRange = 1..9
+    ),
+    CpioWithBZip2(
+        displayName = R.string.archive_format_cpio_with_bzip_ii_name,
+        supportsPassword = false,
+        supportsLevel = true,
+        supportsSplit = false,
+        levelRange = 1..9,
+    ),
+    CpioWithXz(
+        displayName = R.string.archive_format_cpio_with_xz_ii_name,
+        supportsPassword = false,
+        supportsLevel = true,
+        supportsSplit = false,
+        levelRange = 1..9,
+    ),
 }

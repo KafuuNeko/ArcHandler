@@ -58,15 +58,17 @@ class SevenZipPacker(
             }
             setLevel(option.compressionLevel)
         }
+
+        else -> throw IllegalArgumentException()
     }
 
     /**
      * 获取压缩包密码
      */
     private fun getPassword() = when (option) {
-        is CompressionOption.BZip2, is CompressionOption.GZip, is CompressionOption.Tar -> null
         is CompressionOption.SevenZip -> option.password
         is CompressionOption.Zip -> option.password
+        else -> null
     }
 
     /**
@@ -168,6 +170,8 @@ class SevenZipPacker(
             },
             onGetStream = onGetStream
         )
+
+        else -> throw IllegalArgumentException()
     }
 
     /**

@@ -12,7 +12,16 @@ import cc.kafuu.archandler.feature.createarchive.extensions.withSplitSize
 import cc.kafuu.archandler.feature.createarchive.extensions.withSplitUnit
 import cc.kafuu.archandler.feature.createarchive.model.ArchiveFormat
 import cc.kafuu.archandler.feature.createarchive.presentation.CreateArchiveLoadState
-import cc.kafuu.archandler.feature.createarchive.presentation.CreateArchiveOptionState
+import cc.kafuu.archandler.feature.createarchive.presentation.CreateArchiveOptionState.Cpio
+import cc.kafuu.archandler.feature.createarchive.presentation.CreateArchiveOptionState.CpioWithBZip2
+import cc.kafuu.archandler.feature.createarchive.presentation.CreateArchiveOptionState.CpioWithGZip
+import cc.kafuu.archandler.feature.createarchive.presentation.CreateArchiveOptionState.CpioWithXz
+import cc.kafuu.archandler.feature.createarchive.presentation.CreateArchiveOptionState.SevenZip
+import cc.kafuu.archandler.feature.createarchive.presentation.CreateArchiveOptionState.Tar
+import cc.kafuu.archandler.feature.createarchive.presentation.CreateArchiveOptionState.TarWithBZip2
+import cc.kafuu.archandler.feature.createarchive.presentation.CreateArchiveOptionState.TarWithGZip
+import cc.kafuu.archandler.feature.createarchive.presentation.CreateArchiveOptionState.TarWithXz
+import cc.kafuu.archandler.feature.createarchive.presentation.CreateArchiveOptionState.Zip
 import cc.kafuu.archandler.feature.createarchive.presentation.CreateArchiveUiIntent
 import cc.kafuu.archandler.feature.createarchive.presentation.CreateArchiveUiState
 import cc.kafuu.archandler.feature.createarchive.presentation.CreateArchiveViewEvent
@@ -68,11 +77,16 @@ class CreateArchiveViewModel :
         val uiState = getOrNull<CreateArchiveUiState.Normal>() ?: return
         if (uiState.archiveOptions.format == event.format) return
         val archiveOptions = when (event.format) {
-            ArchiveFormat.Zip -> CreateArchiveOptionState.Zip()
-            ArchiveFormat.SevenZip -> CreateArchiveOptionState.SevenZip()
-            ArchiveFormat.Tar -> CreateArchiveOptionState.Tar()
-            ArchiveFormat.TarWithGZip -> CreateArchiveOptionState.TarWithGZip()
-            ArchiveFormat.TarWithBZip2 -> CreateArchiveOptionState.TarWithBZip2()
+            ArchiveFormat.Zip -> Zip()
+            ArchiveFormat.SevenZip -> SevenZip()
+            ArchiveFormat.Tar -> Tar()
+            ArchiveFormat.TarWithGZip -> TarWithGZip()
+            ArchiveFormat.TarWithBZip2 -> TarWithBZip2()
+            ArchiveFormat.TarWithXz -> TarWithXz()
+            ArchiveFormat.Cpio -> Cpio()
+            ArchiveFormat.CpioWithGZip -> CpioWithGZip()
+            ArchiveFormat.CpioWithBZip2 -> CpioWithBZip2()
+            ArchiveFormat.CpioWithXz -> CpioWithXz()
         }
         uiState.copy(archiveOptions = archiveOptions).setup()
     }

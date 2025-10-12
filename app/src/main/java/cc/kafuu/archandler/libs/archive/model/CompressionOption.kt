@@ -11,13 +11,39 @@ sealed class CompressionOption {
         val compressionLevel: Int = 5
     ) : CompressionOption()
 
-    data object Tar : CompressionOption()
-
     data class GZip(
         val compressionLevel: Int = 6
     ) : CompressionOption()
 
     data class BZip2(
-        val compressionLevel: Int = 9
+        val compressionLevel: Int = 6
+    ) : CompressionOption()
+
+    data object Tar : CompressionOption()
+
+    data class TarGZip(
+        val compressionLevel: Int = 6
+    ) : CompressionOption()
+
+    data class TarBzip2(
+        val compressionLevel: Int = 6
+    ) : CompressionOption()
+
+    data class TarXz(
+        val compressionLevel: Int = 6
+    ) : CompressionOption()
+
+    data object Cpio : CompressionOption()
+
+    data class CpioGZip(
+        val compressionLevel: Int = 6
+    ) : CompressionOption()
+
+    data class CpioBzip2(
+        val compressionLevel: Int = 6
+    ) : CompressionOption()
+
+    data class CpioXz(
+        val compressionLevel: Int = 6
     ) : CompressionOption()
 }

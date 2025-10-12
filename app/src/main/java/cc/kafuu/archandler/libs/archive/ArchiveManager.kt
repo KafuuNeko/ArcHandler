@@ -1,7 +1,7 @@
 package cc.kafuu.archandler.libs.archive
 
 import cc.kafuu.archandler.libs.archive.impl.archive.SevenZipArchive
-import cc.kafuu.archandler.libs.archive.impl.packer.LibArchiveTarPacker
+import cc.kafuu.archandler.libs.archive.impl.packer.LibArchivePacker
 import cc.kafuu.archandler.libs.archive.impl.packer.SevenZipPacker
 import cc.kafuu.archandler.libs.archive.model.CompressionOption
 import net.sf.sevenzipjbinding.ArchiveFormat
@@ -80,11 +80,19 @@ class ArchiveManager {
         compressionOption: CompressionOption
     ): IPacker {
         return when (compressionOption) {
-            is CompressionOption.Tar -> LibArchiveTarPacker(archiveFile)
+            is CompressionOption.Tar,
             is CompressionOption.GZip,
             is CompressionOption.BZip2,
             is CompressionOption.Zip,
             is CompressionOption.SevenZip -> SevenZipPacker(archiveFile, compressionOption)
+
+            is CompressionOption.TarBzip2,
+            is CompressionOption.TarGZip,
+            is CompressionOption.TarXz,
+            is CompressionOption.Cpio,
+            is CompressionOption.CpioBzip2,
+            is CompressionOption.CpioGZip,
+            is CompressionOption.CpioXz -> LibArchivePacker(archiveFile, compressionOption)
         }
     }
 }
