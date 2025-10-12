@@ -249,6 +249,9 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState, MainView
                 return@use destDir
             }
         }.getOrNull()
+        // 清理缓存
+        mCacheManager.clearCache(AppCacheType.MERGE_SPLIT_ARCHIVE)
+        // 再次验证协程是否正在进行
         coroutineContext.ensureActive()
         // 解压流程完成，取消加载弹窗
         state.copy(loadState = MainLoadState.None).setup()
@@ -273,6 +276,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState, MainView
         val listState = uiState.listState as? MainListState.Directory ?: return
         if (uiState.loadState is MainLoadState.Unpacking) {
             cancelActiveTaskAndRestore()
+            mCacheManager.clearCache(AppCacheType.MERGE_SPLIT_ARCHIVE)
             doLoadDirectory(listState.storageData, listState.directoryPath)
         }
     }
