@@ -15,7 +15,7 @@ activityCompose = "1.9.3"
 composeBom = "2024.11.00"
 roomRuntime = "2.6.1"
 xxpermissions = "20.0"
-xZipJbindingXandroid = "Release-16.02-2.02"
+xZipJbindingXandroid = "Release-16.02-2.03"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
