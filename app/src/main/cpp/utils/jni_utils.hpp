@@ -98,7 +98,7 @@ template<
 inline auto CreateJBooleanArray(JNIEnv *env, Iterator begin, Iterator end) {
     auto size = std::distance(begin, end);
     auto array_ptr = WrapLocalRef(env, env->NewBooleanArray(size));
-    if (!array_ptr) return nullptr;
+    if (!array_ptr) return array_ptr;
     std::vector<jboolean> j_booleans(size);
     std::transform(begin, end, j_booleans.begin(), [](auto v) { return static_cast<jboolean>(v); });
     env->SetBooleanArrayRegion(array_ptr.get(), 0, static_cast<jsize>(size), j_booleans.data());
@@ -117,11 +117,11 @@ template<
 static auto CreateJStringArray(JNIEnv *env, Iterator begin, Iterator end) {
     auto size = std::distance(begin, end);
     auto string_class_ptr = FindClass(env, "java/lang/String");
-    if (!string_class_ptr) return nullptr;
+    if (!string_class_ptr) return WrapLocalRef(env, static_cast<jobjectArray>(nullptr));
     auto array_ptr = WrapLocalRef(
             env, env->NewObjectArray(static_cast<jsize>(size), string_class_ptr.get(), nullptr)
     );
-    if (!array_ptr) return nullptr;
+    if (!array_ptr) return array_ptr;
     jsize index = 0;
     for (auto it = begin; it != end; ++it, ++index) {
         const char *cstr;
@@ -147,7 +147,7 @@ template<
 inline auto CreateJIntArray(JNIEnv *env, Iterator begin, Iterator end) {
     auto size = std::distance(begin, end);
     auto array = WrapLocalRef(env, env->NewIntArray(static_cast<jsize>(size)));
-    if (array == nullptr) return nullptr;
+    if (array == nullptr) return array;
     std::vector<jint> j_ints(size);
     std::transform(begin, end, j_ints.begin(), [](auto v) { return static_cast<jint>(v); });
     env->SetIntArrayRegion(array.get(), 0, static_cast<jsize>(size), j_ints.data());
