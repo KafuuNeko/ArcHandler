@@ -105,6 +105,27 @@ class SevenZipArchive(
         mSimpleArchive?.archiveItems?.any { it.isEncrypted } == true
 
     /**
+     * 替换安全路径
+     */
+    private fun sanitizeSegment(seg: String): String {
+        return seg.replace(Regex("""[<>:"\\|?*]"""), "_")
+    }
+
+    /**
+     * 将压缩包内的条目路径解析为本地安全的输出File对象
+     */
+    private fun resolveSafeFile(base: File, entryPath: String): File {
+        val segments = entryPath.split(Regex("""[\\/]+""")).filter { it.isNotEmpty() }
+        if (segments.any { it == ".." }) throw SecurityException("Invalid entry path: contains ..")
+        val safeSegments = segments.map { sanitizeSegment(it) }.toTypedArray()
+        return if (safeSegments.isEmpty()) {
+            base
+        } else {
+            safeSegments.fold(base) { acc, s -> File(acc, s) }
+        }
+    }
+
+    /**
      * 列出压缩包内所有内容
      */
     override fun list(dir: String): List<ArchiveEntry> =
@@ -124,11 +145,12 @@ class SevenZipArchive(
      */
     override fun extract(entry: ArchiveEntry, dest: File) {
         val item = mSimpleArchive?.archiveItems?.firstOrNull { it.path == entry.path } ?: return
-        File(dest, entry.name).also { it.parentFile?.mkdirs() }.let { fos ->
-            FileOutputStream(fos)
-        }.use { out ->
+        resolveSafeFile(dest, entry.path).let {
+            it.parentFile?.mkdirs()
+            FileOutputStream(it)
+        }.use { outStream ->
             item.extractSlow({ data ->
-                out.write(data)
+                outStream.write(data)
                 data.size
             }, mPassword)
         }
@@ -142,13 +164,12 @@ class SevenZipArchive(
         onProgress: suspend (index: Int, path: String, target: Int) -> Unit
     ) {
         var index = 0
-        val target = mSimpleArchive?.archiveItems
-            ?.count { it.path != null && !it.isFolder } ?: 0
+        val target = mSimpleArchive?.archiveItems?.count { it.path != null && !it.isFolder } ?: 0
 
         mSimpleArchive?.archiveItems?.forEach { item ->
             coroutineContext.ensureActive()
             val path = item.path ?: return@forEach
-            val outFile = File(destDir, path.replace("""[\\/:*?"<>|]""".toRegex(), "_"))
+            val outFile = resolveSafeFile(destDir, path)
             if (item.isFolder) {
                 outFile.mkdirs()
                 return@forEach
