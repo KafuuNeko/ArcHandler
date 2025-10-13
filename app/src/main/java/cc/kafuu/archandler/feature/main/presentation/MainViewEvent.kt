@@ -1,11 +1,7 @@
 package cc.kafuu.archandler.feature.main.presentation
 
-import java.io.File
+import cc.kafuu.archandler.libs.core.IViewEvent
 
-sealed class MainViewEvent {
+sealed class MainViewEvent : IViewEvent {
     data object JumpFilePermissionSetting : MainViewEvent()
-    data object JumpAboutPage : MainViewEvent()
-    data class PopupToastMessage(val message: String) : MainViewEvent()
-    data class OpenFile(val file: File, var result: Boolean = false) : MainViewEvent()
-    data class CreateArchive(val transferId: String) : MainViewEvent()
 }

@@ -7,23 +7,21 @@ import androidx.core.content.FileProvider
 import java.io.File
 
 /**
- * 尝试打开文件
+ * 创建打开文件方式选择器意图
  *
  * @param title 分享对话框的标题
  * @param file 要分享的文件
  */
-fun Context.tryOpenFile(title: String, file: File) {
-    if (!file.exists()) return
+fun Context.createChooserIntent(title: String, file: File): Intent? {
+    if (!file.exists()) return null
+    val context = this@createChooserIntent
+    val authority = "${packageName}.fileprovider"
     val intent = Intent(Intent.ACTION_VIEW).apply {
         setDataAndType(
-            FileProvider.getUriForFile(this@tryOpenFile, "${packageName}.fileprovider", file),
+            FileProvider.getUriForFile(context, authority, file),
             MimeTypeMap.getSingleton().getMimeTypeFromExtension(file.extension.lowercase()) ?: "*/*"
         )
         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     }
-    try {
-        startActivity(Intent.createChooser(intent, title))
-    } catch (e: Exception) {
-        e.printStackTrace()
-    }
+    return Intent.createChooser(intent, title)
 }

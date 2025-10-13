@@ -24,9 +24,9 @@ import cc.kafuu.archandler.feature.createarchive.presentation.CreateArchiveOptio
 import cc.kafuu.archandler.feature.createarchive.presentation.CreateArchiveOptionState.Zip
 import cc.kafuu.archandler.feature.createarchive.presentation.CreateArchiveUiIntent
 import cc.kafuu.archandler.feature.createarchive.presentation.CreateArchiveUiState
-import cc.kafuu.archandler.feature.createarchive.presentation.CreateArchiveViewEvent
 import cc.kafuu.archandler.libs.archive.ArchiveManager
 import cc.kafuu.archandler.libs.archive.model.CompressionOption
+import cc.kafuu.archandler.libs.core.AppViewEvent
 import cc.kafuu.archandler.libs.core.CoreViewModelWithEvent
 import cc.kafuu.archandler.libs.core.UiIntentObserver
 import cc.kafuu.archandler.libs.extensions.getNameExtension
@@ -38,10 +38,9 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import java.io.File
 
-class CreateArchiveViewModel :
-    CoreViewModelWithEvent<CreateArchiveUiIntent, CreateArchiveUiState, CreateArchiveViewEvent>(
-        initStatus = CreateArchiveUiState.None
-    ),
+class CreateArchiveViewModel : CoreViewModelWithEvent<CreateArchiveUiIntent, CreateArchiveUiState>(
+    initStatus = CreateArchiveUiState.None
+),
     KoinComponent {
     // 数据传递管理器
     private val mDataTransferManager by inject<DataTransferManager>()
@@ -168,7 +167,7 @@ class CreateArchiveViewModel :
                 targetFileName = targetFileName
             ) ?: run {
                 uiState.copy(loadState = CreateArchiveLoadState.None).setup()
-                CreateArchiveViewEvent.ToastMessageByResId(R.string.packaging_failed_message).emit()
+                AppViewEvent.PopupToastMessageByResId(R.string.packaging_failed_message).emit()
                 return@enqueueAsyncTask
             }
             preArchiveFile?.delete()
@@ -184,16 +183,14 @@ class CreateArchiveViewModel :
     private suspend fun CreateArchiveUiState.Normal.doPrePackageCheck(): Boolean {
         // 检查目标文件名是否为空
         if (targetFileName.isEmpty()) {
-            CreateArchiveViewEvent.ToastMessageByResId(
-                R.string.archive_name_empty_message
-            ).emit()
+            AppViewEvent.PopupToastMessageByResId(R.string.archive_name_empty_message).emit()
             return false
         }
         // 检查目录是否可写入
         if (!targetDirectory.canWrite()) {
-            CreateArchiveViewEvent.ToastMessageByResId(
-                R.string.no_directory_write_permission_message
-            ).emit()
+            AppViewEvent
+                .PopupToastMessageByResId(R.string.no_directory_write_permission_message)
+                .emit()
             return false
         }
         // 检查压缩包文件是否冲突
@@ -201,9 +198,7 @@ class CreateArchiveViewModel :
             File(targetDirectory, "${targetFileName}.${it.getNameExtension()}")
         }.any { it.exists() }
         if (hasFileNameConflict) {
-            CreateArchiveViewEvent.ToastMessageByResId(
-                R.string.archive_name_conflict_message
-            ).emit()
+            AppViewEvent.PopupToastMessageByResId(R.string.archive_name_conflict_message).emit()
             return false
         }
         return true

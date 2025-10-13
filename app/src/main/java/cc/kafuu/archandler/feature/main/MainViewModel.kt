@@ -2,6 +2,8 @@ package cc.kafuu.archandler.feature.main
 
 import android.content.Context
 import cc.kafuu.archandler.R
+import cc.kafuu.archandler.feature.about.AboutActivity
+import cc.kafuu.archandler.feature.createarchive.CreateArchiveActivity
 import cc.kafuu.archandler.feature.main.model.MainDrawerMenuEnum
 import cc.kafuu.archandler.feature.main.model.MainMultipleMenuEnum
 import cc.kafuu.archandler.feature.main.model.MainPackMenuEnum
@@ -17,10 +19,12 @@ import cc.kafuu.archandler.libs.AppLibs
 import cc.kafuu.archandler.libs.AppModel
 import cc.kafuu.archandler.libs.archive.ArchiveManager
 import cc.kafuu.archandler.libs.archive.IPasswordProvider
+import cc.kafuu.archandler.libs.core.AppViewEvent
 import cc.kafuu.archandler.libs.core.CoreViewModelWithEvent
 import cc.kafuu.archandler.libs.core.UiIntentObserver
 import cc.kafuu.archandler.libs.extensions.appCopyTo
 import cc.kafuu.archandler.libs.extensions.appMoveTo
+import cc.kafuu.archandler.libs.extensions.createChooserIntent
 import cc.kafuu.archandler.libs.extensions.createUniqueDirectory
 import cc.kafuu.archandler.libs.extensions.deletes
 import cc.kafuu.archandler.libs.extensions.getParentPath
@@ -45,7 +49,7 @@ import java.io.File
 import java.nio.file.Path
 import kotlin.io.path.Path
 
-class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState, MainViewEvent>(
+class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
     initStatus = MainUiState.None
 ), KoinComponent {
     // 应用通用工具
@@ -175,7 +179,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState, MainView
                 get<AppLibs>().jumpToUrl(AppModel.GOOGLE_PLAY_URL)
             }
 
-            MainDrawerMenuEnum.About -> MainViewEvent.JumpAboutPage.emit()
+            MainDrawerMenuEnum.About -> AppViewEvent.StartActivity(AboutActivity::class.java).emit()
         }
     }
 
@@ -220,7 +224,9 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState, MainView
         }
         // 判断当前打开的文件是否可解压
         if (!ArchiveManager.isExtractable(intent.file)) {
-            MainViewEvent.OpenFile(intent.file).emit()
+            get<Context>().createChooserIntent(intent.file.name, intent.file)
+                ?.let { AppViewEvent.StartActivityByIntent(it) }
+                ?.emit()
         } else {
             startFilePacking(intent.file)
         }
@@ -257,7 +263,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState, MainView
         state.copy(loadState = MainLoadState.None).setup()
         if (dest == null) {
             // 解压失败
-            MainViewEvent.PopupToastMessage(
+            AppViewEvent.PopupToastMessage(
                 mAppLibs.getString(R.string.archive_unpacking_failed_message)
             ).emit()
             doLoadDirectory(listState.storageData, listState.directoryPath)
@@ -348,7 +354,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState, MainView
     ) {
         if (sourceFiles.isEmpty()) {
             val message = get<Context>().getString(R.string.entry_paste_is_empty_message)
-            MainViewEvent.PopupToastMessage(message).emit()
+            AppViewEvent.PopupToastMessage(message).emit()
             return
         }
         getOrNull<MainUiState.Accessible>()?.copy(
@@ -371,7 +377,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState, MainView
     ) {
         if (sourceFiles.isEmpty()) {
             val message = get<Context>().getString(R.string.entry_pack_is_empty_message)
-            MainViewEvent.PopupToastMessage(message).emit()
+            AppViewEvent.PopupToastMessage(message).emit()
             return
         }
         getOrNull<MainUiState.Accessible>()?.copy(
@@ -443,7 +449,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState, MainView
     private suspend fun doDeleteFiles(fileSet: Set<File>): Boolean {
         if (fileSet.isEmpty()) {
             val message = get<Context>().getString(R.string.entry_paste_is_empty_message)
-            MainViewEvent.PopupToastMessage(message).emit()
+            AppViewEvent.PopupToastMessage(message).emit()
             return false
         }
         // 询问用户是否确认删除
@@ -570,7 +576,10 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState, MainView
         ).run {
             mDataTransferManager.push(this)
         }
-        MainViewEvent.CreateArchive(transferId).emit()
+        AppViewEvent.StartActivity(
+            activity = CreateArchiveActivity::class.java,
+            extras = CreateArchiveActivity.params(transferId)
+        ).emit()
         doLoadDirectory(targetStorageData, targetDirectoryPath)
     }
 
