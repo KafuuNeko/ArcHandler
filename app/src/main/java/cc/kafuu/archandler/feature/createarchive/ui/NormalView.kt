@@ -23,16 +23,13 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import cc.kafuu.archandler.R
-import cc.kafuu.archandler.feature.createarchive.capabilities.CompressEncryptable
-import cc.kafuu.archandler.feature.createarchive.capabilities.CompressLevelConfigurable
-import cc.kafuu.archandler.feature.createarchive.capabilities.CompressSplittable
 import cc.kafuu.archandler.feature.createarchive.presentation.CreateArchiveUiIntent
 import cc.kafuu.archandler.feature.createarchive.presentation.CreateArchiveUiState
+import cc.kafuu.archandler.feature.createarchive.ui.cards.CompressionTypeCard
 import cc.kafuu.archandler.feature.createarchive.ui.cards.FormatCard
 import cc.kafuu.archandler.feature.createarchive.ui.cards.LevelCard
 import cc.kafuu.archandler.feature.createarchive.ui.cards.PasswordCard
 import cc.kafuu.archandler.feature.createarchive.ui.cards.SavePathCard
-import cc.kafuu.archandler.feature.createarchive.ui.cards.SplitCard
 import cc.kafuu.archandler.ui.widges.AppTopBar
 
 @Composable
@@ -114,16 +111,28 @@ private fun ArchiveOptions(
     )
     Spacer(modifier = Modifier.height(10.dp))
 
-    if (optionState is CompressLevelConfigurable) {
+    // 选择压缩包压缩类型
+    CompressionTypeCard(
+        supportCompressionTypes = optionState.format.supportCompressionTypes,
+        compressionType = optionState.compressionType,
+        onFormatChange = {
+            CreateArchiveUiIntent.ArchiveCompressionTypeChange(it).also(emitIntent)
+        }
+    )
+    Spacer(modifier = Modifier.height(10.dp))
+
+    // 压缩等级
+    if (optionState.compressionType.levelRange != null) {
         LevelCard(
-            range = optionState.format.levelRange ?: 0..0,
+            range = optionState.compressionType.levelRange,
             level = optionState.level,
             onLevelChange = { CreateArchiveUiIntent.CompressLevelChange(it).also(emitIntent) }
         )
         Spacer(modifier = Modifier.height(10.dp))
     }
 
-    if (optionState is CompressEncryptable) {
+    // 压缩包密码
+    if (optionState.format.supportsPassword) {
         PasswordCard(
             password = optionState.password ?: "",
             onPasswordChange = {
@@ -131,24 +140,6 @@ private fun ArchiveOptions(
             },
             onClear = {
                 CreateArchiveUiIntent.ArchivePasswordChange("").also(emitIntent)
-            }
-        )
-        Spacer(modifier = Modifier.height(10.dp))
-    }
-
-    if (optionState is CompressSplittable) {
-        SplitCard(
-            enabled = optionState.splitEnabled,
-            number = optionState.splitSize,
-            unit = optionState.splitUnit,
-            onToggle = {
-                CreateArchiveUiIntent.SplitEnabledToggle(it).also(emitIntent)
-            },
-            onUnitChange = {
-                CreateArchiveUiIntent.SplitUnitChange(it).also(emitIntent)
-            },
-            onNumberChange = {
-                CreateArchiveUiIntent.SplitSizeChange(it).also(emitIntent)
             }
         )
         Spacer(modifier = Modifier.height(10.dp))

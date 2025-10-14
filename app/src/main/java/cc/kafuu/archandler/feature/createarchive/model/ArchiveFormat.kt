@@ -6,78 +6,33 @@ import cc.kafuu.archandler.R
 enum class ArchiveFormat(
     @StringRes val displayName: Int,
     val supportsPassword: Boolean,
-    val supportsLevel: Boolean,
-    val supportsSplit: Boolean,
-    val levelRange: IntRange?,
+    val supportCompressionTypes: List<CompressionType>,
+    val defaultCompressionType: CompressionType = CompressionType.None
 ) {
     Zip(
         displayName = R.string.archive_format_zip_name,
         supportsPassword = true,
-        supportsLevel = true,
-        supportsSplit = true,
-        levelRange = 0..9
+        supportCompressionTypes = listOf(CompressionType.Store, CompressionType.Deflate),
+        defaultCompressionType = CompressionType.Deflate,
     ),
     SevenZip(
         displayName = R.string.archive_format_seven_zip_name,
         supportsPassword = true,
-        supportsLevel = true,
-        supportsSplit = true,
-        levelRange = 0..9
+        supportCompressionTypes = listOf(CompressionType.Store, CompressionType.Lzma),
+        defaultCompressionType = CompressionType.Lzma
     ),
     Tar(
         displayName = R.string.archive_format_tar_name,
         supportsPassword = false,
-        supportsLevel = false,
-        supportsSplit = false,
-        levelRange = null
-    ),
-    TarWithGZip(
-        displayName = R.string.archive_format_tar_with_gzip_name,
-        supportsPassword = false,
-        supportsLevel = true,
-        supportsSplit = false,
-        levelRange = 1..9
-    ),
-    TarWithBZip2(
-        displayName = R.string.archive_format_tar_with_bzip_ii_name,
-        supportsPassword = false,
-        supportsLevel = true,
-        supportsSplit = false,
-        levelRange = 1..9,
-    ),
-    TarWithXz(
-        displayName = R.string.archive_format_tar_with_xz_ii_name,
-        supportsPassword = false,
-        supportsLevel = true,
-        supportsSplit = false,
-        levelRange = 1..9,
+        supportCompressionTypes = listOf(
+            CompressionType.None, CompressionType.Gzip, CompressionType.Xz, CompressionType.Bzip2
+        )
     ),
     Cpio(
         displayName = R.string.archive_format_cpio_name,
         supportsPassword = false,
-        supportsLevel = false,
-        supportsSplit = false,
-        levelRange = null
-    ),
-    CpioWithGZip(
-        displayName = R.string.archive_format_cpio_with_gzip_name,
-        supportsPassword = false,
-        supportsLevel = true,
-        supportsSplit = false,
-        levelRange = 1..9
-    ),
-    CpioWithBZip2(
-        displayName = R.string.archive_format_cpio_with_bzip_ii_name,
-        supportsPassword = false,
-        supportsLevel = true,
-        supportsSplit = false,
-        levelRange = 1..9,
-    ),
-    CpioWithXz(
-        displayName = R.string.archive_format_cpio_with_xz_ii_name,
-        supportsPassword = false,
-        supportsLevel = true,
-        supportsSplit = false,
-        levelRange = 1..9,
+        supportCompressionTypes = listOf(
+            CompressionType.None, CompressionType.Gzip, CompressionType.Xz, CompressionType.Bzip2
+        )
     ),
 }

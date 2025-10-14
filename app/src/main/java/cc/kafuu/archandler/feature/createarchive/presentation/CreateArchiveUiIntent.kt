@@ -1,6 +1,7 @@
 package cc.kafuu.archandler.feature.createarchive.presentation
 
 import cc.kafuu.archandler.feature.createarchive.model.ArchiveFormat
+import cc.kafuu.archandler.feature.createarchive.model.CompressionType
 import cc.kafuu.archandler.libs.archive.model.SplitUnit
 
 sealed class CreateArchiveUiIntent {
@@ -9,6 +10,8 @@ sealed class CreateArchiveUiIntent {
     data object Back : CreateArchiveUiIntent()
 
     data class ArchiveFormatChange(val format: ArchiveFormat) : CreateArchiveUiIntent()
+
+    data class ArchiveCompressionTypeChange(val type: CompressionType) : CreateArchiveUiIntent()
 
     data class TargetFileNameChange(val name: String) : CreateArchiveUiIntent()
 

@@ -1,56 +1,49 @@
 package cc.kafuu.archandler.feature.createarchive.extensions
 
-import cc.kafuu.archandler.feature.createarchive.presentation.CreateArchiveOptionState
+import cc.kafuu.archandler.feature.createarchive.model.ArchiveFormat
+import cc.kafuu.archandler.feature.createarchive.model.CompressionType
 import cc.kafuu.archandler.feature.createarchive.presentation.CreateArchiveUiState
-import cc.kafuu.archandler.libs.archive.model.CompressionOption
+import cc.kafuu.archandler.libs.archive.model.CompressionOption.Cpio
+import cc.kafuu.archandler.libs.archive.model.CompressionOption.CpioBzip2
+import cc.kafuu.archandler.libs.archive.model.CompressionOption.CpioGZip
+import cc.kafuu.archandler.libs.archive.model.CompressionOption.CpioXz
+import cc.kafuu.archandler.libs.archive.model.CompressionOption.SevenZip
+import cc.kafuu.archandler.libs.archive.model.CompressionOption.Tar
+import cc.kafuu.archandler.libs.archive.model.CompressionOption.TarBzip2
+import cc.kafuu.archandler.libs.archive.model.CompressionOption.TarGZip
+import cc.kafuu.archandler.libs.archive.model.CompressionOption.TarXz
+import cc.kafuu.archandler.libs.archive.model.CompressionOption.Zip
 
-fun CreateArchiveUiState.Normal.getPackageOptions() = when (archiveOptions) {
-    is CreateArchiveOptionState.SevenZip -> listOf(
-        CompressionOption.SevenZip(
+fun CreateArchiveUiState.Normal.getPackageOptions() = when (archiveOptions.format) {
+    ArchiveFormat.Zip -> listOf(
+        Zip(
             password = archiveOptions.password?.takeIf { it.isNotEmpty() },
-            compressionLevel = archiveOptions.level
+            compressionLevel = if (archiveOptions.compressionType.levelRange == null) 0 else archiveOptions.level
         )
     )
 
-    is CreateArchiveOptionState.Zip -> listOf(
-        CompressionOption.Zip(
+    ArchiveFormat.SevenZip -> listOf(
+        SevenZip(
             password = archiveOptions.password?.takeIf { it.isNotEmpty() },
-            compressionLevel = archiveOptions.level
+            compressionLevel = if (archiveOptions.compressionType.levelRange == null) 0 else archiveOptions.level
         )
     )
 
-    is CreateArchiveOptionState.Tar -> listOf(
-        CompressionOption.Tar
+    ArchiveFormat.Tar -> listOf(
+        when (archiveOptions.compressionType) {
+            CompressionType.Gzip -> TarGZip(compressionLevel = archiveOptions.level)
+            CompressionType.Bzip2 -> TarBzip2(compressionLevel = archiveOptions.level)
+            CompressionType.Xz -> TarXz(compressionLevel = archiveOptions.level)
+            else -> Tar
+        }
     )
 
-    is CreateArchiveOptionState.TarWithGZip -> listOf(
-        CompressionOption.Tar,
-        CompressionOption.GZip(archiveOptions.level)
+    ArchiveFormat.Cpio -> listOf(
+        when (archiveOptions.compressionType) {
+            CompressionType.Gzip -> CpioGZip(compressionLevel = archiveOptions.level)
+            CompressionType.Bzip2 -> CpioBzip2(compressionLevel = archiveOptions.level)
+            CompressionType.Xz -> CpioXz(compressionLevel = archiveOptions.level)
+            else -> Cpio
+        }
     )
-
-    is CreateArchiveOptionState.TarWithBZip2 -> listOf(
-        CompressionOption.Tar,
-        CompressionOption.BZip2(archiveOptions.level)
-    )
-
-    is CreateArchiveOptionState.TarWithXz -> listOf(
-        CompressionOption.TarXz(compressionLevel = archiveOptions.level)
-    )
-
-    is CreateArchiveOptionState.Cpio -> listOf(
-        CompressionOption.Cpio
-    )
-
-    is CreateArchiveOptionState.CpioWithBZip2 -> listOf(
-        CompressionOption.CpioBzip2(compressionLevel = archiveOptions.level)
-    )
-
-    is CreateArchiveOptionState.CpioWithGZip -> listOf(
-        CompressionOption.CpioGZip(compressionLevel = archiveOptions.level)
-    )
-
-    is CreateArchiveOptionState.CpioWithXz -> listOf(
-        CompressionOption.CpioXz(compressionLevel = archiveOptions.level)
-    )
-
 }

@@ -1,11 +1,8 @@
 package cc.kafuu.archandler.feature.createarchive.presentation
 
 import androidx.annotation.StringRes
-import cc.kafuu.archandler.feature.createarchive.capabilities.CompressEncryptable
-import cc.kafuu.archandler.feature.createarchive.capabilities.CompressLevelConfigurable
-import cc.kafuu.archandler.feature.createarchive.capabilities.CompressSplittable
 import cc.kafuu.archandler.feature.createarchive.model.ArchiveFormat
-import cc.kafuu.archandler.libs.archive.model.SplitUnit
+import cc.kafuu.archandler.feature.createarchive.model.CompressionType
 import java.io.File
 
 sealed class CreateArchiveUiState {
@@ -15,7 +12,7 @@ sealed class CreateArchiveUiState {
         val files: List<File>,
         val targetDirectory: File,
         val targetFileName: String = "",
-        val archiveOptions: CreateArchiveOptionState = CreateArchiveOptionState.Zip(),
+        val archiveOptions: CreateArchiveOptionState = CreateArchiveOptionState(),
         val loadState: CreateArchiveLoadState = CreateArchiveLoadState.None,
     ) : CreateArchiveUiState()
 
@@ -32,64 +29,9 @@ sealed class CreateArchiveLoadState {
     ) : CreateArchiveLoadState()
 }
 
-sealed class CreateArchiveOptionState {
-    abstract val format: ArchiveFormat
-
-    data class Zip(
-        override val format: ArchiveFormat = ArchiveFormat.Zip,
-        override val password: String? = null,
-        override val level: Int = 5,
-        override val splitEnabled: Boolean = false,
-        override val splitSize: Long? = null,
-        override val splitUnit: SplitUnit = SplitUnit.MB,
-    ) : CreateArchiveOptionState(),
-        CompressEncryptable, CompressLevelConfigurable, CompressSplittable
-
-    data class SevenZip(
-        override val format: ArchiveFormat = ArchiveFormat.SevenZip,
-        override val password: String? = null,
-        override val level: Int = 5,
-        override val splitEnabled: Boolean = false,
-        override val splitSize: Long? = null,
-        override val splitUnit: SplitUnit = SplitUnit.MB,
-    ) : CreateArchiveOptionState(),
-        CompressEncryptable, CompressLevelConfigurable, CompressSplittable
-
-    data class Tar(
-        override val format: ArchiveFormat = ArchiveFormat.Tar
-    ) : CreateArchiveOptionState()
-
-    data class TarWithGZip(
-        override val format: ArchiveFormat = ArchiveFormat.TarWithGZip,
-        override val level: Int = 5,
-    ) : CreateArchiveOptionState(), CompressLevelConfigurable
-
-    data class TarWithBZip2(
-        override val format: ArchiveFormat = ArchiveFormat.TarWithBZip2,
-        override val level: Int = 5,
-    ) : CreateArchiveOptionState(), CompressLevelConfigurable
-
-    data class TarWithXz(
-        override val format: ArchiveFormat = ArchiveFormat.TarWithXz,
-        override val level: Int = 5,
-    ) : CreateArchiveOptionState(), CompressLevelConfigurable
-
-    data class Cpio(
-        override val format: ArchiveFormat = ArchiveFormat.Cpio
-    ) : CreateArchiveOptionState()
-
-    data class CpioWithGZip(
-        override val format: ArchiveFormat = ArchiveFormat.CpioWithGZip,
-        override val level: Int = 5,
-    ) : CreateArchiveOptionState(), CompressLevelConfigurable
-
-    data class CpioWithBZip2(
-        override val format: ArchiveFormat = ArchiveFormat.CpioWithBZip2,
-        override val level: Int = 5,
-    ) : CreateArchiveOptionState(), CompressLevelConfigurable
-
-    data class CpioWithXz(
-        override val format: ArchiveFormat = ArchiveFormat.CpioWithXz,
-        override val level: Int = 5,
-    ) : CreateArchiveOptionState(), CompressLevelConfigurable
-}
+data class CreateArchiveOptionState(
+    val format: ArchiveFormat = ArchiveFormat.Zip,
+    val compressionType: CompressionType = format.defaultCompressionType,
+    val password: String? = null,
+    val level: Int = 5,
+)

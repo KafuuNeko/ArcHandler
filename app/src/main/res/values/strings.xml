@@ -4,13 +4,14 @@
     <string name="archive_format_zip_name" translatable="false">Zip</string>
     <string name="archive_format_seven_zip_name" translatable="false">7-Zip</string>
     <string name="archive_format_tar_name" translatable="false">Tar</string>
-    <string name="archive_format_tar_with_gzip_name" translatable="false">Tar with GZip</string>
-    <string name="archive_format_tar_with_bzip_ii_name" translatable="false">Tar with BZip2</string>
     <string name="archive_format_cpio_name" translatable="false">Cpio</string>
-    <string name="archive_format_cpio_with_gzip_name" translatable="false">Cpio with GZip</string>
-    <string name="archive_format_cpio_with_bzip_ii_name" translatable="false">Cpio with BZip2</string>
-    <string name="archive_format_cpio_with_xz_ii_name" translatable="false">Cpio with Xz</string>
-    <string name="archive_format_tar_with_xz_ii_name" translatable="false">Tar with Xz</string>
+    <string name="archive_compression_type_none_name" translatable="false">None</string>
+    <string name="archive_compression_type_store_name" translatable="false">Store</string>
+    <string name="archive_compression_type_deflate_name" translatable="false">Deflate</string>
+    <string name="archive_compression_type_lzma_name" translatable="false">LZMA</string>
+    <string name="archive_compression_type_gzip_name" translatable="false">GZip</string>
+    <string name="archive_compression_type_bzip2_name" translatable="false">BZip2</string>
+    <string name="archive_compression_type_xz_name" translatable="false">XZ</string>
 
     <string name="unknown_error">Unknown Error</string>
     <string name="not_permission_in_main_view">Permission to access all files is required. Please enable it to proceed.</string>

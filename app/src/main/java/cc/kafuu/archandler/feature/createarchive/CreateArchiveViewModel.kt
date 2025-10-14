@@ -1,27 +1,8 @@
 package cc.kafuu.archandler.feature.createarchive
 
 import cc.kafuu.archandler.R
-import cc.kafuu.archandler.feature.createarchive.capabilities.CompressEncryptable
-import cc.kafuu.archandler.feature.createarchive.capabilities.CompressLevelConfigurable
-import cc.kafuu.archandler.feature.createarchive.capabilities.CompressSplittable
 import cc.kafuu.archandler.feature.createarchive.extensions.getPackageOptions
-import cc.kafuu.archandler.feature.createarchive.extensions.withLevel
-import cc.kafuu.archandler.feature.createarchive.extensions.withPassword
-import cc.kafuu.archandler.feature.createarchive.extensions.withSplitEnable
-import cc.kafuu.archandler.feature.createarchive.extensions.withSplitSize
-import cc.kafuu.archandler.feature.createarchive.extensions.withSplitUnit
-import cc.kafuu.archandler.feature.createarchive.model.ArchiveFormat
 import cc.kafuu.archandler.feature.createarchive.presentation.CreateArchiveLoadState
-import cc.kafuu.archandler.feature.createarchive.presentation.CreateArchiveOptionState.Cpio
-import cc.kafuu.archandler.feature.createarchive.presentation.CreateArchiveOptionState.CpioWithBZip2
-import cc.kafuu.archandler.feature.createarchive.presentation.CreateArchiveOptionState.CpioWithGZip
-import cc.kafuu.archandler.feature.createarchive.presentation.CreateArchiveOptionState.CpioWithXz
-import cc.kafuu.archandler.feature.createarchive.presentation.CreateArchiveOptionState.SevenZip
-import cc.kafuu.archandler.feature.createarchive.presentation.CreateArchiveOptionState.Tar
-import cc.kafuu.archandler.feature.createarchive.presentation.CreateArchiveOptionState.TarWithBZip2
-import cc.kafuu.archandler.feature.createarchive.presentation.CreateArchiveOptionState.TarWithGZip
-import cc.kafuu.archandler.feature.createarchive.presentation.CreateArchiveOptionState.TarWithXz
-import cc.kafuu.archandler.feature.createarchive.presentation.CreateArchiveOptionState.Zip
 import cc.kafuu.archandler.feature.createarchive.presentation.CreateArchiveUiIntent
 import cc.kafuu.archandler.feature.createarchive.presentation.CreateArchiveUiState
 import cc.kafuu.archandler.libs.archive.ArchiveManager
@@ -74,20 +55,28 @@ class CreateArchiveViewModel : CoreViewModelWithEvent<CreateArchiveUiIntent, Cre
     @UiIntentObserver(CreateArchiveUiIntent.ArchiveFormatChange::class)
     fun onArchiveFormatChange(event: CreateArchiveUiIntent.ArchiveFormatChange) {
         val uiState = getOrNull<CreateArchiveUiState.Normal>() ?: return
-        if (uiState.archiveOptions.format == event.format) return
-        val archiveOptions = when (event.format) {
-            ArchiveFormat.Zip -> Zip()
-            ArchiveFormat.SevenZip -> SevenZip()
-            ArchiveFormat.Tar -> Tar()
-            ArchiveFormat.TarWithGZip -> TarWithGZip()
-            ArchiveFormat.TarWithBZip2 -> TarWithBZip2()
-            ArchiveFormat.TarWithXz -> TarWithXz()
-            ArchiveFormat.Cpio -> Cpio()
-            ArchiveFormat.CpioWithGZip -> CpioWithGZip()
-            ArchiveFormat.CpioWithBZip2 -> CpioWithBZip2()
-            ArchiveFormat.CpioWithXz -> CpioWithXz()
+        val options = uiState.archiveOptions
+        if (options.format == event.format) return
+        options.copy(
+            format = event.format,
+            compressionType = if (event.format.supportCompressionTypes.contains(options.compressionType)) {
+                options.compressionType
+            } else {
+                event.format.defaultCompressionType
+            }
+        ).run {
+            uiState.copy(archiveOptions = this).setup()
         }
-        uiState.copy(archiveOptions = archiveOptions).setup()
+
+    }
+
+    @UiIntentObserver(CreateArchiveUiIntent.ArchiveCompressionTypeChange::class)
+    fun onArchiveCompressionTypeChange(event: CreateArchiveUiIntent.ArchiveCompressionTypeChange) {
+        val uiState = getOrNull<CreateArchiveUiState.Normal>() ?: return
+        if (uiState.archiveOptions.compressionType == event.type) return
+        uiState
+            .copy(archiveOptions = uiState.archiveOptions.copy(compressionType = event.type))
+            .setup()
     }
 
     @UiIntentObserver(CreateArchiveUiIntent.TargetFileNameChange::class)
@@ -99,51 +88,14 @@ class CreateArchiveViewModel : CoreViewModelWithEvent<CreateArchiveUiIntent, Cre
     @UiIntentObserver(CreateArchiveUiIntent.CompressLevelChange::class)
     fun onCompressLevelChange(event: CreateArchiveUiIntent.CompressLevelChange) {
         val uiState = getOrNull<CreateArchiveUiState.Normal>() ?: return
-        if (uiState.archiveOptions !is CompressLevelConfigurable) return
-        val archiveOptions = uiState.archiveOptions.run {
-            withLevel(level = event.level)
-        }
-        uiState.copy(archiveOptions = archiveOptions).setup()
+        uiState.copy(archiveOptions = uiState.archiveOptions.copy(level = event.level)).setup()
     }
 
     @UiIntentObserver(CreateArchiveUiIntent.ArchivePasswordChange::class)
     fun onArchivePasswordChange(event: CreateArchiveUiIntent.ArchivePasswordChange) {
         val uiState = getOrNull<CreateArchiveUiState.Normal>() ?: return
-        if (uiState.archiveOptions !is CompressEncryptable) return
-        val archiveOptions = uiState.archiveOptions.run {
-            withPassword(password = event.password)
-        }
-        uiState.copy(archiveOptions = archiveOptions).setup()
-    }
-
-    @UiIntentObserver(CreateArchiveUiIntent.SplitEnabledToggle::class)
-    fun onSplitEnabledToggle(event: CreateArchiveUiIntent.SplitEnabledToggle) {
-        val uiState = getOrNull<CreateArchiveUiState.Normal>() ?: return
-        if (uiState.archiveOptions !is CompressSplittable) return
-        val archiveOptions = uiState.archiveOptions.run {
-            withSplitEnable(event.isEnable)
-        }
-        uiState.copy(archiveOptions = archiveOptions).setup()
-    }
-
-    @UiIntentObserver(CreateArchiveUiIntent.SplitUnitChange::class)
-    fun onSplitUnitChange(event: CreateArchiveUiIntent.SplitUnitChange) {
-        val uiState = getOrNull<CreateArchiveUiState.Normal>() ?: return
-        if (uiState.archiveOptions !is CompressSplittable) return
-        val archiveOptions = uiState.archiveOptions.run {
-            withSplitUnit(event.unit)
-        }
-        uiState.copy(archiveOptions = archiveOptions).setup()
-    }
-
-    @UiIntentObserver(CreateArchiveUiIntent.SplitSizeChange::class)
-    fun onSplitSizeChange(event: CreateArchiveUiIntent.SplitSizeChange) {
-        val uiState = getOrNull<CreateArchiveUiState.Normal>() ?: return
-        if (uiState.archiveOptions !is CompressSplittable) return
-        val archiveOptions = uiState.archiveOptions.run {
-            withSplitSize(event.size)
-        }
-        uiState.copy(archiveOptions = archiveOptions).setup()
+        uiState.copy(archiveOptions = uiState.archiveOptions.copy(password = event.password))
+            .setup()
     }
 
     @UiIntentObserver(CreateArchiveUiIntent.CreateArchive::class)
