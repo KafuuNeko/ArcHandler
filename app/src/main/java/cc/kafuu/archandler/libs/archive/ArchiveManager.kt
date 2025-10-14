@@ -1,5 +1,6 @@
 package cc.kafuu.archandler.libs.archive
 
+import cc.kafuu.archandler.libs.archive.impl.archive.LibArchive
 import cc.kafuu.archandler.libs.archive.impl.archive.SevenZipArchive
 import cc.kafuu.archandler.libs.archive.impl.packer.LibArchivePacker
 import cc.kafuu.archandler.libs.archive.impl.packer.SevenZipPacker
@@ -19,7 +20,7 @@ class ArchiveManager {
                 "cpio", "bzip2", "bz2", "7z", "z",
                 "arj", "cab", "lzh", "chm", "nsis",
                 "ar", "rpm", "udf", "wim", "xar",
-                "fat", "ntfs"
+                "fat", "ntfs", "xz"
             )
             val name = file.name.lowercase()
             if (Regex(""".*\.(7z|zip)\.\d{3}$""").matches(name)) return true
@@ -39,18 +40,23 @@ class ArchiveManager {
             )
 
             Regex(""".*\.zip\.\d{3}$""").matches(name) -> SevenZipArchive(file, ArchiveFormat.ZIP)
+
+            listOf(
+                ".tar.gz", ".tar.bz2", ".tar.xz",
+                ".cpio.gz", ".cpio.bz2", ".cpio.xz",
+                ".gzip", ".gz", ".bzip2", ".bz2", ".xz"
+            ).any { file.name.endsWith(it, ignoreCase = true) } -> LibArchive(file)
+
             else -> when (file.extension.lowercase()) {
                 "zip" -> SevenZipArchive(file, ArchiveFormat.ZIP)
                 "tar" -> SevenZipArchive(file, ArchiveFormat.TAR)
+                "cpio" -> SevenZipArchive(file, ArchiveFormat.CPIO)
                 "split" -> SevenZipArchive(file, ArchiveFormat.SPLIT)
                 "rar" -> SevenZipArchive(file, ArchiveFormat.RAR)
                 "rar5" -> SevenZipArchive(file, ArchiveFormat.RAR5)
                 "lzma" -> SevenZipArchive(file, ArchiveFormat.LZMA)
                 "iso" -> SevenZipArchive(file, ArchiveFormat.ISO)
                 "hfs" -> SevenZipArchive(file, ArchiveFormat.HFS)
-                "gzip", "gz" -> SevenZipArchive(file, ArchiveFormat.GZIP)
-                "cpio" -> SevenZipArchive(file, ArchiveFormat.CPIO)
-                "bzip2", "bz2" -> SevenZipArchive(file, ArchiveFormat.BZIP2)
                 "7z" -> SevenZipArchive(file, ArchiveFormat.SEVEN_ZIP)
                 "z" -> SevenZipArchive(file, ArchiveFormat.Z)
                 "arj" -> SevenZipArchive(file, ArchiveFormat.ARJ)
@@ -65,6 +71,7 @@ class ArchiveManager {
                 "xar" -> SevenZipArchive(file, ArchiveFormat.XAR)
                 "fat" -> SevenZipArchive(file, ArchiveFormat.FAT)
                 "ntfs" -> SevenZipArchive(file, ArchiveFormat.NTFS)
+
                 else -> null
             }
         }
