@@ -1,8 +1,8 @@
 package cc.kafuu.archandler.libs.core
 
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.flowWithLifecycle
+import android.content.Intent
+import android.os.Bundle
+import androidx.annotation.StringRes
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -14,33 +14,21 @@ import kotlinx.coroutines.sync.withLock
  * 带 UiEvent 的 CoreViewModel
  */
 abstract class CoreViewModelWithEvent<I, S>(initStatus: S) : CoreViewModel<I, S>(initStatus) {
-    private val mUiEventFlow = MutableSharedFlow<ViewEventWrapper>(extraBufferCapacity = 64)
-    val uiEventFlow = mUiEventFlow.asSharedFlow()
-
-    /**
-     * 捕获View事件
-     */
-    suspend fun collectEvent(
-        lifecycleOwner: LifecycleOwner,
-        handle: suspend (IViewEvent) -> Unit
-    ) {
-        uiEventFlow
-            .flowWithLifecycle(lifecycleOwner.lifecycle, Lifecycle.State.CREATED)
-            .collect { event -> event.consumeIfNotHandled(handle) }
-    }
+    private val mViewEventFlow = MutableSharedFlow<ViewEventWrapper>(extraBufferCapacity = 64)
+    val viewEventFlow = mViewEventFlow.asSharedFlow()
 
     /**
      * 尝试分发UI Event（一次性事件）
      */
     protected fun IViewEvent.tryEmit(): Boolean {
-        return mUiEventFlow.tryEmit(ViewEventWrapper(this))
+        return mViewEventFlow.tryEmit(ViewEventWrapper(this))
     }
 
     /**
      * 分发UI Event，缓冲区满则等待
      */
     protected suspend fun IViewEvent.emit() {
-        mUiEventFlow.emit(ViewEventWrapper(this))
+        mViewEventFlow.emit(ViewEventWrapper(this))
     }
 
     /**
@@ -48,7 +36,7 @@ abstract class CoreViewModelWithEvent<I, S>(initStatus: S) : CoreViewModel<I, S>
      */
     protected suspend fun IViewEvent.emitAndAwait() {
         ViewEventWrapper(this)
-            .apply { mUiEventFlow.emit(this) }
+            .apply { mViewEventFlow.emit(this) }
             .waitForConsumption()
     }
 }
@@ -74,3 +62,9 @@ class ViewEventWrapper(private val content: IViewEvent) {
 
 interface IViewEvent
 
+sealed class AppViewEvent : IViewEvent {
+    data class PopupToastMessage(val message: String) : AppViewEvent()
+    data class PopupToastMessageByResId(@StringRes val message: Int) : AppViewEvent()
+    data class StartActivity(val activity: Class<*>, val extras: Bundle? = null) : AppViewEvent()
+    data class StartActivityByIntent(val intent: Intent) : AppViewEvent()
+}

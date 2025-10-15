@@ -14,24 +14,16 @@ import cc.kafuu.archandler.feature.main.presentation.MainUiIntent
 import cc.kafuu.archandler.feature.main.presentation.MainUiState
 import cc.kafuu.archandler.feature.main.presentation.MainViewEvent
 import cc.kafuu.archandler.feature.main.ui.MainViewBody
-import cc.kafuu.archandler.libs.core.ViewEventCollector
-import cc.kafuu.archandler.libs.core.CoreActivity
+import cc.kafuu.archandler.libs.core.CoreActivityWithEvent
+import cc.kafuu.archandler.libs.core.IViewEvent
 import com.hjq.permissions.Permission
 import com.hjq.permissions.XXPermissions
 import kotlinx.coroutines.launch
 
-class MainActivity : CoreActivity() {
+class MainActivity : CoreActivityWithEvent() {
     private val mViewModel by viewModels<MainViewModel>()
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        mViewModel.emit(MainUiIntent.Init)
-    }
-
-    override fun onResume() {
-        super.onResume()
-        mViewModel.emit(MainUiIntent.Resume)
-    }
+    override fun getViewEventFlow() = mViewModel.viewEventFlow
 
     @Composable
     override fun ViewContent() {
@@ -50,10 +42,6 @@ class MainActivity : CoreActivity() {
             mViewModel.emit(MainUiIntent.Back)
         }
 
-        ViewEventCollector(mViewModel) {
-            if (it is MainViewEvent) onViewEvent(it)
-        }
-
         LaunchedEffect(uiState) {
             if (uiState is MainUiState.Finished) finish()
         }
@@ -65,8 +53,21 @@ class MainActivity : CoreActivity() {
         )
     }
 
-    private fun onViewEvent(event: MainViewEvent) = when (event) {
-        MainViewEvent.JumpFilePermissionSetting -> onJumpFilePermissionSetting()
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        mViewModel.emit(MainUiIntent.Init)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        mViewModel.emit(MainUiIntent.Resume)
+    }
+
+    override suspend fun onReceivedViewEvent(viewEvent: IViewEvent) {
+        super.onReceivedViewEvent(viewEvent)
+        when (viewEvent) {
+            MainViewEvent.JumpFilePermissionSetting -> onJumpFilePermissionSetting()
+        }
     }
 
     private fun onJumpFilePermissionSetting() {

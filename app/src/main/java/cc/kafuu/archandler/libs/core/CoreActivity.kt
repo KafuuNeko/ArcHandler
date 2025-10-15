@@ -8,11 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import cc.kafuu.archandler.ui.theme.AppTheme
-import kotlinx.coroutines.launch
 
 abstract class CoreActivity : ComponentActivity() {
     protected open fun isEnableEdgeToEdge(): Boolean = true

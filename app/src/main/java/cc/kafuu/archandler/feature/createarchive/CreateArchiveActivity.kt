@@ -10,10 +10,9 @@ import cc.kafuu.archandler.feature.createarchive.presentation.CreateArchiveUiInt
 import cc.kafuu.archandler.feature.createarchive.presentation.CreateArchiveUiState
 import cc.kafuu.archandler.feature.createarchive.ui.CreateArchiveView
 import cc.kafuu.archandler.libs.AppModel
-import cc.kafuu.archandler.libs.core.ViewEventCollector
-import cc.kafuu.archandler.libs.core.CoreActivity
+import cc.kafuu.archandler.libs.core.CoreActivityWithEvent
 
-class CreateArchiveActivity : CoreActivity() {
+class CreateArchiveActivity : CoreActivityWithEvent() {
     companion object {
         fun params(transferId: String) = Bundle().apply {
             putString(AppModel.KEY_DATA, transferId)
@@ -22,14 +21,7 @@ class CreateArchiveActivity : CoreActivity() {
 
     private val mViewModel by viewModels<CreateArchiveViewModel>()
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        CreateArchiveUiIntent.Init(
-            transferId = intent.getStringExtra(AppModel.KEY_DATA)
-        ).run {
-            mViewModel.emit(this)
-        }
-    }
+    override fun getViewEventFlow() = mViewModel.viewEventFlow
 
     @Composable
     override fun ViewContent() {
@@ -38,11 +30,17 @@ class CreateArchiveActivity : CoreActivity() {
             uiState = uiState,
             emitIntent = { intent -> mViewModel.emit(intent) }
         )
-
-        ViewEventCollector(mViewModel)
-
         LaunchedEffect(uiState) {
             if (uiState is CreateArchiveUiState.Finished) finish()
+        }
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        CreateArchiveUiIntent.Init(
+            transferId = intent.getStringExtra(AppModel.KEY_DATA)
+        ).run {
+            mViewModel.emit(this)
         }
     }
 }
