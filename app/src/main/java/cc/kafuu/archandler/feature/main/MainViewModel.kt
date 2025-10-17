@@ -299,7 +299,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
         }
         state.copy(
             viewModeState = if (intent.enable) {
-                MainListViewModeState.MultipleSelect(setOf(intent.file))
+                MainListViewModeState.MultipleSelect(intent.file?.let { setOf(it) } ?: emptySet())
             } else {
                 MainListViewModeState.Normal
             }
@@ -404,9 +404,8 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
                 listState = MainListState.StorageVolume(storageVolumes = storages)
             ).setup()
         }.onFailure { exception ->
-            uiStatePrototype.copy(
-                errorMessage = exception.message ?: get<AppLibs>().getString(R.string.unknown_error)
-            ).setup()
+            val message = exception.message ?: get<AppLibs>().getString(R.string.unknown_error)
+            AppViewEvent.PopupToastMessage(message).emit()
         }
     }
 
@@ -424,22 +423,37 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
             viewModeState = viewModeState
         )
         uiStatePrototype.copy(loadState = MainLoadState.DirectoryLoading).setup()
+        val directory = File(directoryPath.toString())
         runCatching {
+            if (!directory.canRead()) return@runCatching emptyList()
+            val isShowHiddenFiles = AppModel.isShowHiddenFiles
+            val isShowUnreadableDirectories = AppModel.isShowUnreadableDirectories
+            val isShowUnreadableFiles = AppModel.isShowUnreadableFiles
             withContext(Dispatchers.IO) {
-                File(directoryPath.toString()).listFiles()?.asList() ?: emptyList()
+                File(directoryPath.toString())
+                    .listFiles()
+                    ?.asList()
+                    ?.filter {
+                        return@filter !(it == null ||
+                                (!isShowHiddenFiles && it.name.startsWith(".")) ||
+                                (!isShowUnreadableDirectories && it.isDirectory && !it.canRead()) ||
+                                (!isShowUnreadableFiles && it.isFile && !it.canRead()))
+                    }
+                    ?: emptyList()
             }
         }.onSuccess { files ->
             uiStatePrototype.copy(
                 listState = MainListState.Directory(
                     storageData = storageData,
                     directoryPath = directoryPath,
-                    files = files
+                    files = files,
+                    canRead = directory.canRead(),
+                    canWrite = directory.canWrite()
                 )
             ).setup()
         }.onFailure { exception ->
-            uiStatePrototype.copy(
-                errorMessage = exception.message ?: get<AppLibs>().getString(R.string.unknown_error)
-            ).setup()
+            val message = exception.message ?: get<AppLibs>().getString(R.string.unknown_error)
+            AppViewEvent.PopupToastMessage(message).emit()
         }
     }
 

@@ -18,13 +18,9 @@ sealed class MainUiIntent {
 
     data object JumpFilePermissionSetting : MainUiIntent()
 
-    data class MainDrawerMenuClick(
-        val menu: MainDrawerMenuEnum
-    ) : MainUiIntent()
+    data class MainDrawerMenuClick(val menu: MainDrawerMenuEnum) : MainUiIntent()
 
-    data class StorageVolumeSelected(
-        val storageData: StorageData
-    ) : MainUiIntent()
+    data class StorageVolumeSelected(val storageData: StorageData) : MainUiIntent()
 
     data class FileSelected(
         val storageData: StorageData,
@@ -33,7 +29,7 @@ sealed class MainUiIntent {
 
     data class FileMultipleSelectMode(
         val enable: Boolean,
-        val file: File
+        val file: File? = null
     ) : MainUiIntent()
 
     data class MultipleMenuClick(
@@ -61,9 +57,15 @@ sealed class MainUiIntent {
 
     data object SelectAllNoDuplicatesClick : MainUiIntent()
 
+    //TODO:
+    data object CreateDirectoryClick : MainUiIntent()
+
     data object CancelSelectNoDuplicatesJob : MainUiIntent()
 
     data object CancelUnpackingJob : MainUiIntent()
 
     data object InvertSelectionClick : MainUiIntent()
+
+    //TODO:
+    data class RenameClick(val file: File) : MainUiIntent()
 }

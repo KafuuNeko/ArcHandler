@@ -13,7 +13,6 @@ sealed class MainUiState {
     data class Accessible(
         val loadState: MainLoadState = MainLoadState.None,
         val dialogStates: Set<MainDialogState> = emptySet(),
-        val errorMessage: String? = null,
         val viewModeState: MainListViewModeState = MainListViewModeState.Normal,
         val listState: MainListState = MainListState.Undecided,
     ) : MainUiState()
@@ -44,6 +43,8 @@ sealed class MainListState {
         val storageData: StorageData,
         val directoryPath: Path,
         val files: List<File> = emptyList(),
+        val canRead: Boolean = true,
+        val canWrite: Boolean = true
     ) : MainListState()
 }
 

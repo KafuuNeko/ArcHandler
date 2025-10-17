@@ -27,28 +27,8 @@ fun TopBarAction(
     uiState: MainUiState.Accessible,
     emitIntent: (uiIntent: MainUiIntent) -> Unit = {}
 ) {
-
-
-    when (uiState.viewModeState) {
-        MainListViewModeState.Normal,
-        is MainListViewModeState.Pack,
-        is MainListViewModeState.Paste -> Unit
-
-        is MainListViewModeState.MultipleSelect -> {
-            val listState = uiState.listState as? MainListState.Directory ?: return
-            MultipleSelectAction(listState, uiState.viewModeState, emitIntent)
-        }
-    }
-
-}
-
-@Composable
-private fun MultipleSelectAction(
-    listState: MainListState.Directory,
-    viewMode: MainListViewModeState.MultipleSelect,
-    emitIntent: (uiIntent: MainUiIntent) -> Unit = {}
-) {
     var expanded by remember { mutableStateOf(false) }
+    val listState = uiState.listState as? MainListState.Directory ?: return
 
     Image(
         modifier = Modifier
@@ -58,42 +38,98 @@ private fun MultipleSelectAction(
         painter = painterResource(R.drawable.ic_more_vert),
         contentDescription = null
     )
-
-    val isAllSelected = listState.files.size == viewMode.selected.size
-
     DropdownMenu(
         expanded = expanded,
         onDismissRequest = { expanded = false }
     ) {
+        when (uiState.viewModeState) {
+            is MainListViewModeState.Pack,
+            is MainListViewModeState.Paste -> Unit
+
+            is MainListViewModeState.Normal -> {
+                NormalSelectAction(emitIntent) { expanded = it }
+            }
+
+            is MainListViewModeState.MultipleSelect -> {
+                MultipleSelectAction(listState, uiState.viewModeState, emitIntent) {
+                    expanded = it
+                }
+            }
+        }
+
         DropdownMenuItem(
-            text = {
-                Text(
-                    text = if (isAllSelected) {
-                        stringResource(R.string.deselect)
-                    } else {
-                        stringResource(R.string.select_all)
-                    }
-                )
-            },
+            text = { Text(stringResource(R.string.create_directory)) },
             onClick = {
-                emitIntent(if (isAllSelected) MainUiIntent.DeselectClick else MainUiIntent.SelectAllClick)
+                emitIntent(MainUiIntent.CreateDirectoryClick)
                 expanded = false
             }
         )
+    }
 
-        DropdownMenuItem(
-            text = { Text(stringResource(R.string.select_all_no_duplicates)) },
-            onClick = {
-                emitIntent(MainUiIntent.SelectAllNoDuplicatesClick)
-                expanded = false
-            }
-        )
+}
 
+@Composable
+private fun NormalSelectAction(
+    emitIntent: (uiIntent: MainUiIntent) -> Unit = {},
+    onSwitchExpanded: (Boolean) -> Unit
+) {
+    DropdownMenuItem(
+        text = { Text(stringResource(R.string.select_files)) },
+        onClick = {
+            emitIntent(MainUiIntent.FileMultipleSelectMode(enable = true))
+            onSwitchExpanded(false)
+        }
+    )
+}
+
+@Composable
+private fun MultipleSelectAction(
+    listState: MainListState.Directory,
+    viewMode: MainListViewModeState.MultipleSelect,
+    emitIntent: (uiIntent: MainUiIntent) -> Unit = {},
+    onSwitchExpanded: (Boolean) -> Unit
+) {
+    val isAllSelected = listState.files.size == viewMode.selected.size
+
+    DropdownMenuItem(
+        text = {
+            Text(
+                text = if (isAllSelected) {
+                    stringResource(R.string.deselect)
+                } else {
+                    stringResource(R.string.select_all)
+                }
+            )
+        },
+        onClick = {
+            emitIntent(if (isAllSelected) MainUiIntent.DeselectClick else MainUiIntent.SelectAllClick)
+            onSwitchExpanded(false)
+        }
+    )
+
+    DropdownMenuItem(
+        text = { Text(stringResource(R.string.select_all_no_duplicates)) },
+        onClick = {
+            emitIntent(MainUiIntent.SelectAllNoDuplicatesClick)
+            onSwitchExpanded(false)
+        }
+    )
+
+    DropdownMenuItem(
+        text = { Text(stringResource(R.string.invert_selection)) },
+        onClick = {
+            emitIntent(MainUiIntent.InvertSelectionClick)
+            onSwitchExpanded(false)
+        }
+    )
+
+    if (viewMode.selected.size == 1) {
+        val file = viewMode.selected.first()
         DropdownMenuItem(
-            text = { Text(stringResource(R.string.invert_selection)) },
+            text = { Text(stringResource(R.string.rename)) },
             onClick = {
-                emitIntent(MainUiIntent.InvertSelectionClick)
-                expanded = false
+                emitIntent(MainUiIntent.RenameClick(file))
+                onSwitchExpanded(false)
             }
         )
     }

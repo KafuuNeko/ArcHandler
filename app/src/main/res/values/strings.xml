@@ -92,4 +92,7 @@
     <string name="archive_name_conflict_message">File name conflict</string>
     <string name="no_directory_write_permission_message">Cannot write to this directory</string>
     <string name="packaging_failed_message">Packaging failed</string>
+    <string name="create_directory">Create directory</string>
+    <string name="select_files">Select files</string>
+    <string name="rename">Rename</string>
 </resources>

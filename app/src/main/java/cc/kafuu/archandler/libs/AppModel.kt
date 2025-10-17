@@ -12,4 +12,11 @@ object AppModel : KotprefModel() {
     const val GOOGLE_PLAY_URL = "https://play.google.com"
 
     const val KEY_DATA = "data"
+
+    var isShowHiddenFiles by booleanPref(default = false)
+
+    var isShowUnreadableDirectories by booleanPref(default = false)
+
+    var isShowUnreadableFiles by booleanPref(default = true)
+
 }
