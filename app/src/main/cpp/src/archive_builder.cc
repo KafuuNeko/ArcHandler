@@ -34,12 +34,14 @@ ArchiveBuilder::ArchiveBuilder(
 int32_t
 ArchiveBuilder::ConfigureZipOptions(CompressionType compression, int32_t compression_level) {
     auto lvl = std::clamp(compression_level, 0, 9);
+    std::string opt = "zip:hdrcharset=UTF-8";
     if (lvl == 0 || compression == CompressionType::None) {
-        return archive_write_set_options(archive_.get(), "zip:compression=store");
+        opt += ",zip:compression=store";
     } else {
-        std::string opt = "zip:compression=deflate,zip:compression-level=" + std::to_string(lvl);
-        return archive_write_set_options(archive_.get(), opt.c_str());
+        opt += ",zip:compression=deflate";
+        opt += "zip:compression-level=" + std::to_string(lvl);
     }
+    return archive_write_set_options(archive_.get(), opt.c_str());
 }
 
 int32_t
@@ -138,7 +140,7 @@ void ArchiveBuilder::AddToArchive(
         throw std::runtime_error("Cannot stat file: " + path.string());
     }
 
-    auto entry_name = std::filesystem::relative(path, base_dir_).string();
+    auto entry_name = std::filesystem::relative(path, base_dir_).u8string();
     if (S_ISDIR(st.st_mode) && !entry_name.empty() && entry_name.back() != '/') entry_name += '/';
     if (entry_name.empty()) return;
 

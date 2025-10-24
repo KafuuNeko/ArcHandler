@@ -5,6 +5,27 @@ project("archandler")
 # 使用静态链接
 set(BUILD_SHARED_LIBS OFF)
 
+# libiconv & libcharset
+set(ICONV_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/third_party/libiconv/include" CACHE PATH "iconv include" FORCE)
+set(LIBICONV_PATH "${CMAKE_SOURCE_DIR}/lib/${ANDROID_ABI}/libiconv.a" CACHE FILEPATH "iconv static lib" FORCE)
+set(LIBCHARSET_PATH "${CMAKE_SOURCE_DIR}/lib/${ANDROID_ABI}/libcharset.a" CACHE FILEPATH "iconv static lib" FORCE)
+set(LIBICONV_INCLUDE_DIR "${ICONV_INCLUDE_DIR}")
+set(LIBICONV_LIBRARIES "${LIBICONV_PATH}" "${LIBCHARSET_PATH}")
+if (NOT TARGET libiconv::libiconv)
+    add_library(libiconv::libiconv STATIC IMPORTED)
+    set_target_properties(libiconv::libiconv PROPERTIES
+            IMPORTED_LOCATION "${LIBICONV_PATH}"
+            INTERFACE_INCLUDE_DIRECTORIES "${ICONV_INCLUDE_DIR}"
+    )
+endif()
+if (NOT TARGET libiconv::libcharset)
+    add_library(libiconv::libcharset STATIC IMPORTED)
+    set_target_properties(libiconv::libcharset PROPERTIES
+            IMPORTED_LOCATION "${LIBCHARSET_PATH}"
+            INTERFACE_INCLUDE_DIRECTORIES "${ICONV_INCLUDE_DIR}"
+    )
+endif()
+
 # bzip2
 add_subdirectory(third_party/bzip2)
 set(BZIP2_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/third_party/bzip2")
@@ -42,6 +63,7 @@ endif()
 add_subdirectory(third_party/zlib)
 
 # libarchive
+set(ENABLE_ICONV ON)
 set(ENABLE_ZLIB ON)
 set(ENABLE_BZip2 ON)
 set(ENABLE_LZMA ON)
