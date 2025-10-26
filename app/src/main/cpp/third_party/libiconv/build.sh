@@ -1,8 +1,15 @@
 #!/bin/bash
 set -e
 
+# ========================================
+# Android NDK
+# ========================================
 NDK="/home/kafuuneko/Android/Ndk/android-ndk-r28c"
 API=24
+
+# ========================================
+# 构建和安装目录
+# ========================================
 BUILD_DIR="$(pwd)/build-android"
 INSTALL_DIR="$(pwd)/install-android"
 
@@ -14,6 +21,9 @@ rm -rf "$BUILD_DIR"
 mkdir -p "$BUILD_DIR"
 mkdir -p "$INSTALL_DIR"
 
+# ========================================
+# Building
+# ========================================
 for ABI in "${ABIS[@]}"; do
     echo "=== 编译 $ABI ==="
 
@@ -60,6 +70,7 @@ for ABI in "${ABIS[@]}"; do
         --prefix="$ABI_INSTALL_DIR" \
         --disable-shared \
         --enable-static \
+        --enable-extra-encodings \
         CC="$CC" \
         CFLAGS="-fPIC"
 

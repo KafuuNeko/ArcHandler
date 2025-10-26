@@ -17,14 +17,10 @@ constexpr size_t WRITE_BUFFER_SIZE = 8192;
 constexpr size_t READ_BLOCK_SIZE = 10240;
 
 ArchiveExtractor::ArchiveExtractor(
-        std::string archive_path,
-        std::string output_dir,
-        ProgressListener listener,
-        bool overwrite
-) : archive_path_(std::move(archive_path)), output_dir_(std::move(output_dir)),
-    listener_(std::move(listener)), overwrite_(overwrite) {};
+        std::string archive_path
+) : archive_path_(std::move(archive_path)) {};
 
-size_t ArchiveExtractor::CountFilesInArchive() {
+size_t ArchiveExtractor::CountFilesInArchive() const {
     auto reader = CreateArchiveReader(archive_path_, READ_BLOCK_SIZE);
     size_t count = 0;
     struct archive_entry *entry = nullptr;
@@ -120,7 +116,36 @@ namespace {
     }
 }
 
-void ArchiveExtractor::Extract() {
+std::vector<ArchiveExtractor::ArchiveEntry> ArchiveExtractor::ListEntry() const {
+    std::vector<ArchiveEntry> entityList;
+    auto reader = CreateArchiveReader(archive_path_, READ_BLOCK_SIZE);
+    struct archive_entry *entry = nullptr;
+    while (true) {
+        auto rc = archive_read_next_header(reader.get(), &entry);
+        if (rc == ARCHIVE_EOF) break;
+        if (rc < ARCHIVE_OK) {
+            auto err = archive_error_string(reader.get());
+            throw std::runtime_error(std::string("Error while listing archive entries: ") +
+                                     (err ? err : "unknown"));
+        }
+        auto pathname = archive_entry_pathname_utf8(entry);
+        if (pathname == nullptr) pathname = archive_entry_pathname(entry);
+        entityList.emplace_back(ArchiveEntry{
+                .pathname = pathname,
+                .mode = archive_entry_filetype(entry),
+                .modify_time_ms = (int64_t) archive_entry_mtime(entry) * 1000 +
+                                  archive_entry_mtime_nsec(entry) / 1000000,
+                .entry_size = archive_entry_size(entry)
+        });
+    }
+    return entityList;
+}
+
+void ArchiveExtractor::Extract(
+        const std::string &output_dir,
+        const ProgressListener &listener,
+        bool overwrite
+) const {
     // 统计total_files（可能抛出）
     size_t total_files = CountFilesInArchive();
 
@@ -128,7 +153,7 @@ void ArchiveExtractor::Extract() {
     auto reader = CreateArchiveReader(archive_path_, READ_BLOCK_SIZE);
     long disk_options = ARCHIVE_EXTRACT_TIME | ARCHIVE_EXTRACT_PERM | ARCHIVE_EXTRACT_ACL |
                         ARCHIVE_EXTRACT_FFLAGS;
-    if (!overwrite_) disk_options |= ARCHIVE_EXTRACT_NO_OVERWRITE;
+    if (!overwrite) disk_options |= ARCHIVE_EXTRACT_NO_OVERWRITE;
     auto disk = CreateArchiveWriteDisk(disk_options);
 
     struct archive_entry *entry = nullptr;
@@ -145,7 +170,7 @@ void ArchiveExtractor::Extract() {
         }
 
         // 解析目标路径并准备目录
-        std::filesystem::path dest = ResolveDestinationPath(output_dir_, entry);
+        std::filesystem::path dest = ResolveDestinationPath(output_dir, entry);
         if (dest.empty()) continue;
         EnsureParentDirectories(dest);
 
@@ -157,7 +182,7 @@ void ArchiveExtractor::Extract() {
 
         // 如果是常规文件则复制数据并报告进度
         if (archive_entry_filetype(entry) == AE_IFREG) {
-            if (listener_) listener_(dest.string(), ++current_index, total_files);
+            if (listener) listener(dest.string(), ++current_index, total_files);
             CopyEntryDataOrThrow(reader.get(), disk.get(), dest, buffer);
         }
 

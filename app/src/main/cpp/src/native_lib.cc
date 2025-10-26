@@ -59,8 +59,8 @@ namespace internal {
             bool overwrite = true
     ) {
         try {
-            ArchiveExtractor extractor(
-                    JStringToCString(env, archive_path),
+            ArchiveExtractor extractor(JStringToCString(env, archive_path));
+            extractor.Extract(
                     JStringToCString(env, output_dir),
                     [=](const std::string &path, size_t index, size_t total) {
                         if (!listener) return;
@@ -72,13 +72,46 @@ namespace internal {
                     },
                     overwrite
             );
-            extractor.Extract();
             return JNI_TRUE;
         } catch (const std::exception &exception) {
             s_latest_error_message = exception.what();
             __android_log_print(ANDROID_LOG_ERROR, k_log_tag, "ExtractArchive failed: %s",
                                 exception.what());
             return JNI_FALSE;
+        }
+    }
+
+    jobjectArray ListArchiveFiles(
+            JNIEnv *env,
+            jobject thiz,
+            jstring archive_path
+    ) {
+        auto c_archive_path = JStringToCString(env, archive_path);
+        try {
+            ArchiveExtractor extractor(JStringToCString(env, archive_path));
+            auto list_entity = extractor.ListEntry();
+            auto list_files = std::vector<ArchiveExtractor::ArchiveEntry>();
+            std::copy_if(
+                    list_entity.cbegin(), list_entity.cend(),
+                    std::back_inserter(list_files),
+                    [](const ArchiveExtractor::ArchiveEntry &entity) {
+                        return entity.mode == AE_IFREG;
+                    }
+            );
+            auto list_pathname = std::vector<std::string>(list_files.size());
+            std::transform(
+                    list_files.cbegin(), list_files.cend(),
+                    list_pathname.begin(),
+                    [](const ArchiveExtractor::ArchiveEntry &entity) {
+                        return std::string(entity.pathname);
+                    }
+            );
+            return CreateJStringArray(env, list_pathname.cbegin(), list_pathname.cend()).release();
+        } catch (const std::exception &exception) {
+            s_latest_error_message = exception.what();
+            __android_log_print(ANDROID_LOG_ERROR, k_log_tag, "ExtractArchive failed: %s",
+                                exception.what());
+            return nullptr;
         }
     }
 }
@@ -123,3 +156,12 @@ JNI_METHOD(NativeLib, extractArchive)(
     return internal::ExtractArchive(env, archive_path, output_dir, listener, overwrite);
 }
 
+extern "C"
+JNIEXPORT jobjectArray JNICALL
+JNI_METHOD(NativeLib, fetchArchiveFiles)(
+        JNIEnv *env,
+        jobject thiz,
+        jstring archive_path
+) {
+    return internal::ListArchiveFiles(env, thiz, archive_path);
+}

@@ -10,30 +10,26 @@ public:
     using ProgressListener = std::function<void(const std::string &current_file,
                                                 size_t current_index, size_t total_files)>;
 
-    ArchiveExtractor(
-            std::string archive_path,
-            std::string output_dir,
-            ProgressListener listener = nullptr,
+    struct ArchiveEntry {
+        std::string pathname;
+        mode_t mode;
+        int64_t modify_time_ms;
+        int64_t entry_size;
+    };
+
+    explicit ArchiveExtractor(std::string archive_path);
+
+    [[nodiscard]] std::vector<ArchiveEntry> ListEntry() const;
+
+    void Extract(
+            const std::string& output_dir,
+            const ProgressListener& listener = nullptr,
             bool overwrite = true
-    );
-
-    void Extract();
-
-    ArchiveExtractor &SetListener(ProgressListener l) {
-        listener_ = std::move(l);
-        return *this;
-    }
-
-    ArchiveExtractor &SetOverwrite(bool o) {
-        overwrite_ = o;
-        return *this;
-    }
+    ) const;
 
 private:
     std::string archive_path_;
-    std::string output_dir_;
-    ProgressListener listener_;
-    bool overwrite_;
 
-    size_t CountFilesInArchive();
+    [[nodiscard]] size_t CountFilesInArchive() const;
 };
+

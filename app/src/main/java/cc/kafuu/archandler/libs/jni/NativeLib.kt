@@ -23,4 +23,8 @@ object NativeLib {
         listener: NativeCallback,
         overwrite: Boolean = true
     ): Boolean
+
+    external fun fetchArchiveFiles(
+        archivePath: String
+    ): Array<String>?
 }
