@@ -10,7 +10,7 @@ sealed class MainUiState {
 
     data object PermissionDenied : MainUiState()
 
-    data class Accessible(
+    data class Normal(
         val loadState: MainLoadState = MainLoadState.None,
         val dialogStates: Set<MainDialogState> = emptySet(),
         val viewModeState: MainListViewModeState = MainListViewModeState.Normal,

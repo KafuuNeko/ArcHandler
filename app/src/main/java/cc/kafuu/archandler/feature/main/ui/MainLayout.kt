@@ -1,22 +1,34 @@
 package cc.kafuu.archandler.feature.main.ui
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import cc.kafuu.archandler.R
 import cc.kafuu.archandler.feature.main.presentation.MainDialogState
 import cc.kafuu.archandler.feature.main.presentation.MainListState
@@ -32,13 +44,14 @@ import cc.kafuu.archandler.ui.dialogs.AppLoadDialog
 import cc.kafuu.archandler.ui.dialogs.ConfirmDialog
 import cc.kafuu.archandler.ui.dialogs.PasswordInputDialog
 import cc.kafuu.archandler.ui.theme.AppTheme
+import cc.kafuu.archandler.ui.widges.AppPrimaryButton
 import kotlinx.coroutines.launch
 import java.io.File
 import kotlin.io.path.Path
 import kotlin.io.path.name
 
 @Composable
-fun MainViewBody(
+fun MainLayout(
     uiState: MainUiState,
     drawerState: DrawerState,
     emitIntent: (uiIntent: MainUiIntent) -> Unit = {}
@@ -48,72 +61,10 @@ fun MainViewBody(
 
         is MainUiState.PermissionDenied -> PermissionDeniedView(emitIntent = emitIntent)
 
-        is MainUiState.Accessible -> Box(modifier = Modifier.fillMaxSize()) {
-            MainLayout(
-                uiState = uiState,
-                drawerState = drawerState,
-                emitIntent = emitIntent
-            ) {
-                AccessibleView(
-                    uiState = uiState,
-                    emitIntent = emitIntent
-                )
-            }
+        is MainUiState.Normal -> {
+            NormalView(uiState, drawerState, emitIntent)
             MainLoadDialogSwitch(uiState.loadState, emitIntent)
             uiState.dialogStates.firstOrNull()?.run { MainDialogSwitch(this) }
-        }
-    }
-}
-
-
-@Composable
-private fun MainLayout(
-    uiState: MainUiState.Accessible,
-    drawerState: DrawerState,
-    emitIntent: (uiIntent: MainUiIntent) -> Unit = {},
-    content: @Composable BoxScope.() -> Unit
-) {
-    val coroutineScope = rememberCoroutineScope()
-    val title = when (uiState.viewModeState) {
-        is MainListViewModeState.Pack,
-        is MainListViewModeState.Paste -> stringResource(R.string.select_destination_path)
-
-        else -> null
-    } ?: when (val listData = uiState.listState) {
-        is MainListState.Directory -> {
-            (uiState.viewModeState as? MainListViewModeState.MultipleSelect)?.let {
-                stringResource(R.string.n_files_selected, it.selected.size)
-            } ?: if (listData.storageData.directory.path == listData.directoryPath.toString()) {
-                listData.storageData.name
-            } else {
-                listData.directoryPath.name
-            }
-        }
-
-        else -> stringResource(R.string.app_name)
-    }
-
-    ModalNavigationDrawer(
-        drawerState = drawerState,
-        drawerContent = {
-            MainScaffoldDrawer(
-                drawerState = drawerState,
-                emitIntent = emitIntent
-            )
-        }
-    ) {
-        Scaffold(
-            modifier = Modifier
-                .statusBarsPadding(),
-            topBar = {
-                MainScaffoldTopBar(
-                    title = title,
-                    actions = { TopBarAction(uiState, emitIntent) },
-                    onMenuClick = { coroutineScope.launch { drawerState.open() } }
-                )
-            },
-        ) { padding ->
-            Box(modifier = Modifier.padding(padding)) { content() }
         }
     }
 }
@@ -216,11 +167,148 @@ private fun MainDialogSwitch(
     }
 }
 
+@Composable
+fun PermissionDeniedView(
+    modifier: Modifier = Modifier,
+    emitIntent: (uiIntent: MainUiIntent) -> Unit = {}
+) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Image(
+            modifier = Modifier.size(64.dp),
+            painter = painterResource(R.drawable.ic_folder_off),
+            contentDescription = stringResource(R.string.not_permission_in_main_view)
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        Text(
+            text = stringResource(R.string.not_permission_in_main_view),
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onBackground,
+            style = MaterialTheme.typography.displayMedium
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        AppPrimaryButton(
+            modifier = Modifier.fillMaxWidth(),
+            onClick = {
+                emitIntent(MainUiIntent.JumpFilePermissionSetting)
+            },
+            text = stringResource(R.string.enable_permission),
+        )
+    }
+}
+
+@Composable
+private fun NormalView(
+    uiState: MainUiState.Normal,
+    drawerState: DrawerState,
+    emitIntent: (uiIntent: MainUiIntent) -> Unit = {}
+) {
+    MainViewBody(
+        uiState = uiState,
+        drawerState = drawerState,
+        emitIntent = emitIntent
+    ) {
+        AccessibleView(
+            uiState = uiState,
+            emitIntent = emitIntent
+        )
+    }
+}
+
+@Composable
+private fun MainViewBody(
+    uiState: MainUiState.Normal,
+    drawerState: DrawerState,
+    emitIntent: (uiIntent: MainUiIntent) -> Unit = {},
+    content: @Composable BoxScope.() -> Unit
+) {
+    val coroutineScope = rememberCoroutineScope()
+    val title = when (uiState.viewModeState) {
+        is MainListViewModeState.Pack,
+        is MainListViewModeState.Paste -> stringResource(R.string.select_destination_path)
+
+        else -> null
+    } ?: when (val listData = uiState.listState) {
+        is MainListState.Directory -> {
+            (uiState.viewModeState as? MainListViewModeState.MultipleSelect)?.let {
+                stringResource(R.string.n_files_selected, it.selected.size)
+            } ?: if (listData.storageData.directory.path == listData.directoryPath.toString()) {
+                listData.storageData.name
+            } else {
+                listData.directoryPath.name
+            }
+        }
+
+        else -> stringResource(R.string.app_name)
+    }
+
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        drawerContent = {
+            MainScaffoldDrawer(
+                drawerState = drawerState,
+                emitIntent = emitIntent
+            )
+        }
+    ) {
+        Scaffold(
+            modifier = Modifier
+                .statusBarsPadding(),
+            topBar = {
+                MainScaffoldTopBar(
+                    title = title,
+                    actions = { TopBarAction(uiState, emitIntent) },
+                    onMenuClick = { coroutineScope.launch { drawerState.open() } }
+                )
+            },
+        ) { padding ->
+            Box(modifier = Modifier.padding(padding)) { content() }
+        }
+    }
+}
+
+@Composable
+private fun AccessibleView(
+    modifier: Modifier = Modifier,
+    uiState: MainUiState.Normal,
+    emitIntent: (uiIntent: MainUiIntent) -> Unit = {},
+) {
+    when (val listState = uiState.listState) {
+        MainListState.Undecided -> Unit
+
+        is MainListState.StorageVolume -> StorageVolumeView(
+            modifier = modifier,
+            loadState = uiState.loadState,
+            listState = listState,
+            viewMode = uiState.viewModeState,
+            emitIntent = emitIntent
+        )
+
+        is MainListState.Directory -> DirectoryView(
+            modifier = modifier,
+            loadState = uiState.loadState,
+            listState = listState,
+            viewMode = uiState.viewModeState,
+            emitIntent = emitIntent
+        )
+    }
+}
+
+
 @Preview(widthDp = 320, heightDp = 640, showBackground = true)
 @Composable
 private fun PermissionDeniedPreview() {
     AppTheme(dynamicColor = false) {
-        MainViewBody(
+        MainLayout(
             uiState = MainUiState.PermissionDenied,
             drawerState = rememberDrawerState(DrawerValue.Closed)
         )
@@ -231,8 +319,8 @@ private fun PermissionDeniedPreview() {
 @Composable
 private fun StorageVolumePreview() {
     AppTheme(dynamicColor = false) {
-        MainViewBody(
-            uiState = MainUiState.Accessible(
+        MainLayout(
+            uiState = MainUiState.Normal(
                 viewModeState = MainListViewModeState.Normal,
                 listState = MainListState.StorageVolume(
                     storageVolumes = TestUtils.buildStorageDataList(100)
@@ -247,8 +335,8 @@ private fun StorageVolumePreview() {
 @Composable
 private fun DirectoryPreview() {
     AppTheme(dynamicColor = false) {
-        MainViewBody(
-            uiState = MainUiState.Accessible(
+        MainLayout(
+            uiState = MainUiState.Normal(
                 viewModeState = MainListViewModeState.Normal,
                 listState = MainListState.Directory(
                     storageData = StorageData("test", File("/test/data")),

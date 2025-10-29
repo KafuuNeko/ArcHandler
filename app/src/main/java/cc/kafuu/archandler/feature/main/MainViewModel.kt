@@ -91,7 +91,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
 
     @UiIntentObserver(MainUiIntent.Resume::class)
     private suspend fun onResume() {
-        val listState = getOrNull<MainUiState.Accessible>()?.listState
+        val listState = getOrNull<MainUiState.Normal>()?.listState
         if (listState is MainListState.Directory) {
             doLoadDirectory(listState.storageData, listState.directoryPath)
         }
@@ -102,7 +102,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
      */
     @UiIntentObserver(MainUiIntent.Back::class)
     private suspend fun onBack() {
-        val state = getOrNull<MainUiState.Accessible>() ?: return
+        val state = getOrNull<MainUiState.Normal>() ?: return
         if (state.loadState !is MainLoadState.None) return
 
         when (val viewMode = state.viewModeState) {
@@ -143,7 +143,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
         storageData: StorageData,
         currentPath: Path
     ) {
-        val state = getOrNull<MainUiState.Accessible>() ?: return
+        val state = getOrNull<MainUiState.Normal>() ?: return
         val parent = currentPath.getParentPath()
         if (parent == null || Path(storageData.directory.path).isSameFileOrDirectory(currentPath)) {
             loadExternalStorages(state.viewModeState)
@@ -165,7 +165,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
      */
     @UiIntentObserver(MainUiIntent.MainDrawerMenuClick::class)
     private suspend fun onProcessingIntent(intent: MainUiIntent.MainDrawerMenuClick) {
-        if (!isStateOf<MainUiState.Accessible>()) return
+        if (!isStateOf<MainUiState.Normal>()) return
         when (intent.menu) {
             MainDrawerMenuEnum.Code -> {
                 get<AppLibs>().jumpToUrl(AppModel.CODE_REPOSITORY_URL)
@@ -188,7 +188,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
      */
     @UiIntentObserver(MainUiIntent.StorageVolumeSelected::class)
     private suspend fun onProcessingIntent(intent: MainUiIntent.StorageVolumeSelected) {
-        val state = getOrNull<MainUiState.Accessible>() ?: return
+        val state = getOrNull<MainUiState.Normal>() ?: return
         doLoadDirectory(
             storageData = intent.storageData,
             directoryPath = Path(intent.storageData.directory.path),
@@ -201,7 +201,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
      */
     @UiIntentObserver(MainUiIntent.FileSelected::class)
     private suspend fun onProcessingIntent(intent: MainUiIntent.FileSelected) {
-        val state = getOrNull<MainUiState.Accessible>() ?: return
+        val state = getOrNull<MainUiState.Normal>() ?: return
         val listState = state.listState as? MainListState.Directory ?: return
 
         // 文件多选模式用户选择行为为切换选中模式
@@ -238,7 +238,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
     private suspend fun startFilePacking(
         file: File
     ) = enqueueAsyncTask(Dispatchers.IO) {
-        val state = getOrNull<MainUiState.Accessible>() ?: return@enqueueAsyncTask
+        val state = getOrNull<MainUiState.Normal>() ?: return@enqueueAsyncTask
         val listState = state.listState as? MainListState.Directory ?: return@enqueueAsyncTask
         // 尝试打开压缩包
         state.copy(loadState = MainLoadState.ArchiveOpening(file)).setup()
@@ -278,7 +278,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
      */
     @UiIntentObserver(MainUiIntent.CancelUnpackingJob::class)
     private suspend fun onCancelUnpackingJob() {
-        val uiState = getOrNull<MainUiState.Accessible>() ?: return
+        val uiState = getOrNull<MainUiState.Normal>() ?: return
         val listState = uiState.listState as? MainListState.Directory ?: return
         if (uiState.loadState is MainLoadState.Unpacking) {
             cancelActiveTaskAndRestore()
@@ -292,7 +292,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
      */
     @UiIntentObserver(MainUiIntent.FileMultipleSelectMode::class)
     private fun onProcessingIntent(intent: MainUiIntent.FileMultipleSelectMode) {
-        val state = getOrNull<MainUiState.Accessible>() ?: return
+        val state = getOrNull<MainUiState.Normal>() ?: return
         when (state.viewModeState) {
             is MainListViewModeState.Paste -> return
             else -> Unit
@@ -311,7 +311,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
      */
     @UiIntentObserver(MainUiIntent.MultipleMenuClick::class)
     private suspend fun onProcessingIntent(intent: MainUiIntent.MultipleMenuClick) {
-        val state = getOrNull<MainUiState.Accessible>() ?: return
+        val state = getOrNull<MainUiState.Normal>() ?: return
         val listState = state.listState as? MainListState.Directory ?: return
         val viewModel = state.viewModeState as? MainListViewModeState.MultipleSelect ?: return
         when (intent.menu) {
@@ -357,7 +357,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
             AppViewEvent.PopupToastMessage(message).emit()
             return
         }
-        getOrNull<MainUiState.Accessible>()?.copy(
+        getOrNull<MainUiState.Normal>()?.copy(
             viewModeState = MainListViewModeState.Paste(
                 sourceStorageData = sourceStorageData,
                 sourceDirectoryPath = sourceDirectoryPath,
@@ -380,7 +380,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
             AppViewEvent.PopupToastMessage(message).emit()
             return
         }
-        getOrNull<MainUiState.Accessible>()?.copy(
+        getOrNull<MainUiState.Normal>()?.copy(
             viewModeState = MainListViewModeState.Pack(
                 sourceStorageData = sourceStorageData,
                 sourceDirectoryPath = sourceDirectoryPath,
@@ -395,7 +395,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
     private suspend fun loadExternalStorages(
         viewMode: MainListViewModeState = MainListViewModeState.Normal
     ) {
-        val uiStatePrototype = MainUiState.Accessible(viewModeState = viewMode)
+        val uiStatePrototype = MainUiState.Normal(viewModeState = viewMode)
         uiStatePrototype.copy(loadState = MainLoadState.ExternalStoragesLoading).setup()
         runCatching {
             withContext(Dispatchers.IO) { get<FileManager>().getMountedStorageVolumes() }
@@ -417,9 +417,9 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
         directoryPath: Path,
         viewModeState: MainListViewModeState = MainListViewModeState.Normal,
     ) {
-        val uiStatePrototype = getOrNull<MainUiState.Accessible>()?.copy(
+        val uiStatePrototype = getOrNull<MainUiState.Normal>()?.copy(
             viewModeState = viewModeState
-        ) ?: MainUiState.Accessible(
+        ) ?: MainUiState.Normal(
             viewModeState = viewModeState
         )
         uiStatePrototype.copy(loadState = MainLoadState.DirectoryLoading).setup()
@@ -473,12 +473,12 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
         if (!isAgree) return false
         // 执行文件删除逻辑
         fileSet.toList().deletes(onStartDelete = {
-            getOrNull<MainUiState.Accessible>()?.copy(
+            getOrNull<MainUiState.Normal>()?.copy(
                 loadState = MainLoadState.FilesDeleting(it)
             )?.setup()
         })
         // 重置页面当前loading状态为空
-        awaitStateOf<MainUiState.Accessible>().copy(
+        awaitStateOf<MainUiState.Normal>().copy(
             loadState = MainLoadState.None
         ).setup()
         return true
@@ -489,7 +489,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
      */
     @UiIntentObserver(MainUiIntent.PasteMenuClick::class)
     private suspend fun onPasteMenuClick(intent: MainUiIntent.PasteMenuClick) {
-        val state = getOrNull<MainUiState.Accessible>() ?: return
+        val state = getOrNull<MainUiState.Normal>() ?: return
         val viewMode = state.viewModeState as? MainListViewModeState.Paste ?: return
         when (intent.menu) {
             MainPasteMenuEnum.Paste -> doPasteFiles(
@@ -511,7 +511,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
         targetStorageData: StorageData,
         targetDirectoryPath: Path,
     ) {
-        val state = getOrNull<MainUiState.Accessible>() ?: return
+        val state = getOrNull<MainUiState.Normal>() ?: return
         val viewMode = state.viewModeState as? MainListViewModeState.Paste ?: return
         val targetDirectoryFile = File(targetDirectoryPath.toString())
 
@@ -560,7 +560,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
     private suspend fun onPackMenuClick(
         intent: MainUiIntent.PackMenuClick
     ) {
-        val state = getOrNull<MainUiState.Accessible>() ?: return
+        val state = getOrNull<MainUiState.Normal>() ?: return
         val viewMode = state.viewModeState as? MainListViewModeState.Pack ?: return
         when (intent.menu) {
             MainPackMenuEnum.Pack -> doPackFiles(
@@ -582,7 +582,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
         targetStorageData: StorageData,
         targetDirectoryPath: Path = Path(""),
     ) {
-        val state = getOrNull<MainUiState.Accessible>() ?: return
+        val state = getOrNull<MainUiState.Normal>() ?: return
         val viewMode = state.viewModeState as? MainListViewModeState.Pack ?: return
         val transferId = CreateArchiveData(
             files = viewMode.sourceFiles.toList(),
@@ -604,11 +604,11 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
         onAwaitResult: suspend () -> R
     ): R? {
         val dialog = this
-        val result = awaitStateOf<MainUiState.Accessible>().run {
+        val result = awaitStateOf<MainUiState.Normal>().run {
             copy(dialogStates = dialogStates.toMutableSet().apply { add(dialog) }).setup()
             onAwaitResult()
         }
-        awaitStateOf<MainUiState.Accessible>().run {
+        awaitStateOf<MainUiState.Normal>().run {
             copy(dialogStates = dialogStates.toMutableSet().apply { remove(dialog) }).setup()
         }
         return result
@@ -616,7 +616,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
 
     @UiIntentObserver(MainUiIntent.SelectAllClick::class)
     private fun onSelectAllClick() {
-        val uiState = getOrNull<MainUiState.Accessible>() ?: return
+        val uiState = getOrNull<MainUiState.Normal>() ?: return
         val listState = uiState.listState as? MainListState.Directory ?: return
         val viewModeState = uiState.viewModeState as? MainListViewModeState.MultipleSelect ?: return
         uiState.copy(
@@ -626,7 +626,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
 
     @UiIntentObserver(MainUiIntent.DeselectClick::class)
     private fun onDeselectClick() {
-        val uiState = getOrNull<MainUiState.Accessible>() ?: return
+        val uiState = getOrNull<MainUiState.Normal>() ?: return
         val viewModeState = uiState.viewModeState as? MainListViewModeState.MultipleSelect ?: return
         uiState.copy(viewModeState = viewModeState.copy(selected = emptySet())).setup()
     }
@@ -634,7 +634,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
     @UiIntentObserver(MainUiIntent.SelectAllNoDuplicatesClick::class)
     private suspend fun onSelectAllNoDuplicatesClick() = enqueueAsyncTask {
         // @formatter:off
-        val uiState = getOrNull<MainUiState.Accessible>() ?: return@enqueueAsyncTask
+        val uiState = getOrNull<MainUiState.Normal>() ?: return@enqueueAsyncTask
         val listState = uiState.listState as? MainListState.Directory ?: return@enqueueAsyncTask
         val viewModeState = uiState.viewModeState as? MainListViewModeState.MultipleSelect ?: return@enqueueAsyncTask
         // @formatter:on
@@ -657,7 +657,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
 
     @UiIntentObserver(MainUiIntent.CancelSelectNoDuplicatesJob::class)
     private suspend fun onCancelSelectNoDuplicatesJob() {
-        val uiState = getOrNull<MainUiState.Accessible>() ?: return
+        val uiState = getOrNull<MainUiState.Normal>() ?: return
         if (uiState.loadState is MainLoadState.QueryDuplicateFiles) {
             cancelActiveTaskAndRestore()
         }
@@ -665,7 +665,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
 
     @UiIntentObserver(MainUiIntent.InvertSelectionClick::class)
     private fun onInvertSelectionClick() {
-        val uiState = getOrNull<MainUiState.Accessible>() ?: return
+        val uiState = getOrNull<MainUiState.Normal>() ?: return
         val listState = uiState.listState as? MainListState.Directory ?: return
         val viewModeState = uiState.viewModeState as? MainListViewModeState.MultipleSelect ?: return
         val all = listState.files.toSet()

@@ -24,7 +24,7 @@ import cc.kafuu.archandler.libs.AppModel
 import cc.kafuu.archandler.ui.widges.AppTopBar
 
 @Composable
-fun AboutViewBody(
+fun AboutLayout(
     onBack: () -> Unit
 ) {
     Scaffold(

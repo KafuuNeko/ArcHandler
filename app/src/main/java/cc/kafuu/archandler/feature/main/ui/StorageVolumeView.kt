@@ -24,9 +24,9 @@ import cc.kafuu.archandler.feature.main.presentation.MainListViewModeState
 import cc.kafuu.archandler.feature.main.presentation.MainLoadState
 import cc.kafuu.archandler.feature.main.presentation.MainUiIntent
 import cc.kafuu.archandler.feature.main.ui.common.BottomMenu
-import cc.kafuu.archandler.feature.main.ui.common.IconMessageView
 import cc.kafuu.archandler.ui.widges.AppIconTextItemCard
 import cc.kafuu.archandler.ui.widges.AppLazyColumn
+import cc.kafuu.archandler.ui.widges.IconMessageView
 
 @Composable
 fun StorageVolumeView(

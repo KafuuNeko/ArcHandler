@@ -8,7 +8,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import cc.kafuu.archandler.feature.createarchive.presentation.CreateArchiveUiIntent
 import cc.kafuu.archandler.feature.createarchive.presentation.CreateArchiveUiState
-import cc.kafuu.archandler.feature.createarchive.ui.CreateArchiveView
+import cc.kafuu.archandler.feature.createarchive.ui.CreateArchiveLayout
 import cc.kafuu.archandler.libs.AppModel
 import cc.kafuu.archandler.libs.core.CoreActivityWithEvent
 
@@ -26,7 +26,7 @@ class CreateArchiveActivity : CoreActivityWithEvent() {
     @Composable
     override fun ViewContent() {
         val uiState by mViewModel.uiStateFlow.collectAsState()
-        CreateArchiveView(
+        CreateArchiveLayout(
             uiState = uiState,
             emitIntent = { intent -> mViewModel.emit(intent) }
         )

@@ -24,7 +24,7 @@ import cc.kafuu.archandler.feature.main.presentation.MainUiState
 
 @Composable
 fun TopBarAction(
-    uiState: MainUiState.Accessible,
+    uiState: MainUiState.Normal,
     emitIntent: (uiIntent: MainUiIntent) -> Unit = {}
 ) {
     var expanded by remember { mutableStateOf(false) }
