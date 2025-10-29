@@ -179,7 +179,28 @@ suspend fun File.sha256Of(bufferSize: Int = 1 * 1024 * 1024): String {
 
 fun List<File>.commonBaseDir(): File? {
     if (this.isEmpty()) return null
-    val paths = this.map { it.absoluteFile.toPath().normalize().toList() }
+
+    if (this.size == 1) return this[0].parentFile
+
+    val paths: List<List<String>> = this.map { file ->
+        val p = try {
+            file.absoluteFile.canonicalPath
+        } catch (e: IOException) {
+            file.absoluteFile.absolutePath
+        }
+
+        val sep = File.separatorChar
+        val raw = p.split(sep)
+        val segments = mutableListOf<String>()
+        if (p.startsWith(File.separator)) {
+            segments.add(File.separator)
+        }
+        for (seg in raw) {
+            if (seg.isNotEmpty()) segments.add(seg)
+        }
+        segments
+    }
+
     val minLength = paths.minOf { it.size }
     var commonIndex = 0
 
@@ -191,15 +212,20 @@ fun List<File>.commonBaseDir(): File? {
         commonIndex++
     }
 
-    return if (commonIndex == 0) {
-        null
-    } else {
-        val segments = paths[0].subList(0, commonIndex)
-        val initial = if (segments[0].toString().isEmpty()) File("/") else File(segments[0].toString())
-        segments.drop(1).fold(initial) { acc, s ->
-            File(acc, s.toString())
+    if (commonIndex == 0) return null
+
+    val commonSegments = paths[0].subList(0, commonIndex)
+
+    val result = if (commonSegments[0] == File.separator) {
+        if (commonSegments.size == 1) {
+            File(File.separator)
+        } else {
+            File(commonSegments.drop(1).joinToString(File.separator, prefix = File.separator))
         }
+    } else {
+        File(commonSegments.joinToString(File.separator))
     }
 
+    return result
 }
 
