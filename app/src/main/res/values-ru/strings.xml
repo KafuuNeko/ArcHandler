@@ -79,4 +79,10 @@
     <string name="archive_name_conflict_message">Конфликт имени файла</string>
     <string name="no_directory_write_permission_message">Невозможно записать в этот каталог</string>
     <string name="packaging_failed_message">Ошибка упаковки</string>
+    <string name="create_directory">Создать директорию</string>
+    <string name="select_files">Выбрать файлы</string>
+    <string name="rename">Переименовать</string>
+    <string name="directory_pick">Выбор директории</string>
+    <string name="select_folder">Выбрать папку</string>
+    <string name="select_folder_title">Пожалуйста, выберите папку…</string>
 </resources>

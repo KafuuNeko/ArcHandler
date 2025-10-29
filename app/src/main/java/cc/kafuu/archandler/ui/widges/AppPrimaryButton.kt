@@ -13,8 +13,8 @@ fun AppPrimaryButton(
     modifier: Modifier,
     text: String,
     enable: Boolean = true,
+    textStyle: TextStyle = MaterialTheme.typography.displayMedium,
     onClick: () -> Unit = {},
-    textStyle: TextStyle = MaterialTheme.typography.displayMedium
 ) {
     Button(
         modifier = modifier,

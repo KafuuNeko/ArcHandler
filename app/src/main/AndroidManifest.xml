@@ -40,7 +40,12 @@
         </activity>
 
         <activity
-            android:name=".feature.createarchive.CreateArchiveActivity" />
+            android:name=".feature.createarchive.CreateArchiveActivity"
+            android:theme="@style/Theme.ArcHandler" />
+
+        <activity
+            android:name=".feature.storagepicker.StoragePickerActivity"
+            android:theme="@style/Theme.ArcHandler" />
 
         <activity
             android:name=".feature.about.AboutActivity"

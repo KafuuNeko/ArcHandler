@@ -13,8 +13,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -26,6 +28,7 @@ fun AppTopBar(
     modifier: Modifier = Modifier,
     title: String,
     height: Dp = 50.dp,
+    backIconPainter: Painter = painterResource(R.drawable.ic_back),
     onBack: () -> Unit = {}
 ) {
     Row(
@@ -37,7 +40,7 @@ fun AppTopBar(
     ) {
         Image(
             modifier = Modifier.clickable { onBack() },
-            painter = painterResource(R.drawable.ic_back),
+            painter = backIconPainter,
             contentDescription = stringResource(R.string.back)
         )
 
@@ -46,7 +49,8 @@ fun AppTopBar(
         Text(
             text = title,
             maxLines = 1,
-            style = MaterialTheme.typography.titleMedium
+            style = MaterialTheme.typography.titleMedium,
+            overflow = TextOverflow.Ellipsis
         )
     }
 }

@@ -79,4 +79,10 @@
     <string name="archive_name_conflict_message">Dateiname steht in Konflikt</string>
     <string name="no_directory_write_permission_message">In dieses Verzeichnis kann nicht geschrieben werden</string>
     <string name="packaging_failed_message">Paketierung fehlgeschlagen</string>
+    <string name="create_directory">Verzeichnis erstellen</string>
+    <string name="select_files">Dateien auswählen</string>
+    <string name="rename">Umbenennen</string>
+    <string name="directory_pick">Verzeichnis auswählen</string>
+    <string name="select_folder">Ordner auswählen</string>
+    <string name="select_folder_title">Bitte einen Ordner auswählen…</string>
 </resources>

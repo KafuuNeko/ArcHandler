@@ -79,5 +79,11 @@
     <string name="archive_name_conflict_message">檔名衝突</string>
     <string name="no_directory_write_permission_message">無法寫入此目錄</string>
     <string name="packaging_failed_message">打包失敗</string>
+    <string name="create_directory">建立目錄</string>
+    <string name="select_files">選擇檔案</string>
+    <string name="rename">重新命名</string>
+    <string name="directory_pick">選擇目錄</string>
+    <string name="select_folder">選擇資料夾</string>
+    <string name="select_folder_title">請選擇一個資料夾…</string>
 </resources>
 

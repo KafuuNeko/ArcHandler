@@ -95,4 +95,7 @@
     <string name="create_directory">Create directory</string>
     <string name="select_files">Select files</string>
     <string name="rename">Rename</string>
+    <string name="directory_pick">Directory pick</string>
+    <string name="select_folder">Select Folder</string>
+    <string name="select_folder_title">Please select a folder…</string>
 </resources>

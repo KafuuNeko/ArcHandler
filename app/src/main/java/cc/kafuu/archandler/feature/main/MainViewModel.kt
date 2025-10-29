@@ -164,7 +164,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
      * 处理主页抽屉按钮点击事件
      */
     @UiIntentObserver(MainUiIntent.MainDrawerMenuClick::class)
-    private suspend fun onProcessingIntent(intent: MainUiIntent.MainDrawerMenuClick) {
+    private suspend fun onMainDrawerMenuClick(intent: MainUiIntent.MainDrawerMenuClick) {
         if (!isStateOf<MainUiState.Normal>()) return
         when (intent.menu) {
             MainDrawerMenuEnum.Code -> {
@@ -187,7 +187,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
      * 用户选择存储设备
      */
     @UiIntentObserver(MainUiIntent.StorageVolumeSelected::class)
-    private suspend fun onProcessingIntent(intent: MainUiIntent.StorageVolumeSelected) {
+    private suspend fun onStorageVolumeSelected(intent: MainUiIntent.StorageVolumeSelected) {
         val state = getOrNull<MainUiState.Normal>() ?: return
         doLoadDirectory(
             storageData = intent.storageData,
@@ -200,9 +200,8 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
      * 用户选择文件
      */
     @UiIntentObserver(MainUiIntent.FileSelected::class)
-    private suspend fun onProcessingIntent(intent: MainUiIntent.FileSelected) {
+    private suspend fun onFileSelected(intent: MainUiIntent.FileSelected) {
         val state = getOrNull<MainUiState.Normal>() ?: return
-        val listState = state.listState as? MainListState.Directory ?: return
 
         // 文件多选模式用户选择行为为切换选中模式
         if (state.viewModeState is MainListViewModeState.MultipleSelect) {
@@ -291,7 +290,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
      * 切换用户多选模式
      */
     @UiIntentObserver(MainUiIntent.FileMultipleSelectMode::class)
-    private fun onProcessingIntent(intent: MainUiIntent.FileMultipleSelectMode) {
+    private fun onFileMultipleSelectMode(intent: MainUiIntent.FileMultipleSelectMode) {
         val state = getOrNull<MainUiState.Normal>() ?: return
         when (state.viewModeState) {
             is MainListViewModeState.Paste -> return
@@ -310,7 +309,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
      * 文件多选模式底部菜单点击事件
      */
     @UiIntentObserver(MainUiIntent.MultipleMenuClick::class)
-    private suspend fun onProcessingIntent(intent: MainUiIntent.MultipleMenuClick) {
+    private suspend fun onMultipleMenuClick(intent: MainUiIntent.MultipleMenuClick) {
         val state = getOrNull<MainUiState.Normal>() ?: return
         val listState = state.listState as? MainListState.Directory ?: return
         val viewModel = state.viewModeState as? MainListViewModeState.MultipleSelect ?: return

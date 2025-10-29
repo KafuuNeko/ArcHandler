@@ -79,4 +79,10 @@
     <string name="archive_name_conflict_message">ファイル名が重複しています</string>
     <string name="no_directory_write_permission_message">このディレクトリに書き込めません</string>
     <string name="packaging_failed_message">パッケージ化に失敗しました</string>
+    <string name="create_directory">ディレクトリを作成</string>
+    <string name="select_files">ファイルを選択</string>
+    <string name="rename">名前を変更</string>
+    <string name="directory_pick">ディレクトリを選択</string>
+    <string name="select_folder">フォルダーを選択</string>
+    <string name="select_folder_title">フォルダーを選択してください…</string>
 </resources>
