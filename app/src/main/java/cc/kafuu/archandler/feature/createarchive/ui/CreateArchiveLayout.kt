@@ -32,6 +32,7 @@ import cc.kafuu.archandler.feature.createarchive.ui.cards.FormatCard
 import cc.kafuu.archandler.feature.createarchive.ui.cards.LevelCard
 import cc.kafuu.archandler.feature.createarchive.ui.cards.PasswordCard
 import cc.kafuu.archandler.feature.createarchive.ui.cards.SavePathCard
+import cc.kafuu.archandler.libs.model.StorageData
 import cc.kafuu.archandler.ui.dialogs.AppLoadDialog
 import cc.kafuu.archandler.ui.widges.AppTopBar
 import java.io.File
@@ -149,7 +150,9 @@ private fun ArchiveOptions(
         dir = uiState.targetDirectory,
         outputName = uiState.targetFileName,
         onNameChange = { CreateArchiveUiIntent.TargetFileNameChange(it).also(emitIntent) }
-    )
+    ) {
+        CreateArchiveUiIntent.SelectFolder.also(emitIntent)
+    }
     Spacer(modifier = Modifier.height(10.dp))
 
     // 选择压缩包压缩类型
@@ -191,7 +194,7 @@ private fun ArchiveOptions(
 @Composable
 private fun ArchiveOptionsViewPreview() {
     CreateArchiveLayout(
-        uiState = CreateArchiveUiState.Normal(emptyList(), File("")),
+        uiState = CreateArchiveUiState.Normal(emptyList(), StorageData(), File("")),
         emitIntent = {}
     )
 }

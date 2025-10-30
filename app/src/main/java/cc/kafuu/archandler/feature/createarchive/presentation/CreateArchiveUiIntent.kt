@@ -19,13 +19,11 @@ sealed class CreateArchiveUiIntent {
 
     data class ArchivePasswordChange(val password: String) : CreateArchiveUiIntent()
 
-    data class SplitEnabledToggle(val isEnable: Boolean) : CreateArchiveUiIntent()
-
-    data class SplitUnitChange(val unit: SplitUnit) : CreateArchiveUiIntent()
-
-    data class SplitSizeChange(val size: Long?) : CreateArchiveUiIntent()
-
     data object CreateArchive : CreateArchiveUiIntent()
 
     data object CancelPackingJob : CreateArchiveUiIntent()
+
+    data object SelectFolder : CreateArchiveUiIntent()
+
+    data class SelectFolderCompleted(val data: String) : CreateArchiveUiIntent()
 }

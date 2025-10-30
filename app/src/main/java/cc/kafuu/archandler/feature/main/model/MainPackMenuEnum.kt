@@ -8,6 +8,6 @@ enum class MainPackMenuEnum(
     @DrawableRes val icon: Int,
     @StringRes val title: Int,
 ) {
-    Pack(R.drawable.ic_packing, R.string.archive),
     Cancel(R.drawable.ic_close, R.string.cancel),
+    Pack(R.drawable.ic_packing, R.string.archive),
 }

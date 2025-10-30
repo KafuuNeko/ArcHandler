@@ -583,15 +583,16 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
     ) {
         val state = getOrNull<MainUiState.Normal>() ?: return
         val viewMode = state.viewModeState as? MainListViewModeState.Pack ?: return
-        val transferId = CreateArchiveData(
+
+        val params = CreateArchiveActivity.params(
+            dtm = mDataTransferManager,
             files = viewMode.sourceFiles.toList(),
-            targetDirectory = File(targetDirectoryPath.toString())
-        ).run {
-            mDataTransferManager.push(this)
-        }
+            targetStorageData = targetStorageData,
+            targetDirectoryPath = targetDirectoryPath
+        )
         AppViewEvent.StartActivity(
             activity = CreateArchiveActivity::class.java,
-            extras = CreateArchiveActivity.params(transferId)
+            extras = params
         ).emit()
         doLoadDirectory(targetStorageData, targetDirectoryPath)
     }

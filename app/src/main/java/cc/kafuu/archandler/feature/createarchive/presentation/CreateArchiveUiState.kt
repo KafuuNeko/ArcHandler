@@ -3,6 +3,7 @@ package cc.kafuu.archandler.feature.createarchive.presentation
 import androidx.annotation.StringRes
 import cc.kafuu.archandler.feature.createarchive.model.ArchiveFormat
 import cc.kafuu.archandler.feature.createarchive.model.CompressionType
+import cc.kafuu.archandler.libs.model.StorageData
 import java.io.File
 
 sealed class CreateArchiveUiState {
@@ -10,6 +11,7 @@ sealed class CreateArchiveUiState {
 
     data class Normal(
         val files: List<File>,
+        val targetStorageData: StorageData,
         val targetDirectory: File,
         val targetFileName: String = "",
         val archiveOptions: CreateArchiveOptionState = CreateArchiveOptionState(),

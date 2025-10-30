@@ -5,6 +5,11 @@ import cc.kafuu.archandler.feature.createarchive.extensions.getPackageOptions
 import cc.kafuu.archandler.feature.createarchive.presentation.CreateArchiveLoadState
 import cc.kafuu.archandler.feature.createarchive.presentation.CreateArchiveUiIntent
 import cc.kafuu.archandler.feature.createarchive.presentation.CreateArchiveUiState
+import cc.kafuu.archandler.feature.createarchive.presentation.CreateArchiveViewEvent
+import cc.kafuu.archandler.feature.storagepicker.StoragePickerActivity
+import cc.kafuu.archandler.feature.storagepicker.model.PickMode
+import cc.kafuu.archandler.feature.storagepicker.model.StoragePickerParams
+import cc.kafuu.archandler.feature.storagepicker.model.StoragePickerResult
 import cc.kafuu.archandler.libs.archive.ArchiveManager
 import cc.kafuu.archandler.libs.archive.model.CompressionOption
 import cc.kafuu.archandler.libs.core.AppViewEvent
@@ -43,7 +48,8 @@ class CreateArchiveViewModel : CoreViewModelWithEvent<CreateArchiveUiIntent, Cre
         }
         CreateArchiveUiState.Normal(
             files = initData.files,
-            targetDirectory = initData.targetDirectory
+            targetStorageData = initData.targetStorageData,
+            targetDirectory = File(initData.targetDirectoryPath.toString())
         ).setup()
     }
 
@@ -192,6 +198,33 @@ class CreateArchiveViewModel : CoreViewModelWithEvent<CreateArchiveUiIntent, Cre
             mLastArchiveFile?.delete()
             uiState.copy(loadState = CreateArchiveLoadState.None).setup()
         }
+    }
+
+    @UiIntentObserver(CreateArchiveUiIntent.SelectFolder::class)
+    suspend fun onSelectFolder() {
+        val uiState = getOrNull<CreateArchiveUiState.Normal>() ?: return
+        val data = StoragePickerParams(
+            pickMode = PickMode.ChooseDirectory,
+            defaultStorage = uiState.targetStorageData,
+            defaultPath = uiState.targetDirectory.path
+        )
+        CreateArchiveViewEvent
+            .SelectFolder(StoragePickerActivity.params(mDataTransferManager, data))
+            .emit()
+    }
+
+    @UiIntentObserver(CreateArchiveUiIntent.SelectFolderCompleted::class)
+    fun onSelectFolderCompleted(intent: CreateArchiveUiIntent.SelectFolderCompleted) {
+        val uiState = getOrNull<CreateArchiveUiState.Normal>() ?: return
+        mDataTransferManager
+            .takeAs<StoragePickerResult.ChooseDirectory>(intent.data)
+            ?.run {
+                uiState.copy(
+                    targetStorageData = storageData,
+                    targetDirectory = File(directoryPath.toString())
+                )
+            }
+            ?.setup()
     }
 
 }
