@@ -98,4 +98,10 @@
     <string name="directory_pick">Directory pick</string>
     <string name="select_folder">Select Folder</string>
     <string name="select_folder_title">Please select a folder…</string>
+    <string name="enter_directory_name_hint">Please enter directory name</string>
+    <string name="enter_file_name_hint">Please enter file name</string>
+    <string name="directory_already_exists">Directory already exists</string>
+    <string name="directory_created_successfully">Directory created successfully</string>
+    <string name="failed_to_create_directory">Failed to create directory</string>
+    <string name="file_already_exists">File already exists</string>
 </resources>

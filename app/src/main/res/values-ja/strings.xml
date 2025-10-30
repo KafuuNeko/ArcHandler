@@ -85,4 +85,10 @@
     <string name="directory_pick">ディレクトリを選択</string>
     <string name="select_folder">フォルダーを選択</string>
     <string name="select_folder_title">フォルダーを選択してください…</string>
+    <string name="enter_directory_name_hint">ディレクトリ名を入力してください</string>
+    <string name="enter_file_name_hint">ファイル名を入力してください</string>
+    <string name="directory_already_exists">ディレクトリは既に存在します</string>
+    <string name="directory_created_successfully">ディレクトリが正常に作成されました</string>
+    <string name="failed_to_create_directory">ディレクトリの作成に失敗しました</string>
+    <string name="file_already_exists">ファイルは既に存在します</string>
 </resources>

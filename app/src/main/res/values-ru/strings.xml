@@ -85,4 +85,10 @@
     <string name="directory_pick">Выбор директории</string>
     <string name="select_folder">Выбрать папку</string>
     <string name="select_folder_title">Пожалуйста, выберите папку…</string>
+    <string name="enter_directory_name_hint">Пожалуйста, введите имя каталога</string>
+    <string name="enter_file_name_hint">Пожалуйста, введите имя файла</string>
+    <string name="directory_already_exists">Каталог уже существует</string>
+    <string name="directory_created_successfully">Каталог успешно создан</string>
+    <string name="failed_to_create_directory">Не удалось создать каталог</string>
+    <string name="file_already_exists">Файл уже существует</string>
 </resources>

@@ -85,4 +85,10 @@
     <string name="directory_pick">Sélection du dossier</string>
     <string name="select_folder">Sélectionner un dossier</string>
     <string name="select_folder_title">Veuillez sélectionner un dossier…</string>
+    <string name="enter_directory_name_hint">Veuillez saisir le nom du répertoire</string>
+    <string name="enter_file_name_hint">Veuillez saisir le nom du fichier</string>
+    <string name="directory_already_exists">Le répertoire existe déjà</string>
+    <string name="directory_created_successfully">Répertoire créé avec succès</string>
+    <string name="failed_to_create_directory">Échec de la création du répertoire</string>
+    <string name="file_already_exists">Le fichier existe déjà</string>
 </resources>

@@ -17,6 +17,7 @@ import cc.kafuu.archandler.libs.core.CoreViewModelWithEvent
 import cc.kafuu.archandler.libs.core.UiIntentObserver
 import cc.kafuu.archandler.libs.extensions.getParentPath
 import cc.kafuu.archandler.libs.extensions.isSameFileOrDirectory
+import cc.kafuu.archandler.libs.extensions.listFilteredFiles
 import cc.kafuu.archandler.libs.manager.DataTransferManager
 import cc.kafuu.archandler.libs.manager.FileManager
 import cc.kafuu.archandler.libs.model.StorageData
@@ -73,18 +74,10 @@ class StoragePickerViewModel :
             val isShowUnreadableFiles = AppModel.isShowUnreadableFiles
             withContext(Dispatchers.IO) {
                 File(directoryPath.toString())
-                    .listFiles()
-                    ?.asList()
-                    ?.filter {
+                    .listFilteredFiles()
+                    .filter {
                         if (uiStatePrototype.pickMode == PickMode.ChooseDirectory) it.isDirectory else true
                     }
-                    ?.filter {
-                        return@filter !(it == null ||
-                                (!isShowHiddenFiles && it.name.startsWith(".")) ||
-                                (!isShowUnreadableDirectories && it.isDirectory && !it.canRead()) ||
-                                (!isShowUnreadableFiles && it.isFile && !it.canRead()))
-                    }
-                    ?: emptyList()
             }
         }.onSuccess { files ->
             uiStatePrototype.copy(

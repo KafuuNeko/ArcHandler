@@ -85,4 +85,10 @@
     <string name="directory_pick">Verzeichnis auswählen</string>
     <string name="select_folder">Ordner auswählen</string>
     <string name="select_folder_title">Bitte einen Ordner auswählen…</string>
+    <string name="enter_directory_name_hint">Bitte Verzeichnisnamen eingeben</string>
+    <string name="enter_file_name_hint">Bitte Dateiname eingeben</string>
+    <string name="directory_already_exists">Verzeichnis existiert bereits</string>
+    <string name="directory_created_successfully">Verzeichnis erfolgreich erstellt</string>
+    <string name="failed_to_create_directory">Verzeichnis konnte nicht erstellt werden</string>
+    <string name="file_already_exists">Datei existiert bereits</string>
 </resources>

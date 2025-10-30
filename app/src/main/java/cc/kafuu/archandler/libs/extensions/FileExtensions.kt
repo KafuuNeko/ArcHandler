@@ -1,5 +1,6 @@
 package cc.kafuu.archandler.libs.extensions
 
+import cc.kafuu.archandler.libs.AppModel
 import cc.kafuu.archandler.libs.archive.ArchiveManager
 import cc.kafuu.archandler.libs.model.FileType
 import kotlinx.coroutines.Dispatchers
@@ -229,3 +230,17 @@ fun List<File>.commonBaseDir(): File? {
     return result
 }
 
+fun File.listFilteredFiles(
+    showHiddenFiles: Boolean = AppModel.isShowHiddenFiles,
+    showUnreadableDirectories: Boolean = AppModel.isShowUnreadableDirectories,
+    showUnreadableFiles: Boolean = AppModel.isShowUnreadableFiles
+): List<File> {
+    return this.listFiles()
+        ?.asList()
+        ?.filter { file ->
+            file != null &&
+                    (showHiddenFiles || !file.name.startsWith(".")) &&
+                    (showUnreadableDirectories || !file.isDirectory || file.canRead()) &&
+                    (showUnreadableFiles || !file.isFile || file.canRead())
+        } ?: emptyList()
+}

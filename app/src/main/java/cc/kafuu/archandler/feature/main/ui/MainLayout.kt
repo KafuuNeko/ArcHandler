@@ -41,8 +41,9 @@ import cc.kafuu.archandler.feature.main.ui.scaffold.MainScaffoldTopBar
 import cc.kafuu.archandler.libs.model.StorageData
 import cc.kafuu.archandler.libs.utils.TestUtils
 import cc.kafuu.archandler.ui.dialogs.AppLoadDialog
-import cc.kafuu.archandler.ui.dialogs.ConfirmDialog
+import cc.kafuu.archandler.ui.dialogs.InputConfirmDialog
 import cc.kafuu.archandler.ui.dialogs.PasswordInputDialog
+import cc.kafuu.archandler.ui.dialogs.TextConfirmDialog
 import cc.kafuu.archandler.ui.theme.AppTheme
 import cc.kafuu.archandler.ui.widges.AppPrimaryButton
 import kotlinx.coroutines.launch
@@ -148,7 +149,7 @@ private fun MainDialogSwitch(
             }
         )
 
-        is MainDialogState.FileDeleteConfirm -> ConfirmDialog(
+        is MainDialogState.FileDeleteConfirm -> TextConfirmDialog(
             message = if (dialogState.fileSet.size > 1) {
                 stringResource(R.string.delete_files_message, dialogState.fileSet.size)
             } else {
@@ -162,6 +163,29 @@ private fun MainDialogSwitch(
             },
             onConfirmRequest = {
                 dialogState.deferredResult.complete(coroutineScope, true)
+            }
+        )
+
+        is MainDialogState.CreateDirectoryInput -> InputConfirmDialog(
+            title = stringResource(R.string.create_directory),
+            hintText = stringResource(R.string.enter_directory_name_hint),
+            onDismissRequest = {
+                dialogState.deferredResult.complete(coroutineScope, null)
+            },
+            onConfirmRequest = {
+                dialogState.deferredResult.complete(coroutineScope, it)
+            }
+        )
+
+        is MainDialogState.RenameInput -> InputConfirmDialog(
+            title = stringResource(R.string.rename),
+            hintText = stringResource(R.string.enter_file_name_hint),
+            defaultText = dialogState.defaultName,
+            onDismissRequest = {
+                dialogState.deferredResult.complete(coroutineScope, null)
+            },
+            onConfirmRequest = {
+                dialogState.deferredResult.complete(coroutineScope, it)
             }
         )
     }

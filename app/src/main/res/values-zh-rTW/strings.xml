@@ -85,5 +85,11 @@
     <string name="directory_pick">選擇目錄</string>
     <string name="select_folder">選擇資料夾</string>
     <string name="select_folder_title">請選擇一個資料夾…</string>
+    <string name="enter_directory_name_hint">請輸入目錄名稱</string>
+    <string name="enter_file_name_hint">請輸入檔案名稱</string>
+    <string name="directory_already_exists">目錄已存在</string>
+    <string name="directory_created_successfully">目錄建立成功</string>
+    <string name="failed_to_create_directory">目錄建立失敗</string>
+    <string name="file_already_exists">檔案已存在</string>
 </resources>
 

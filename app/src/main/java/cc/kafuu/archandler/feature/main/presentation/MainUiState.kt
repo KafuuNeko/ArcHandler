@@ -30,6 +30,15 @@ sealed class MainDialogState {
         val fileSet: Set<File>,
         val deferredResult: DeferredResult<Boolean> = DeferredResult()
     ) : MainDialogState()
+
+    data class CreateDirectoryInput(
+        val deferredResult: DeferredResult<String?> = DeferredResult()
+    ): MainDialogState()
+
+    data class RenameInput(
+        val defaultName: String,
+        val deferredResult: DeferredResult<String?> = DeferredResult()
+    ): MainDialogState()
 }
 
 sealed class MainListState {

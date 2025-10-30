@@ -26,14 +26,13 @@ import androidx.compose.ui.window.DialogProperties
 import cc.kafuu.archandler.R
 import cc.kafuu.archandler.ui.theme.AppTheme
 
-
 @Composable
 fun ConfirmDialog(
-    message: String,
     cancelContent: @Composable (RowScope.() -> Unit) = { Text(stringResource(R.string.cancel)) },
     confirmContent: @Composable (RowScope.() -> Unit) = { Text(stringResource(R.string.confirm)) },
     onDismissRequest: () -> Unit = {},
-    onConfirmRequest: () -> Unit = {}
+    onConfirmRequest: () -> Unit = {},
+    content: @Composable ()-> Unit,
 ) {
     Dialog(
         onDismissRequest = onDismissRequest,
@@ -42,13 +41,13 @@ fun ConfirmDialog(
             dismissOnBackPress = false
         )
     ) {
-        DialogView(message, cancelContent, confirmContent, onDismissRequest, onConfirmRequest)
+        DialogView(content, cancelContent, confirmContent, onDismissRequest, onConfirmRequest)
     }
 }
 
 @Composable
 private fun DialogView(
-    message: String,
+    content: @Composable ()-> Unit,
     cancelContent: @Composable (RowScope.() -> Unit),
     confirmContent: @Composable (RowScope.() -> Unit),
     onDismissRequest: () -> Unit,
@@ -57,17 +56,14 @@ private fun DialogView(
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .padding(10.dp)
             .background(
                 MaterialTheme.colorScheme.surface,
                 RoundedCornerShape(20.5.dp)
             )
             .padding(10.dp)
     ) {
-        Text(
-            modifier = Modifier.padding(top = 10.dp),
-            text = message,
-            style = MaterialTheme.typography.headlineMedium
-        )
+        content()
         Spacer(modifier = Modifier.height(16.dp))
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -85,18 +81,15 @@ private fun DialogView(
 @Composable
 private fun DialogViewPreview() {
     AppTheme(dynamicColor = false) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color.Gray),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+        ConfirmDialog(
+            { Text(stringResource(R.string.cancel)) },
+            { Text(stringResource(R.string.delete), color = Color.Red) },
+            {}, {}
         ) {
-            DialogView(
-                "是否删除xxx.zip",
-                { Text(stringResource(R.string.cancel)) },
-                { Text(stringResource(R.string.delete), color = Color.Red) },
-                {}, {}
+            Text(
+                modifier = Modifier.padding(top = 10.dp),
+                text = "是否删除xxx.zip",
+                style = MaterialTheme.typography.headlineMedium
             )
         }
     }

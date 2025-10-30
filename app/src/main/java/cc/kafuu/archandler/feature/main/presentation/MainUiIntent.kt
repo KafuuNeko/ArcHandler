@@ -57,7 +57,6 @@ sealed class MainUiIntent {
 
     data object SelectAllNoDuplicatesClick : MainUiIntent()
 
-    //TODO:
     data object CreateDirectoryClick : MainUiIntent()
 
     data object CancelSelectNoDuplicatesJob : MainUiIntent()
@@ -66,6 +65,5 @@ sealed class MainUiIntent {
 
     data object InvertSelectionClick : MainUiIntent()
 
-    //TODO:
     data class RenameClick(val file: File) : MainUiIntent()
 }

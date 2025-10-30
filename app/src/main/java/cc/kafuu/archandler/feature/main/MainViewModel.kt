@@ -30,12 +30,12 @@ import cc.kafuu.archandler.libs.extensions.deletes
 import cc.kafuu.archandler.libs.extensions.getParentPath
 import cc.kafuu.archandler.libs.extensions.getSameNameDirectory
 import cc.kafuu.archandler.libs.extensions.isSameFileOrDirectory
+import cc.kafuu.archandler.libs.extensions.listFilteredFiles
 import cc.kafuu.archandler.libs.extensions.sha256Of
 import cc.kafuu.archandler.libs.manager.CacheManager
 import cc.kafuu.archandler.libs.manager.DataTransferManager
 import cc.kafuu.archandler.libs.manager.FileManager
 import cc.kafuu.archandler.libs.model.AppCacheType
-import cc.kafuu.archandler.libs.model.CreateArchiveData
 import cc.kafuu.archandler.libs.model.StorageData
 import com.hjq.permissions.Permission
 import com.hjq.permissions.XXPermissions
@@ -91,10 +91,31 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
 
     @UiIntentObserver(MainUiIntent.Resume::class)
     private suspend fun onResume() {
-        val listState = getOrNull<MainUiState.Normal>()?.listState
-        if (listState is MainListState.Directory) {
-            doLoadDirectory(listState.storageData, listState.directoryPath)
-        }
+        doRefreshDirectory()
+    }
+
+    private suspend fun doRefreshDirectory() {
+        val uiState = getOrNull<MainUiState.Normal>() ?: return
+        val listState = uiState.listState as? MainListState.Directory ?: return
+        val multipleSelectMode = uiState.viewModeState as? MainListViewModeState.MultipleSelect
+
+        uiState.copy(loadState = MainLoadState.DirectoryLoading).setup()
+        val files = runCatching {
+            withContext(Dispatchers.IO) {
+                File(listState.directoryPath.toString()).listFilteredFiles()
+            }
+        }.getOrNull() ?: emptyList()
+
+        val viewModeState = multipleSelectMode?.let { viewMode ->
+            val selected =
+                files.mapNotNull { file -> file.takeIf { viewMode.selected.contains(it) } }
+            viewMode.copy(selected = selected.toSet())
+        } ?: uiState.viewModeState
+
+        uiState.copy(
+            listState = listState.copy(files = files),
+            viewModeState = viewModeState
+        ).setup()
     }
 
     /**
@@ -265,7 +286,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
             AppViewEvent.PopupToastMessage(
                 mAppLibs.getString(R.string.archive_unpacking_failed_message)
             ).emit()
-            doLoadDirectory(listState.storageData, listState.directoryPath)
+            doRefreshDirectory()
         } else {
             // 解压成功
             doLoadDirectory(listState.storageData, Path(dest.path))
@@ -282,7 +303,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
         if (uiState.loadState is MainLoadState.Unpacking) {
             cancelActiveTaskAndRestore()
             mCacheManager.clearCache(AppCacheType.MERGE_SPLIT_ARCHIVE)
-            doLoadDirectory(listState.storageData, listState.directoryPath)
+            doRefreshDirectory()
         }
     }
 
@@ -330,7 +351,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
 
             MainMultipleMenuEnum.Delete -> withContext(Dispatchers.IO) {
                 if (doDeleteFiles(viewModel.selected)) {
-                    doLoadDirectory(listState.storageData, listState.directoryPath)
+                    doRefreshDirectory()
                 }
             }
 
@@ -425,20 +446,8 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
         val directory = File(directoryPath.toString())
         runCatching {
             if (!directory.canRead()) return@runCatching emptyList()
-            val isShowHiddenFiles = AppModel.isShowHiddenFiles
-            val isShowUnreadableDirectories = AppModel.isShowUnreadableDirectories
-            val isShowUnreadableFiles = AppModel.isShowUnreadableFiles
             withContext(Dispatchers.IO) {
-                File(directoryPath.toString())
-                    .listFiles()
-                    ?.asList()
-                    ?.filter {
-                        return@filter !(it == null ||
-                                (!isShowHiddenFiles && it.name.startsWith(".")) ||
-                                (!isShowUnreadableDirectories && it.isDirectory && !it.canRead()) ||
-                                (!isShowUnreadableFiles && it.isFile && !it.canRead()))
-                    }
-                    ?: emptyList()
+                File(directoryPath.toString()).listFilteredFiles()
             }
         }.onSuccess { files ->
             uiStatePrototype.copy(
@@ -675,5 +684,41 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
         ).setup()
     }
 
+    @UiIntentObserver(MainUiIntent.CreateDirectoryClick::class)
+    private suspend fun onCreateDirectoryClick() {
+        val uiState = getOrNull<MainUiState.Normal>() ?: return
+        val listState = uiState.listState as? MainListState.Directory ?: return
+        val directoryName = MainDialogState.CreateDirectoryInput().run {
+            popupAwaitDialogResult { deferredResult.awaitCompleted() }
+        } ?: return
+        val directory = File(listState.directoryPath.toString(), directoryName)
+        if (directory.exists()) {
+            AppViewEvent.PopupToastMessageByResId(R.string.directory_already_exists).emit()
+            return
+        }
+        if (directory.mkdirs()) {
+            doRefreshDirectory()
+            AppViewEvent.PopupToastMessageByResId(R.string.directory_created_successfully).emit()
+        } else {
+            AppViewEvent.PopupToastMessageByResId(R.string.failed_to_create_directory).emit()
+        }
+    }
 
+    @UiIntentObserver(MainUiIntent.RenameClick::class)
+    private suspend fun onRenameClick() {
+        val uiState = getOrNull<MainUiState.Normal>() ?: return
+        val viewModeState = uiState.viewModeState as? MainListViewModeState.MultipleSelect ?: return
+        val file = viewModeState.selected.takeIf { it.isNotEmpty() }?.first() ?: return
+        val parent = file.parent ?: return
+        val newFileName = MainDialogState.RenameInput(file.name).run {
+            popupAwaitDialogResult { deferredResult.awaitCompleted() }
+        } ?: return
+        val newFile = File(parent, newFileName)
+        if (newFile.exists()) {
+            AppViewEvent.PopupToastMessageByResId(R.string.file_already_exists).emit()
+        } else {
+            file.renameTo(newFile)
+            doRefreshDirectory()
+        }
+    }
 }
