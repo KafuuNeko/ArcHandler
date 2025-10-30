@@ -31,6 +31,12 @@ add_subdirectory(third_party/bzip2)
 set(BZIP2_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/third_party/bzip2")
 set(BZIP2_LIBRARIES bzip2)
 
+#lz4
+add_subdirectory(third_party/lz4/build/cmake)
+set(LZ4_FOUND TRUE CACHE BOOL "lz4 found by top-level" FORCE)
+set(LZ4_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/third_party/lz4/lib")
+set(LZ4_LIBRARY lz4)
+
 # xz&lama
 set(ENABLE_DECODER_LZMA2 ON)
 set(ENABLE_DECODER_XZ ON)
@@ -66,6 +72,7 @@ add_subdirectory(third_party/zlib)
 set(ENABLE_ICONV ON)
 set(ENABLE_ZLIB ON)
 set(ENABLE_BZip2 ON)
+set(ENABLE_LZ4 ON)
 set(ENABLE_LZMA ON)
 set(ENABLE_ZSTD OFF)
 set(ENABLE_TAR ON)

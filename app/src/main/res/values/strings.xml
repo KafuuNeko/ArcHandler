@@ -12,6 +12,7 @@
     <string name="archive_compression_type_gzip_name" translatable="false">GZip</string>
     <string name="archive_compression_type_bzip2_name" translatable="false">BZip2</string>
     <string name="archive_compression_type_xz_name" translatable="false">XZ</string>
+    <string name="archive_compression_type_lz4_name" translatable="false">Lz4</string>
 
     <string name="unknown_error">Unknown Error</string>
     <string name="not_permission_in_main_view">Permission to access all files is required. Please enable it to proceed.</string>

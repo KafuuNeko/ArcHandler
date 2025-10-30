@@ -25,14 +25,16 @@ enum class ArchiveFormat(
         displayName = R.string.archive_format_tar_name,
         supportsPassword = false,
         supportCompressionTypes = listOf(
-            CompressionType.None, CompressionType.Gzip, CompressionType.Xz, CompressionType.Bzip2
+            CompressionType.None, CompressionType.Gzip, CompressionType.Xz,
+            CompressionType.Bzip2, CompressionType.Lz4
         )
     ),
     Cpio(
         displayName = R.string.archive_format_cpio_name,
         supportsPassword = false,
         supportCompressionTypes = listOf(
-            CompressionType.None, CompressionType.Gzip, CompressionType.Xz, CompressionType.Bzip2
+            CompressionType.None, CompressionType.Gzip, CompressionType.Xz,
+            CompressionType.Bzip2, CompressionType.Lz4
         )
     ),
 }

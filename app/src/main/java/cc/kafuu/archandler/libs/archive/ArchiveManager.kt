@@ -20,7 +20,7 @@ class ArchiveManager {
                 "cpio", "bzip2", "bz2", "7z", "z",
                 "arj", "cab", "lzh", "chm", "nsis",
                 "ar", "rpm", "udf", "wim", "xar",
-                "fat", "ntfs", "xz"
+                "fat", "ntfs", "xz", "lz4"
             )
             val name = file.name.lowercase()
             if (Regex(""".*\.(7z|zip)\.\d{3}$""").matches(name)) return true
@@ -42,9 +42,9 @@ class ArchiveManager {
             Regex(""".*\.zip\.\d{3}$""").matches(name) -> SevenZipArchive(file, ArchiveFormat.ZIP)
 
             listOf(
-                ".tar.gz", ".tar.bz2", ".tar.xz",
-                ".cpio.gz", ".cpio.bz2", ".cpio.xz",
-                ".gzip", ".gz", ".bzip2", ".bz2", ".xz"
+                ".tar.gz", ".tar.bz2", ".tar.xz", ".tar.lz4",
+                ".cpio.gz", ".cpio.bz2", ".cpio.xz", ".cpio.lz4",
+                ".gzip", ".gz", ".bzip2", ".bz2", ".xz", "lz4"
             ).any { file.name.endsWith(it, ignoreCase = true) } -> LibArchive(file)
 
             else -> when (file.extension.lowercase()) {
@@ -96,10 +96,12 @@ class ArchiveManager {
             is CompressionOption.TarBzip2,
             is CompressionOption.TarGZip,
             is CompressionOption.TarXz,
+            is CompressionOption.TarLz4,
             is CompressionOption.Cpio,
             is CompressionOption.CpioBzip2,
             is CompressionOption.CpioGZip,
-            is CompressionOption.CpioXz -> LibArchivePacker(archiveFile, compressionOption)
+            is CompressionOption.CpioXz,
+            is CompressionOption.CpioLz4 -> LibArchivePacker(archiveFile, compressionOption)
         }
     }
 }

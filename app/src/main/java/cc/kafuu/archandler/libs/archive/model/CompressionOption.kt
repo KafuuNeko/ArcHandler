@@ -33,6 +33,8 @@ sealed class CompressionOption {
         val compressionLevel: Int = 6
     ) : CompressionOption()
 
+    data object TarLz4 : CompressionOption()
+
     data object Cpio : CompressionOption()
 
     data class CpioGZip(
@@ -46,4 +48,6 @@ sealed class CompressionOption {
     data class CpioXz(
         val compressionLevel: Int = 6
     ) : CompressionOption()
+
+    data object CpioLz4 : CompressionOption()
 }

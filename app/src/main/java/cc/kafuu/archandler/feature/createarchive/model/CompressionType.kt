@@ -34,5 +34,9 @@ enum class CompressionType(
     Xz(
         displayName = R.string.archive_compression_type_xz_name,
         levelRange = 1..9
+    ),
+    Lz4(
+        displayName = R.string.archive_compression_type_lz4_name,
+        levelRange = null
     )
 }

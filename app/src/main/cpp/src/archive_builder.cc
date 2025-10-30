@@ -75,6 +75,12 @@ ArchiveBuilder::AddFilterAndSetLevel(CompressionType compression, int32_t compre
             rc = archive_write_set_options(archive_.get(), opt.c_str());
             break;
         }
+        case CompressionType::Lz4: {
+            rc = archive_write_add_filter_lz4(archive_.get());
+            if (rc != ARCHIVE_OK) return rc;
+            rc = archive_write_set_options(archive_.get(), nullptr);
+            break;
+        }
     }
     return rc;
 }

@@ -444,6 +444,11 @@ IF(ENABLE_ZLIB)
   # zlib 1.2.0 should also work, but it is difficult to test for. Let's require
   # zlib >= 1.2.1 for consistency with the autoconf build.
   FIND_PACKAGE(ZLIB 1.2.1)
+  if (ZLIB_FOUND)
+    message(WARNING "ZLIB target FOUND ✅")
+  else()
+    message(WARNING "ZLIB target NOT FOUND ❌")
+  endif()
 ELSE()
   SET(ZLIB_FOUND FALSE) # Override cached value
 ENDIF()
@@ -483,6 +488,11 @@ MARK_AS_ADVANCED(CLEAR ZLIB_LIBRARY)
 #
 IF(ENABLE_BZip2)
   FIND_PACKAGE(BZip2)
+  if (BZIP2_FOUND)
+    message(WARNING "BZIP2 target FOUND ✅")
+  else()
+    message(WARNING "BZIP2 target NOT FOUND ❌")
+  endif()
 ELSE()
   SET(BZIP2_FOUND FALSE) # Override cached value
 ENDIF()
@@ -511,6 +521,7 @@ MARK_AS_ADVANCED(CLEAR BZIP2_LIBRARIES)
 # Find LZMA
 #
 IF(ENABLE_LZMA)
+  # TODO: 在顶层手动设置
   # FIND_PACKAGE(LibLZMA)
   message(WARNING "==== Checking LibLZMA detection ====")
   message(WARNING "LIBLZMA_FOUND = ${LIBLZMA_FOUND}")
@@ -628,10 +639,17 @@ IF(ENABLE_LZ4)
     SET(LZ4_FIND_QUIETLY TRUE)
   ENDIF (LZ4_INCLUDE_DIR)
 
-  FIND_PATH(LZ4_INCLUDE_DIR lz4.h)
-  FIND_LIBRARY(LZ4_LIBRARY NAMES lz4 liblz4)
-  INCLUDE(FindPackageHandleStandardArgs)
-  FIND_PACKAGE_HANDLE_STANDARD_ARGS(LZ4 DEFAULT_MSG LZ4_LIBRARY LZ4_INCLUDE_DIR)
+#  TODO: 在顶层手动设置
+#  FIND_PATH(LZ4_INCLUDE_DIR lz4.h)
+#  FIND_LIBRARY(LZ4_LIBRARY NAMES lz4 liblz4)
+#  INCLUDE(FindPackageHandleStandardArgs)
+#  FIND_PACKAGE_HANDLE_STANDARD_ARGS(LZ4 DEFAULT_MSG LZ4_LIBRARY LZ4_INCLUDE_DIR)
+
+  if (LZ4_FOUND)
+    message(WARNING "LZ4 target FOUND ✅")
+  else()
+    message(WARNING "LZ4 target NOT FOUND ❌")
+  endif()
 ELSE(ENABLE_LZ4)
   SET(LZ4_FOUND FALSE) # Override cached value
 ENDIF(ENABLE_LZ4)
