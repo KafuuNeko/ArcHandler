@@ -5,5 +5,6 @@ enum class LibCompressionType(val id: Int) {
     Gzip(1),
     Bzip2(2),
     Xz(3),
-    Lz4(4)
+    Lz4(4),
+    Zstd(5)
 }

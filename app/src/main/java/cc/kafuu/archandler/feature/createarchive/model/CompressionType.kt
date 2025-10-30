@@ -38,5 +38,9 @@ enum class CompressionType(
     Lz4(
         displayName = R.string.archive_compression_type_lz4_name,
         levelRange = null
+    ),
+    Zstd(
+        displayName = R.string.archive_compression_type_zstd_name,
+        levelRange = 1 .. 19
     )
 }

@@ -37,6 +37,13 @@ set(LZ4_FOUND TRUE CACHE BOOL "lz4 found by top-level" FORCE)
 set(LZ4_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/third_party/lz4/lib")
 set(LZ4_LIBRARY lz4)
 
+# zstd
+set(ZSTD_BUILD_TESTS OFF)
+add_subdirectory(third_party/zstd/build/cmake)
+set(ZSTD_FOUND TRUE CACHE BOOL "zstd found by top-level" FORCE)
+set(ZSTD_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/third_party/zstd/lib")
+set(ZSTD_LIBRARY "${CMAKE_BINARY_DIR}/third_party/zstd/build/cmake/lib/libzstd.a")
+
 # xz&lama
 set(ENABLE_DECODER_LZMA2 ON)
 set(ENABLE_DECODER_XZ ON)
@@ -74,7 +81,7 @@ set(ENABLE_ZLIB ON)
 set(ENABLE_BZip2 ON)
 set(ENABLE_LZ4 ON)
 set(ENABLE_LZMA ON)
-set(ENABLE_ZSTD OFF)
+set(ENABLE_ZSTD ON)
 set(ENABLE_TAR ON)
 set(ENABLE_CPIO ON)
 set(ENABLE_CAT OFF)

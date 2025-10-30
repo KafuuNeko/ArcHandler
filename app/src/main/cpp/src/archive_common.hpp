@@ -8,7 +8,7 @@ enum class ArchiveFormat {
 };
 
 enum class CompressionType {
-    None = 0, Gzip = 1, Bzip2 = 2, Xz = 3, Lz4 = 4
+    None = 0, Gzip = 1, Bzip2 = 2, Xz = 3, Lz4 = 4, Zstd = 5
 };
 
 struct ArchiveDeleter {

@@ -18,13 +18,15 @@ class LibArchivePacker(
         is CompressionOption.CpioBzip2,
         is CompressionOption.CpioGZip,
         is CompressionOption.CpioXz,
-        is CompressionOption.CpioLz4 -> LibArchiveFormat.Cpio
+        is CompressionOption.CpioLz4,
+        is CompressionOption.CpioZstd -> LibArchiveFormat.Cpio
 
         is CompressionOption.Tar,
         is CompressionOption.TarBzip2,
         is CompressionOption.TarGZip,
         is CompressionOption.TarXz,
-        is CompressionOption.TarLz4 -> LibArchiveFormat.Tar
+        is CompressionOption.TarLz4,
+        is CompressionOption.TarZstd -> LibArchiveFormat.Tar
 
         is CompressionOption.Zip -> LibArchiveFormat.Zip
 
@@ -47,6 +49,9 @@ class LibArchivePacker(
 
         is CompressionOption.CpioLz4,
         is CompressionOption.TarLz4 -> LibCompressionType.Lz4
+
+        is CompressionOption.CpioZstd,
+        is CompressionOption.TarZstd -> LibCompressionType.Zstd
 
         else -> throw IllegalArgumentException()
     }

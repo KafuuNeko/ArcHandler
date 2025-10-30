@@ -81,7 +81,12 @@ class CreateArchiveViewModel : CoreViewModelWithEvent<CreateArchiveUiIntent, Cre
         val uiState = getOrNull<CreateArchiveUiState.Normal>() ?: return
         if (uiState.archiveOptions.compressionType == event.type) return
         uiState
-            .copy(archiveOptions = uiState.archiveOptions.copy(compressionType = event.type))
+            .copy(
+                archiveOptions = uiState.archiveOptions.copy(
+                    compressionType = event.type,
+                    level = event.type.levelRange?.run { (first + last) / 2 } ?: 0
+                )
+            )
             .setup()
     }
 

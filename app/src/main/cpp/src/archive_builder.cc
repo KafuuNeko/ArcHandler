@@ -81,6 +81,14 @@ ArchiveBuilder::AddFilterAndSetLevel(CompressionType compression, int32_t compre
             rc = archive_write_set_options(archive_.get(), nullptr);
             break;
         }
+        case CompressionType::Zstd: {
+            rc = archive_write_add_filter_zstd(archive_.get());
+            if (rc != ARCHIVE_OK) return rc;
+            int lvl = std::clamp(compression_level, 1, 19);
+            std::string opt = "compression-level=" + std::to_string(lvl);
+            rc = archive_write_set_options(archive_.get(), opt.c_str());
+            break;
+        }
     }
     return rc;
 }

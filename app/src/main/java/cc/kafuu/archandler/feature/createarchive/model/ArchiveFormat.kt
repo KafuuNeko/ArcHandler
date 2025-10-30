@@ -26,7 +26,7 @@ enum class ArchiveFormat(
         supportsPassword = false,
         supportCompressionTypes = listOf(
             CompressionType.None, CompressionType.Gzip, CompressionType.Xz,
-            CompressionType.Bzip2, CompressionType.Lz4
+            CompressionType.Bzip2, CompressionType.Lz4, CompressionType.Zstd
         )
     ),
     Cpio(
@@ -34,7 +34,7 @@ enum class ArchiveFormat(
         supportsPassword = false,
         supportCompressionTypes = listOf(
             CompressionType.None, CompressionType.Gzip, CompressionType.Xz,
-            CompressionType.Bzip2, CompressionType.Lz4
+            CompressionType.Bzip2, CompressionType.Lz4, CompressionType.Zstd
         )
     ),
 }
