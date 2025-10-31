@@ -56,6 +56,22 @@ class LibArchivePacker(
         else -> throw IllegalArgumentException()
     }
 
+    private fun getCompressionLevel() = when (option) {
+        is CompressionOption.BZip2 -> option.compressionLevel
+        is CompressionOption.CpioBzip2 -> option.compressionLevel
+        is CompressionOption.CpioGZip -> option.compressionLevel
+        is CompressionOption.CpioXz -> option.compressionLevel
+        is CompressionOption.CpioZstd -> option.compressionLevel
+        is CompressionOption.GZip -> option.compressionLevel
+        is CompressionOption.SevenZip -> option.compressionLevel
+        is CompressionOption.TarBzip2 -> option.compressionLevel
+        is CompressionOption.TarGZip -> option.compressionLevel
+        is CompressionOption.TarXz -> option.compressionLevel
+        is CompressionOption.TarZstd -> option.compressionLevel
+        is CompressionOption.Zip -> option.compressionLevel
+        else -> 0
+    }
+
     override suspend fun pack(
         files: List<File>,
         listener: (Int, Int, String) -> Unit
@@ -76,7 +92,7 @@ class LibArchivePacker(
             inputFiles = files.map { it.path },
             format = getFormat().id,
             compression = getCompression().id,
-            compressionLevel = 0,
+            compressionLevel = getCompressionLevel(),
             listener = nativeListener
         )
     }
