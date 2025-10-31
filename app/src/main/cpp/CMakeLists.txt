@@ -72,9 +72,6 @@ if (NOT TARGET LibLZMA::LibLZMA)
     message(WARNING "Top-level: created IMPORTED target LibLZMA::LibLZMA -> ${_xz_lib}")
 endif()
 
-# zlib
-add_subdirectory(third_party/zlib)
-
 # libarchive
 set(ENABLE_ICONV ON)
 set(ENABLE_ZLIB ON)
