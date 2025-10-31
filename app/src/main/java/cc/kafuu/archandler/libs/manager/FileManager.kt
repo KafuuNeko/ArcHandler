@@ -14,17 +14,24 @@ class FileManager(private val mContext: Context) {
         private const val TAG = "FileManager"
     }
 
+    private fun getUserStorage() = StorageData(
+        name = mContext.getString(R.string.app_name),
+        directory = File(mContext.filesDir, "user").apply {
+            if (!exists()) mkdirs()
+        }
+    )
+
     fun getMountedStorageVolumes() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
         val storageManager = mContext.getSystemService(Context.STORAGE_SERVICE) as StorageManager
-        storageManager.storageVolumes.mapNotNull { volumes ->
-            StorageData(
-                name = volumes.mediaStoreVolumeName ?: mContext.getString(R.string.unknown),
-                directory = volumes.directory ?: return@mapNotNull null
-            )
-        }
+        listOf(getUserStorage()) + storageManager.storageVolumes
+            .mapNotNull { volumes ->
+                StorageData(
+                    name = volumes.mediaStoreVolumeName ?: mContext.getString(R.string.unknown),
+                    directory = volumes.directory ?: return@mapNotNull null
+                )
+            }
     } else {
-        val storageVolumes = mutableListOf<StorageData>()
-
+        val storageVolumes = mutableListOf(getUserStorage())
         File(Environment.getExternalStorageDirectory().path).takeIf {
             it.exists()
         }?.let { file ->
