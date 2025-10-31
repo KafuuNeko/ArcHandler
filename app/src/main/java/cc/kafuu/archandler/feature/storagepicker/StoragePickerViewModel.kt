@@ -161,6 +161,14 @@ class StoragePickerViewModel :
         }
     }
 
+    @UiIntentObserver(StoragePickerUiIntent.StorageVolumeSelected::class)
+    suspend fun onStorageVolumeSelected(intent: StoragePickerUiIntent.StorageVolumeSelected) {
+        val directory = intent.storageData.directory
+        if (directory.isDirectory && directory.canRead()) {
+            doLoadDirectory(intent.storageData, Path(directory.path))
+        }
+    }
+
     @UiIntentObserver(StoragePickerUiIntent.SelectionCompleted::class)
     suspend fun onSelectionCompleted() {
         val state = getOrNull<StoragePickerUiState.Normal>() ?: return

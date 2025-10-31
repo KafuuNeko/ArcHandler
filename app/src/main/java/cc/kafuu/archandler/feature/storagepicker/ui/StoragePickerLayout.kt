@@ -115,6 +115,7 @@ private fun SelectOption(
     uiState: StoragePickerUiState.Normal,
     emitIntent: (uiIntent: StoragePickerUiIntent) -> Unit
 ) {
+    if (uiState.listState is StoragePickerListState.StorageVolume) return
     when (uiState.pickMode) {
         PickMode.ChooseDirectory -> Row(
             modifier = Modifier
