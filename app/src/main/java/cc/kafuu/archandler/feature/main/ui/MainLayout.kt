@@ -41,6 +41,7 @@ import cc.kafuu.archandler.feature.main.ui.scaffold.MainScaffoldTopBar
 import cc.kafuu.archandler.libs.model.StorageData
 import cc.kafuu.archandler.libs.utils.TestUtils
 import cc.kafuu.archandler.ui.dialogs.AppLoadDialog
+import cc.kafuu.archandler.ui.dialogs.FileConflictDialog
 import cc.kafuu.archandler.ui.dialogs.InputConfirmDialog
 import cc.kafuu.archandler.ui.dialogs.PasswordInputDialog
 import cc.kafuu.archandler.ui.dialogs.TextConfirmDialog
@@ -186,6 +187,15 @@ private fun MainDialogSwitch(
             },
             onConfirmRequest = {
                 dialogState.deferredResult.complete(coroutineScope, it)
+            }
+        )
+
+        is MainDialogState.FileConflict -> FileConflictDialog(
+            oldFile = dialogState.oldFile,
+            newFile = dialogState.newFile,
+            onCancel = { dialogState.deferredResult.complete(coroutineScope, null) },
+            onSelected = { strategy, applyToAllConflicts ->
+                dialogState.deferredResult.complete(coroutineScope, strategy to applyToAllConflicts)
             }
         )
     }

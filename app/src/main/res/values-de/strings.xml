@@ -91,4 +91,13 @@
     <string name="directory_created_successfully">Verzeichnis erfolgreich erstellt</string>
     <string name="failed_to_create_directory">Verzeichnis konnte nicht erstellt werden</string>
     <string name="file_already_exists">Datei existiert bereits</string>
+    <string name="skip">Überspringen</string>
+    <string name="keep_both">Beide behalten</string>
+    <string name="overwrite">Überschreiben</string>
+    <string name="do_this_for_all_conflicts">Für alle Konflikte übernehmen</string>
+    <string name="file_conflict_message_message">Datei-Konflikt\nEine Datei mit demselben Namen existiert bereits.</string>
+    <string name="existing_file_label">Vorhandene Datei</string>
+    <string name="new_file_label">Neue Datei</string>
+    <string name="size_colon">Größe:\n%1$s</string>
+    <string name="modified_colon">Geändert:\n%1$s</string>
 </resources>

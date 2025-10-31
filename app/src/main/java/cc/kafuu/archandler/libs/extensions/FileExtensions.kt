@@ -118,6 +118,24 @@ fun File.createUniqueDirectory(): File? {
     return dir
 }
 
+fun File.generateUniqueFile(targetDir: File): File {
+    var targetFile = File(targetDir, name)
+    var index = 0
+    val baseName = nameWithoutExtension
+    val ext = extension
+
+    while (targetFile.exists()) {
+        val newName = if (ext.isNotEmpty()) {
+            "${baseName}(${++index}).$ext"
+        } else {
+            "${baseName}(${++index})"
+        }
+        targetFile = File(targetDir, newName)
+    }
+
+    return targetFile
+}
+
 fun File.getSameNameDirectory(): File {
     val name = if (this.isFile) {
         this.nameWithoutExtension

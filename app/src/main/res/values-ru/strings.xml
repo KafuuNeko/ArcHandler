@@ -91,4 +91,13 @@
     <string name="directory_created_successfully">Каталог успешно создан</string>
     <string name="failed_to_create_directory">Не удалось создать каталог</string>
     <string name="file_already_exists">Файл уже существует</string>
+    <string name="skip">Пропустить</string>
+    <string name="keep_both">Сохранить оба</string>
+    <string name="overwrite">Перезаписать</string>
+    <string name="do_this_for_all_conflicts">Применить ко всем конфликтам</string>
+    <string name="file_conflict_message_message">Конфликт файлов\nФайл с таким именем уже существует.</string>
+    <string name="existing_file_label">Существующий файл</string>
+    <string name="new_file_label">Новый файл</string>
+    <string name="size_colon">Размер:\n%1$s</string>
+    <string name="modified_colon">Изменено:\n%1$s</string>
 </resources>

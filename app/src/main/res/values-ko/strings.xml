@@ -91,4 +91,13 @@
     <string name="directory_created_successfully">디렉토리가 성공적으로 생성되었습니다</string>
     <string name="failed_to_create_directory">디렉토리 생성에 실패했습니다</string>
     <string name="file_already_exists">파일이 이미 존재합니다</string>
+    <string name="skip">건너뛰기</string>
+    <string name="keep_both">둘 다 유지</string>
+    <string name="overwrite">덮어쓰기</string>
+    <string name="do_this_for_all_conflicts">모든 충돌에 적용</string>
+    <string name="file_conflict_message_message">파일 충돌\n같은 이름의 파일이 이미 존재합니다.</string>
+    <string name="existing_file_label">기존 파일</string>
+    <string name="new_file_label">새 파일</string>
+    <string name="size_colon">크기:\n%1$s</string>
+    <string name="modified_colon">수정됨:\n%1$s</string>
 </resources>

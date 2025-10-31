@@ -91,5 +91,14 @@
     <string name="directory_created_successfully">目录创建成功</string>
     <string name="failed_to_create_directory">目录创建失败</string>
     <string name="file_already_exists">文件已存在</string>
+    <string name="skip">跳过</string>
+    <string name="keep_both">保留两个</string>
+    <string name="overwrite">覆盖</string>
+    <string name="do_this_for_all_conflicts">对所有冲突执行此操作</string>
+    <string name="file_conflict_message_message">文件冲突\n已有同名文件存在。</string>
+    <string name="existing_file_label">已有文件</string>
+    <string name="new_file_label">新文件</string>
+    <string name="size_colon">大小：\n%1$s</string>
+    <string name="modified_colon">修改时间：\n%1$s</string>
 </resources>
 

@@ -91,4 +91,13 @@
     <string name="directory_created_successfully">Répertoire créé avec succès</string>
     <string name="failed_to_create_directory">Échec de la création du répertoire</string>
     <string name="file_already_exists">Le fichier existe déjà</string>
+    <string name="skip">Ignorer</string>
+    <string name="keep_both">Conserver les deux</string>
+    <string name="overwrite">Écraser</string>
+    <string name="do_this_for_all_conflicts">Faire cela pour tous les conflits</string>
+    <string name="file_conflict_message_message">Conflit de fichiers\nUn fichier portant le même nom existe déjà.</string>
+    <string name="existing_file_label">Fichier existant</string>
+    <string name="new_file_label">Nouveau fichier</string>
+    <string name="size_colon">Taille :\n%1$s</string>
+    <string name="modified_colon">Modifié :\n%1$s</string>
 </resources>

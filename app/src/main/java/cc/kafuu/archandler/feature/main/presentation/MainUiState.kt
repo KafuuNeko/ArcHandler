@@ -1,5 +1,6 @@
 package cc.kafuu.archandler.feature.main.presentation
 
+import cc.kafuu.archandler.libs.model.FileConflictStrategy
 import cc.kafuu.archandler.libs.model.StorageData
 import cc.kafuu.archandler.libs.utils.DeferredResult
 import java.io.File
@@ -33,12 +34,18 @@ sealed class MainDialogState {
 
     data class CreateDirectoryInput(
         val deferredResult: DeferredResult<String?> = DeferredResult()
-    ): MainDialogState()
+    ) : MainDialogState()
 
     data class RenameInput(
         val defaultName: String,
         val deferredResult: DeferredResult<String?> = DeferredResult()
-    ): MainDialogState()
+    ) : MainDialogState()
+
+    data class FileConflict(
+        val oldFile: File,
+        val newFile: File,
+        val deferredResult: DeferredResult<Pair<FileConflictStrategy, Boolean>?> = DeferredResult()
+    ) : MainDialogState()
 }
 
 sealed class MainListState {

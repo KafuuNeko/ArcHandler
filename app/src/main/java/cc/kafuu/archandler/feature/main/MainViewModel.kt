@@ -27,6 +27,7 @@ import cc.kafuu.archandler.libs.extensions.appMoveTo
 import cc.kafuu.archandler.libs.extensions.createChooserIntent
 import cc.kafuu.archandler.libs.extensions.createUniqueDirectory
 import cc.kafuu.archandler.libs.extensions.deletes
+import cc.kafuu.archandler.libs.extensions.generateUniqueFile
 import cc.kafuu.archandler.libs.extensions.getParentPath
 import cc.kafuu.archandler.libs.extensions.getSameNameDirectory
 import cc.kafuu.archandler.libs.extensions.isSameFileOrDirectory
@@ -36,6 +37,7 @@ import cc.kafuu.archandler.libs.manager.CacheManager
 import cc.kafuu.archandler.libs.manager.DataTransferManager
 import cc.kafuu.archandler.libs.manager.FileManager
 import cc.kafuu.archandler.libs.model.AppCacheType
+import cc.kafuu.archandler.libs.model.FileConflictStrategy
 import cc.kafuu.archandler.libs.model.StorageData
 import com.hjq.permissions.Permission
 import com.hjq.permissions.XXPermissions
@@ -519,7 +521,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
         targetStorageData: StorageData,
         targetDirectoryPath: Path,
     ) {
-        val state = getOrNull<MainUiState.Normal>() ?: return
+        var state = getOrNull<MainUiState.Normal>() ?: return
         val viewMode = state.viewModeState as? MainListViewModeState.Paste ?: return
         val targetDirectoryFile = File(targetDirectoryPath.toString())
 
@@ -529,28 +531,35 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
         // 整体数量与已经完成的数量
         val totality = viewMode.sourceFiles.size
         var quantityCompleted = 0
+        var fileConflictStrategy: FileConflictStrategy? = null
 
         // 逐个粘贴文件
         withContext(Dispatchers.IO) {
             viewMode.sourceFiles.forEach {
                 val dest = File(targetDirectoryFile, it.name)
                 // 更新加载状态
-                MainLoadState.Pasting(
-                    isMoving = viewMode.isMoving,
+                state = MainLoadState
+                    .Pasting(
+                        isMoving = viewMode.isMoving,
+                        src = it,
+                        dest = dest,
+                        totality = totality,
+                        quantityCompleted = quantityCompleted
+                    )
+                    .run { state.copy(loadState = this) }
+                    .apply { setup() }
+
+                val isSuccessful = state.doPauseFile(
+                    targetDirectoryFile = targetDirectoryFile,
                     src = it,
                     dest = dest,
-                    totality = totality,
-                    quantityCompleted = quantityCompleted
-                ).run { state.copy(loadState = this).setup() }
-                // 移动或拷贝文件
-                val isSuccess = if (dest.exists()) {
-                    false
-                } else if (viewMode.isMoving) {
-                    it.appMoveTo(dest)
-                } else {
-                    it.appCopyTo(dest)
+                    isMoving = viewMode.isMoving,
+                    fileConflictStrategy = fileConflictStrategy,
+                    onUpdateFileConflictStrategy = { fileConflictStrategy = it }
+                )
+                if (!isSuccessful) {
+                    failureList.add(it)
                 }
-                if (!isSuccess) failureList.add(it)
                 quantityCompleted += 1
             }
         }
@@ -559,6 +568,42 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
         state.copy(loadState = MainLoadState.None).setup()
 
         doLoadDirectory(targetStorageData, targetDirectoryPath)
+    }
+
+    private suspend fun MainUiState.Normal.doPauseFile(
+        targetDirectoryFile: File,
+        src: File,
+        dest: File,
+        isMoving: Boolean,
+        fileConflictStrategy: FileConflictStrategy?,
+        onUpdateFileConflictStrategy: (FileConflictStrategy) -> Unit
+    ): Boolean {
+        var dest = dest
+        var fileConflictStrategy = fileConflictStrategy
+        if (dest.exists() && fileConflictStrategy == null) {
+            val result = MainDialogState.FileConflict(oldFile = dest, newFile = src).run {
+                popupAwaitDialogResult { deferredResult.awaitCompleted() }
+            }
+            fileConflictStrategy = result?.first ?: FileConflictStrategy.Skip
+            if (result?.second == true) onUpdateFileConflictStrategy(fileConflictStrategy)
+        }
+        // 移动或拷贝文件
+        if (dest.exists()) when (fileConflictStrategy) {
+            null, FileConflictStrategy.Skip -> return true
+            FileConflictStrategy.KeepBoth -> {
+                dest = dest.generateUniqueFile(targetDirectoryFile)
+            }
+
+            FileConflictStrategy.Overwrite -> {
+                dest.delete()
+            }
+        }
+
+        return if (isMoving) {
+            src.appMoveTo(dest)
+        } else {
+            src.appCopyTo(dest)
+        }
     }
 
     /**

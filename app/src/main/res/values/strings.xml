@@ -106,4 +106,13 @@
     <string name="directory_created_successfully">Directory created successfully</string>
     <string name="failed_to_create_directory">Failed to create directory</string>
     <string name="file_already_exists">File already exists</string>
+    <string name="skip">Skip</string>
+    <string name="keep_both">Keep Both</string>
+    <string name="overwrite">Overwrite</string>
+    <string name="do_this_for_all_conflicts">Do this for all conflicts</string>
+    <string name="file_conflict_message_message">File Conflict\nA file with the same name already exists.</string>
+    <string name="existing_file_label">Existing File</string>
+    <string name="new_file_label">New File</string>
+    <string name="size_colon">Size:\n%1$s</string>
+    <string name="modified_colon">Modified:\n%1$s</string>
 </resources>

@@ -91,4 +91,13 @@
     <string name="directory_created_successfully">ディレクトリが正常に作成されました</string>
     <string name="failed_to_create_directory">ディレクトリの作成に失敗しました</string>
     <string name="file_already_exists">ファイルは既に存在します</string>
+    <string name="skip">スキップ</string>
+    <string name="keep_both">両方保持</string>
+    <string name="overwrite">上書き</string>
+    <string name="do_this_for_all_conflicts">すべての競合に適用</string>
+    <string name="file_conflict_message_message">ファイルの競合\n同じ名前のファイルがすでに存在します。</string>
+    <string name="existing_file_label">既存のファイル</string>
+    <string name="new_file_label">新しいファイル</string>
+    <string name="size_colon">サイズ:\n%1$s</string>
+    <string name="modified_colon">更新日時:\n%1$s</string>
 </resources>
