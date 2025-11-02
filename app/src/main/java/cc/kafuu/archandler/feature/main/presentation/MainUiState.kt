@@ -1,8 +1,10 @@
 package cc.kafuu.archandler.feature.main.presentation
 
+import androidx.compose.foundation.lazy.LazyListState
 import cc.kafuu.archandler.libs.model.FileConflictStrategy
 import cc.kafuu.archandler.libs.model.StorageData
 import cc.kafuu.archandler.libs.utils.DeferredResult
+import cc.kafuu.archandler.ui.utils.Stack
 import java.io.File
 import java.nio.file.Path
 
@@ -13,7 +15,7 @@ sealed class MainUiState {
 
     data class Normal(
         val loadState: MainLoadState = MainLoadState.None,
-        val dialogStates: Set<MainDialogState> = emptySet(),
+        val dialogState: MainDialogState = MainDialogState.None,
         val viewModeState: MainListViewModeState = MainListViewModeState.Normal,
         val listState: MainListState = MainListState.Undecided,
     ) : MainUiState()
@@ -22,6 +24,8 @@ sealed class MainUiState {
 }
 
 sealed class MainDialogState {
+    data object None : MainDialogState()
+
     data class PasswordInput(
         val file: File,
         val deferredResult: DeferredResult<String?> = DeferredResult()
@@ -60,7 +64,8 @@ sealed class MainListState {
         val directoryPath: Path,
         val files: List<File> = emptyList(),
         val canRead: Boolean = true,
-        val canWrite: Boolean = true
+        val canWrite: Boolean = true,
+        val lazyListState: LazyListState = LazyListState()
     ) : MainListState()
 }
 
@@ -75,6 +80,7 @@ sealed class MainListViewModeState {
         val sourceStorageData: StorageData,
         val sourceDirectoryPath: Path,
         val sourceFiles: List<File>,
+        val restoreStack: Stack<MainListState>,
         val isMoving: Boolean = false
     ) : MainListViewModeState()
 
@@ -82,6 +88,7 @@ sealed class MainListViewModeState {
         val sourceStorageData: StorageData,
         val sourceDirectoryPath: Path,
         val sourceFiles: List<File>,
+        val restoreStack: Stack<MainListState>
     ) : MainListViewModeState()
 }
 

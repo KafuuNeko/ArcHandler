@@ -66,7 +66,7 @@ fun MainLayout(
         is MainUiState.Normal -> {
             NormalView(uiState, drawerState, emitIntent)
             MainLoadDialogSwitch(uiState.loadState, emitIntent)
-            uiState.dialogStates.firstOrNull()?.run { MainDialogSwitch(this) }
+            MainDialogSwitch(uiState.dialogState)
         }
     }
 }
@@ -140,6 +140,8 @@ private fun MainDialogSwitch(
 ) {
     val coroutineScope = rememberCoroutineScope()
     when (dialogState) {
+        is MainDialogState.None -> Unit
+
         is MainDialogState.PasswordInput -> PasswordInputDialog(
             message = stringResource(R.string.enter_password_message, dialogState.file.name),
             onDismissRequest = {

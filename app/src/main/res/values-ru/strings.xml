@@ -21,7 +21,7 @@
     <string name="archive">Архивировать</string>
     <string name="back">Назад</string>
     <string name="select_destination_path">Выберите путь назначения…</string>
-    <string name="entry_paste_is_empty_message">Пожалуйста, выберите хотя бы один файл или каталог.</string>
+    <string name="enter_paste_is_empty_message">Пожалуйста, выберите хотя бы один файл или каталог.</string>
     <string name="paste">Вставить</string>
     <string name="cancel">Отмена</string>
     <string name="copying_message">Копирование…</string>
@@ -40,7 +40,7 @@
     <string name="delete_file_message">Удалить «%s»? \nВнимание: он будет удалён безвозвратно и это нельзя отменить.</string>
     <string name="files_deleting">Удаление файлов…</string>
     <string name="opening_archive_message">Открытие…</string>
-    <string name="entry_pack_is_empty_message">Пожалуйста, выберите хотя бы один файл или каталог.</string>
+    <string name="enter_pack_is_empty_message">Пожалуйста, выберите хотя бы один файл или каталог.</string>
     <string name="create_archive">Создать архив</string>
     <string name="select_all_no_duplicates">Выбрать все (без дубликатов)</string>
     <string name="select_all">Выбрать все</string>

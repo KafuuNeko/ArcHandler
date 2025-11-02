@@ -36,7 +36,7 @@
     <string name="archive">Archive</string>
     <string name="back">Back</string>
     <string name="select_destination_path">Select destination path…</string>
-    <string name="entry_paste_is_empty_message">Please select at least one file or directory.</string>
+    <string name="enter_paste_is_empty_message">Please select at least one file or directory.</string>
     <string name="paste">Paste</string>
     <string name="cancel">Cancel</string>
     <string name="copying_message">Copying…</string>
@@ -55,7 +55,7 @@
     <string name="delete_file_message">Delete "%s"? \nWarring: This will permanently delete it and cannot be undone.</string>
     <string name="files_deleting">Deleting files…</string>
     <string name="opening_archive_message">Opening…</string>
-    <string name="entry_pack_is_empty_message">Please select at least one file or directory.</string>
+    <string name="enter_pack_is_empty_message">Please select at least one file or directory.</string>
     <string name="create_archive">Create Archive</string>
     <string name="select_all_no_duplicates">Select All (No Duplicates)</string>
     <string name="select_all">Select All</string>

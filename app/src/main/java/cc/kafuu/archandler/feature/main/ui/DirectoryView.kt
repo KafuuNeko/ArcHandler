@@ -64,9 +64,13 @@ fun DirectoryView(
                 .padding(top = 10.dp)
                 .padding(horizontal = 10.dp)
                 .weight(1f),
+            state = listState.lazyListState,
             items = listState.files,
             emptyState = {
-                if (loadState !is MainLoadState.None) return@AppLazyColumn
+                if (loadState !is MainLoadState.None) {
+                    Spacer(modifier = Modifier.weight(1f))
+                    return@AppLazyColumn
+                }
                 IconMessageView(
                     modifier = Modifier
                         .fillMaxWidth()

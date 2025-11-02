@@ -69,9 +69,6 @@ class StoragePickerViewModel :
         val directory = File(directoryPath.toString())
         runCatching {
             if (!directory.canRead()) return@runCatching emptyList()
-            val isShowHiddenFiles = AppModel.isShowHiddenFiles
-            val isShowUnreadableDirectories = AppModel.isShowUnreadableDirectories
-            val isShowUnreadableFiles = AppModel.isShowUnreadableFiles
             withContext(Dispatchers.IO) {
                 File(directoryPath.toString())
                     .listFilteredFiles()

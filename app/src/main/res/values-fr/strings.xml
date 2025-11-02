@@ -21,7 +21,7 @@
     <string name="archive">Archiver</string>
     <string name="back">Retour</string>
     <string name="select_destination_path">Sélectionner le chemin de destination…</string>
-    <string name="entry_paste_is_empty_message">Veuillez sélectionner au moins un fichier ou un répertoire.</string>
+    <string name="enter_paste_is_empty_message">Veuillez sélectionner au moins un fichier ou un répertoire.</string>
     <string name="paste">Coller</string>
     <string name="cancel">Annuler</string>
     <string name="copying_message">Copie…</string>
@@ -40,7 +40,7 @@
     <string name="delete_file_message">Supprimer « %s » ? \nAttention : ceci le supprimera définitivement et ne peut pas être annulé.</string>
     <string name="files_deleting">Suppression des fichiers…</string>
     <string name="opening_archive_message">Ouverture…</string>
-    <string name="entry_pack_is_empty_message">Veuillez sélectionner au moins un fichier ou un répertoire.</string>
+    <string name="enter_pack_is_empty_message">Veuillez sélectionner au moins un fichier ou un répertoire.</string>
     <string name="create_archive">Créer une archive</string>
     <string name="select_all_no_duplicates">Tout sélectionner (sans doublons)</string>
     <string name="select_all">Tout sélectionner</string>

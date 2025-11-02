@@ -21,7 +21,7 @@
     <string name="archive">압축</string>
     <string name="back">뒤로</string>
     <string name="select_destination_path">대상 경로 선택…</string>
-    <string name="entry_paste_is_empty_message">최소한 하나의 파일이나 디렉터리를 선택하세요.</string>
+    <string name="enter_paste_is_empty_message">최소한 하나의 파일이나 디렉터리를 선택하세요.</string>
     <string name="paste">붙여넣기</string>
     <string name="cancel">취소</string>
     <string name="copying_message">복사 중…</string>
@@ -40,7 +40,7 @@
     <string name="delete_file_message">"%s"을(를) 삭제하시겠습니까? \n경고: 영구적으로 삭제되며 되돌릴 수 없습니다.</string>
     <string name="files_deleting">파일 삭제 중…</string>
     <string name="opening_archive_message">여는 중…</string>
-    <string name="entry_pack_is_empty_message">최소한 하나의 파일이나 디렉터리를 선택하세요.</string>
+    <string name="enter_pack_is_empty_message">최소한 하나의 파일이나 디렉터리를 선택하세요.</string>
     <string name="create_archive">압축 파일 생성</string>
     <string name="select_all_no_duplicates">모두 선택 (중복 제외)</string>
     <string name="select_all">모두 선택</string>

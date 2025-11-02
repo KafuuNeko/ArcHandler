@@ -28,9 +28,7 @@ import cc.kafuu.archandler.libs.extensions.createChooserIntent
 import cc.kafuu.archandler.libs.extensions.createUniqueDirectory
 import cc.kafuu.archandler.libs.extensions.deletes
 import cc.kafuu.archandler.libs.extensions.generateUniqueFile
-import cc.kafuu.archandler.libs.extensions.getParentPath
 import cc.kafuu.archandler.libs.extensions.getSameNameDirectory
-import cc.kafuu.archandler.libs.extensions.isSameFileOrDirectory
 import cc.kafuu.archandler.libs.extensions.listFilteredFiles
 import cc.kafuu.archandler.libs.extensions.sha256Of
 import cc.kafuu.archandler.libs.manager.CacheManager
@@ -39,6 +37,7 @@ import cc.kafuu.archandler.libs.manager.FileManager
 import cc.kafuu.archandler.libs.model.AppCacheType
 import cc.kafuu.archandler.libs.model.FileConflictStrategy
 import cc.kafuu.archandler.libs.model.StorageData
+import cc.kafuu.archandler.ui.utils.Stack
 import com.hjq.permissions.Permission
 import com.hjq.permissions.XXPermissions
 import kotlinx.coroutines.Dispatchers
@@ -49,14 +48,12 @@ import org.koin.core.component.get
 import org.koin.core.component.inject
 import java.io.File
 import java.nio.file.Path
+import kotlin.coroutines.coroutineContext
 import kotlin.io.path.Path
 
 class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
     initStatus = MainUiState.None
 ), KoinComponent {
-    // 应用通用工具
-    private val mAppLibs by inject<AppLibs>()
-
     // 压缩包管理器
     private val mArchiveManager by inject<ArchiveManager>()
 
@@ -66,6 +63,9 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
     // 数据传递管理器
     private val mDataTransferManager by inject<DataTransferManager>()
 
+    // 列表状态栈
+    private var mListStateStack: Stack<MainListState> = Stack()
+
     // 压缩包密码提供请求接口
     val mPasswordProvider = object : IPasswordProvider {
         override suspend fun getPassword(
@@ -74,6 +74,327 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
             popupAwaitDialogResult { deferredResult.awaitCompleted() }
         }
     }
+
+    /**
+     * 展示错误消息
+     */
+    private suspend fun errorMessage(exception: Throwable?) {
+        val message = exception?.message
+            ?: get<AppLibs>().getString(R.string.unknown_error)
+        AppViewEvent.PopupToastMessage(message).emit()
+    }
+
+    /**
+     * 主页弹窗通用流程
+     */
+    private suspend fun <R> MainDialogState.popupAwaitDialogResult(
+        onAwaitResult: suspend () -> R
+    ): R? {
+        val state = awaitStateOf<MainUiState.Normal>() {
+            it.dialogState is MainDialogState.None
+        }
+        val result = state.run {
+            copy(dialogState = this@popupAwaitDialogResult).setup()
+            onAwaitResult()
+        }
+        state.setup()
+        return result
+    }
+
+    /**
+     * 压入新的列表状态，将旧列表状态入栈
+     */
+    private fun MainUiState.Normal.pushListState(
+        newListState: MainListState
+    ): MainUiState.Normal {
+        if (listState !is MainListState.Undecided) mListStateStack.push(listState)
+        return copy(listState = newListState)
+    }
+
+    /**
+     * 刷新数据
+     */
+    private suspend fun MainUiState.Normal.refresh(): MainUiState.Normal {
+        copy(loadState = MainLoadState.DirectoryLoading).setup()
+        val newState = when (val listState = listState) {
+            MainListState.Undecided -> this
+
+            is MainListState.Directory -> {
+                val directory = File(listState.directoryPath.toString())
+                val result = runCatching {
+                    withContext(Dispatchers.IO) { directory.listFilteredFiles() }
+                }
+                if (result.isFailure) errorMessage(result.exceptionOrNull())
+                val files = result.getOrNull() ?: emptyList()
+                copy(
+                    listState = listState.copy(
+                        files = files,
+                        canRead = directory.canRead(),
+                        canWrite = directory.canWrite()
+                    ),
+                    viewModeState = (viewModeState as? MainListViewModeState.MultipleSelect)?.let { viewMode ->
+                        val selected =
+                            files.mapNotNull { file -> file.takeIf { viewMode.selected.contains(it) } }
+                        viewMode.copy(selected = selected.toSet())
+                    } ?: viewModeState,
+                )
+            }
+
+            is MainListState.StorageVolume -> {
+                val result = runCatching {
+                    withContext(Dispatchers.IO) { get<FileManager>().getMountedStorageVolumes() }
+                }
+                if (result.isFailure) errorMessage(result.exceptionOrNull())
+                val storageVolumes = result.getOrNull() ?: emptyList()
+                val listState = MainListState.StorageVolume(
+                    storageVolumes = storageVolumes
+                )
+                copy(listState = listState)
+            }
+        }
+        // Reset state
+        setup()
+        return newState
+    }
+
+    /**
+     * 进入一个目录
+     */
+    private suspend fun MainUiState.Normal.enterDirectory(
+        storageData: StorageData,
+        directoryPath: Path
+    ): MainUiState.Normal {
+        if (listState is MainListState.Directory) {
+            val isRepeated = listOf(
+                listState.directoryPath == directoryPath,
+                listState.storageData.name == storageData.name,
+                listState.storageData.directory.path == storageData.directory.path
+            ).all { it }
+            if (isRepeated) return refresh()
+        }
+        val newListState = MainListState.Directory(
+            storageData = storageData,
+            directoryPath = directoryPath
+        )
+        return pushListState(newListState).refresh()
+    }
+
+    /**
+     * 加载挂载的存储设备
+     */
+    private suspend fun MainUiState.Normal.loadExternalStorages(): MainUiState.Normal {
+        return pushListState(MainListState.StorageVolume()).refresh()
+    }
+
+    /**
+     * 状态返回操作逻辑
+     */
+    private suspend fun MainUiState.Normal.backState(): MainUiState {
+        var newListState = mListStateStack.popOrNull()
+        var uiState = this
+        if (newListState == null) {
+            val restoreStack = when (viewModeState) {
+                is MainListViewModeState.Pack -> viewModeState.restoreStack
+                is MainListViewModeState.Paste -> viewModeState.restoreStack
+                else -> null
+            }
+            if (restoreStack != null) {
+                mListStateStack = restoreStack
+                newListState = mListStateStack.popOrNull()
+                uiState = uiState.copy(viewModeState = MainListViewModeState.Normal)
+            }
+        }
+        return if (newListState != null) {
+            uiState.copy(listState = newListState).refresh()
+        } else {
+            MainUiState.Finished
+        }
+    }
+
+    /**
+     * 启动压缩包解压任务
+     */
+    private suspend fun MainUiState.Normal.doFileExtract(file: File): File? {
+        // 尝试打开压缩包
+        copy(loadState = MainLoadState.ArchiveOpening(file)).setup()
+        // 开始压缩包解压流程
+        val dest = runCatching {
+            mArchiveManager.openArchive(file)?.run {
+                if (!open(mPasswordProvider)) null else this
+            }?.use { archive ->
+                val destDir = file.getSameNameDirectory().createUniqueDirectory() ?: return@use null
+                archive.extractAll(destDir) { index, path, target ->
+                    copy(loadState = MainLoadState.Unpacking(file, index, path, target))
+                        .setup()
+                }
+                return@use destDir
+            }
+        }.getOrNull()
+        // 清理缓存
+        mCacheManager.clearCache(AppCacheType.MERGE_SPLIT_ARCHIVE)
+        // 再次验证协程是否正在进行
+        coroutineContext.ensureActive()
+        // 解压流程完成，重置状态
+        setup()
+        if (dest == null) {
+            // 解压失败
+            AppViewEvent
+                .PopupToastMessageByResId(R.string.archive_unpacking_failed_message)
+                .emit()
+        }
+        return dest
+    }
+
+    /**
+     * 切换入文件粘贴模式
+     */
+    private suspend fun MainUiState.Normal.enterPasteMode(
+        sourceStorageData: StorageData,
+        sourceDirectoryPath: Path,
+        sourceFiles: List<File>,
+        isMoving: Boolean = false
+    ): MainUiState.Normal? {
+        if (sourceFiles.isEmpty()) {
+            val message = get<Context>().getString(R.string.enter_paste_is_empty_message)
+            AppViewEvent.PopupToastMessage(message).emit()
+            return null
+        }
+        val viewModeState = MainListViewModeState.Paste(
+            sourceStorageData = sourceStorageData,
+            sourceDirectoryPath = sourceDirectoryPath,
+            sourceFiles = sourceFiles,
+            isMoving = isMoving,
+            restoreStack = Stack(mListStateStack).apply { push(listState) }
+        )
+        return copy(viewModeState = viewModeState)
+    }
+
+    /**
+     * 切换入打包模式
+     */
+    private suspend fun MainUiState.Normal.enterPackMode(
+        sourceStorageData: StorageData,
+        sourceDirectoryPath: Path,
+        sourceFiles: List<File>,
+    ): MainUiState.Normal? {
+        if (sourceFiles.isEmpty()) {
+            val message = get<Context>().getString(R.string.enter_pack_is_empty_message)
+            AppViewEvent.PopupToastMessage(message).emit()
+            return null
+        }
+        val viewModeState = MainListViewModeState.Pack(
+            sourceStorageData = sourceStorageData,
+            sourceDirectoryPath = sourceDirectoryPath,
+            sourceFiles = sourceFiles,
+            restoreStack = Stack(mListStateStack).apply { push(listState) }
+        )
+        return copy(viewModeState = viewModeState)
+    }
+
+    /**
+     * 重置视图模式为通常模式
+     */
+    suspend fun MainUiState.Normal.resetViewMode(): MainUiState.Normal {
+        val restoreStack = when (viewModeState) {
+            is MainListViewModeState.Pack -> viewModeState.restoreStack
+            is MainListViewModeState.Paste -> viewModeState.restoreStack
+            else -> null
+        }
+        if (restoreStack != null) {
+            mListStateStack = restoreStack
+        }
+        return copy(
+            viewModeState = MainListViewModeState.Normal,
+            listState = restoreStack?.pop() ?: listState
+        ).refresh()
+    }
+
+    /**
+     * 执行删除文件操作
+     */
+    private suspend fun MainUiState.Normal.doDeleteFiles(
+        fileSet: Set<File>
+    ): Boolean = withContext(Dispatchers.IO) {
+        if (fileSet.isEmpty()) {
+            val message = get<Context>().getString(R.string.enter_paste_is_empty_message)
+            AppViewEvent.PopupToastMessage(message).emit()
+            return@withContext false
+        }
+        // 询问用户是否确认删除
+        val isAgree = MainDialogState
+            .FileDeleteConfirm(fileSet)
+            .run { popupAwaitDialogResult { deferredResult.awaitCompleted() } } == true
+        if (!isAgree) return@withContext false
+        // 执行文件删除逻辑
+        fileSet
+            .toList()
+            .deletes(onStartDelete = { copy(loadState = MainLoadState.FilesDeleting(it)).setup() })
+        // 重置状态
+        setup()
+        return@withContext true
+    }
+
+    /**
+     * 粘贴文件
+     */
+    private suspend fun MainUiState.Normal.doPasteFiles(
+        targetDirectoryPath: Path
+    ) = withContext(Dispatchers.IO) {
+        val viewMode = viewModeState as? MainListViewModeState.Paste ?: return@withContext
+        val targetDirectoryFile = File(targetDirectoryPath.toString())
+
+        // 粘贴失败的列表
+        val failureList = mutableListOf<File>()
+
+        // 整体数量与已经完成的数量
+        val totality = viewMode.sourceFiles.size
+        var quantityCompleted = 0
+        var fileConflictStrategy: FileConflictStrategy? = null
+
+        // 逐个粘贴文件
+        viewMode.sourceFiles.forEach {
+            var currentConflict = fileConflictStrategy
+            var dest = File(targetDirectoryFile, it.name)
+            // 更新加载状态
+            MainLoadState
+                .Pasting(
+                    isMoving = viewMode.isMoving,
+                    src = it, dest = dest, totality = totality,
+                    quantityCompleted = quantityCompleted
+                )
+                .run { copy(loadState = this) }
+                .apply { setup() }
+            // 如果文件存在则让用户选择冲突处理类型
+            if (dest.exists() && currentConflict == null) {
+                val result = MainDialogState.FileConflict(oldFile = dest, newFile = it).run {
+                    popupAwaitDialogResult { deferredResult.awaitCompleted() }
+                }
+                currentConflict = result?.first ?: FileConflictStrategy.Skip
+                if (result?.second == true) fileConflictStrategy = currentConflict
+            }
+            // 移动或拷贝文件
+            if (dest.exists()) when (currentConflict) {
+                null, FileConflictStrategy.Skip -> {
+                    quantityCompleted += 1
+                    return@forEach
+                }
+
+                FileConflictStrategy.KeepBoth -> {
+                    dest = dest.generateUniqueFile(targetDirectoryFile)
+                }
+
+                FileConflictStrategy.Overwrite -> {
+                    dest.delete()
+                }
+            }
+            val isSuccessful = if (viewMode.isMoving) it.appMoveTo(dest) else it.appCopyTo(dest)
+            if (!isSuccessful) failureList.add(it)
+            quantityCompleted += 1
+        }
+        // 流程结束，重置状态
+        setup()
+    }
+
 
     /**
      * 页面初始化
@@ -87,37 +408,13 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
         if (!XXPermissions.isGranted(get(), Permission.MANAGE_EXTERNAL_STORAGE)) {
             MainUiState.PermissionDenied.setup()
         } else {
-            loadExternalStorages()
+            MainUiState.Normal().loadExternalStorages().setup()
         }
     }
 
     @UiIntentObserver(MainUiIntent.Resume::class)
     private suspend fun onResume() {
-        doRefreshDirectory()
-    }
-
-    private suspend fun doRefreshDirectory() {
-        val uiState = getOrNull<MainUiState.Normal>() ?: return
-        val listState = uiState.listState as? MainListState.Directory ?: return
-        val multipleSelectMode = uiState.viewModeState as? MainListViewModeState.MultipleSelect
-
-        uiState.copy(loadState = MainLoadState.DirectoryLoading).setup()
-        val files = runCatching {
-            withContext(Dispatchers.IO) {
-                File(listState.directoryPath.toString()).listFilteredFiles()
-            }
-        }.getOrNull() ?: emptyList()
-
-        val viewModeState = multipleSelectMode?.let { viewMode ->
-            val selected =
-                files.mapNotNull { file -> file.takeIf { viewMode.selected.contains(it) } }
-            viewMode.copy(selected = selected.toSet())
-        } ?: uiState.viewModeState
-
-        uiState.copy(
-            listState = listState.copy(files = files),
-            viewModeState = viewModeState
-        ).setup()
+        getOrNull<MainUiState.Normal>()?.refresh()?.setup()
     }
 
     /**
@@ -125,55 +422,14 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
      */
     @UiIntentObserver(MainUiIntent.Back::class)
     private suspend fun onBack() {
-        val state = getOrNull<MainUiState.Normal>() ?: return
-        if (state.loadState !is MainLoadState.None) return
-
-        when (val viewMode = state.viewModeState) {
-            MainListViewModeState.Normal -> {
-                if (state.listState is MainListState.Directory) {
-                    doBackToParent(state.listState.storageData, state.listState.directoryPath)
-                } else {
-                    MainUiState.Finished.setup()
-                }
-            }
-
-            is MainListViewModeState.MultipleSelect -> {
-                state.copy(viewModeState = MainListViewModeState.Normal).setup()
-            }
-
-            is MainListViewModeState.Paste -> {
-                if (state.listState is MainListState.Directory) {
-                    doBackToParent(state.listState.storageData, state.listState.directoryPath)
-                } else {
-                    doLoadDirectory(viewMode.sourceStorageData, viewMode.sourceDirectoryPath)
-                }
-            }
-
-            is MainListViewModeState.Pack -> {
-                if (state.listState is MainListState.Directory) {
-                    doBackToParent(state.listState.storageData, state.listState.directoryPath)
-                } else {
-                    doLoadDirectory(viewMode.sourceStorageData, viewMode.sourceDirectoryPath)
-                }
-            }
+        val uiState = getOrNull<MainUiState.Normal>() ?: return
+        if (uiState.loadState !is MainLoadState.None) return
+        when (uiState.viewModeState) {
+            is MainListViewModeState.MultipleSelect -> uiState.resetViewMode().setup()
+            else -> uiState.backState().setup()
         }
     }
 
-    /**
-     * 返回到上一级目录
-     */
-    private suspend fun doBackToParent(
-        storageData: StorageData,
-        currentPath: Path
-    ) {
-        val state = getOrNull<MainUiState.Normal>() ?: return
-        val parent = currentPath.getParentPath()
-        if (parent == null || Path(storageData.directory.path).isSameFileOrDirectory(currentPath)) {
-            loadExternalStorages(state.viewModeState)
-        } else {
-            doLoadDirectory(storageData, parent, state.viewModeState)
-        }
-    }
 
     /**
      * 跳转到文件权限设置
@@ -211,12 +467,12 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
      */
     @UiIntentObserver(MainUiIntent.StorageVolumeSelected::class)
     private suspend fun onStorageVolumeSelected(intent: MainUiIntent.StorageVolumeSelected) {
-        val state = getOrNull<MainUiState.Normal>() ?: return
-        doLoadDirectory(
-            storageData = intent.storageData,
-            directoryPath = Path(intent.storageData.directory.path),
-            viewModeState = state.viewModeState
-        )
+        getOrNull<MainUiState.Normal>()
+            ?.enterDirectory(
+                storageData = intent.storageData,
+                directoryPath = Path(intent.storageData.directory.path)
+            )
+            ?.setup()
     }
 
     /**
@@ -224,24 +480,25 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
      */
     @UiIntentObserver(MainUiIntent.FileSelected::class)
     private suspend fun onFileSelected(intent: MainUiIntent.FileSelected) {
-        val state = getOrNull<MainUiState.Normal>() ?: return
+        val uiState = getOrNull<MainUiState.Normal>() ?: return
+        val listState = uiState.listState as? MainListState.Directory ?: return
 
         // 文件多选模式用户选择行为为切换选中模式
-        if (state.viewModeState is MainListViewModeState.MultipleSelect) {
-            val viewMode = state.viewModeState
+        if (uiState.viewModeState is MainListViewModeState.MultipleSelect) {
+            val viewMode = uiState.viewModeState
+            if (!listState.files.contains(intent.file)) return
             val selected = viewMode.selected.toMutableSet().apply {
                 if (viewMode.selected.contains(intent.file)) remove(intent.file) else add(intent.file)
             }
-            state.copy(viewModeState = viewMode.copy(selected = selected)).setup()
+            uiState.copy(viewModeState = viewMode.copy(selected = selected)).setup()
             return
         }
         // 如果用户选择的是目录则切换进目录
         if (intent.file.isDirectory) {
-            doLoadDirectory(
+            uiState.enterDirectory(
                 storageData = intent.storageData,
-                directoryPath = Path(intent.file.path),
-                viewModeState = state.viewModeState
-            )
+                directoryPath = Path(intent.file.path)
+            ).setup()
             return
         }
         // 判断当前打开的文件是否可解压
@@ -249,51 +506,20 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
             get<Context>().createChooserIntent(intent.file.name, intent.file)
                 ?.let { AppViewEvent.StartActivityByIntent(it) }
                 ?.emit()
-        } else {
-            startFilePacking(intent.file)
+        } else enqueueAsyncTask {
+            val dest = uiState.doFileExtract(intent.file)
+            if (dest == null) {
+                AppViewEvent
+                    .PopupToastMessageByResId(R.string.archive_unpacking_failed_message)
+                    .emit()
+            } else {
+                uiState
+                    .enterDirectory(intent.storageData, Path(dest.path))
+                    .setup()
+            }
         }
     }
 
-    /**
-     * 启动压缩包解压任务
-     */
-    private suspend fun startFilePacking(
-        file: File
-    ) = enqueueAsyncTask(Dispatchers.IO) {
-        val state = getOrNull<MainUiState.Normal>() ?: return@enqueueAsyncTask
-        val listState = state.listState as? MainListState.Directory ?: return@enqueueAsyncTask
-        // 尝试打开压缩包
-        state.copy(loadState = MainLoadState.ArchiveOpening(file)).setup()
-        // 开始压缩包解压流程
-        val dest = runCatching {
-            mArchiveManager.openArchive(file)?.run {
-                if (!open(mPasswordProvider)) null else this
-            }?.use { archive ->
-                val destDir = file.getSameNameDirectory().createUniqueDirectory() ?: return@use null
-                archive.extractAll(destDir) { index, path, target ->
-                    state.copy(loadState = MainLoadState.Unpacking(file, index, path, target))
-                        .setup()
-                }
-                return@use destDir
-            }
-        }.getOrNull()
-        // 清理缓存
-        mCacheManager.clearCache(AppCacheType.MERGE_SPLIT_ARCHIVE)
-        // 再次验证协程是否正在进行
-        coroutineContext.ensureActive()
-        // 解压流程完成，取消加载弹窗
-        state.copy(loadState = MainLoadState.None).setup()
-        if (dest == null) {
-            // 解压失败
-            AppViewEvent.PopupToastMessage(
-                mAppLibs.getString(R.string.archive_unpacking_failed_message)
-            ).emit()
-            doRefreshDirectory()
-        } else {
-            // 解压成功
-            doLoadDirectory(listState.storageData, Path(dest.path))
-        }
-    }
 
     /**
      * 中断压缩包解压流程
@@ -301,11 +527,10 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
     @UiIntentObserver(MainUiIntent.CancelUnpackingJob::class)
     private suspend fun onCancelUnpackingJob() {
         val uiState = getOrNull<MainUiState.Normal>() ?: return
-        val listState = uiState.listState as? MainListState.Directory ?: return
         if (uiState.loadState is MainLoadState.Unpacking) {
             cancelActiveTaskAndRestore()
             mCacheManager.clearCache(AppCacheType.MERGE_SPLIT_ARCHIVE)
-            doRefreshDirectory()
+            uiState.refresh().setup()
         }
     }
 
@@ -314,12 +539,12 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
      */
     @UiIntentObserver(MainUiIntent.FileMultipleSelectMode::class)
     private fun onFileMultipleSelectMode(intent: MainUiIntent.FileMultipleSelectMode) {
-        val state = getOrNull<MainUiState.Normal>() ?: return
-        when (state.viewModeState) {
+        val uiState = getOrNull<MainUiState.Normal>() ?: return
+        when (uiState.viewModeState) {
             is MainListViewModeState.Paste -> return
             else -> Unit
         }
-        state.copy(
+        uiState.copy(
             viewModeState = if (intent.enable) {
                 MainListViewModeState.MultipleSelect(intent.file?.let { setOf(it) } ?: emptySet())
             } else {
@@ -333,276 +558,54 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
      */
     @UiIntentObserver(MainUiIntent.MultipleMenuClick::class)
     private suspend fun onMultipleMenuClick(intent: MainUiIntent.MultipleMenuClick) {
-        val state = getOrNull<MainUiState.Normal>() ?: return
-        val listState = state.listState as? MainListState.Directory ?: return
-        val viewModel = state.viewModeState as? MainListViewModeState.MultipleSelect ?: return
+        val uiState = getOrNull<MainUiState.Normal>() ?: return
+        val viewModel = uiState.viewModeState as? MainListViewModeState.MultipleSelect ?: return
         when (intent.menu) {
-            MainMultipleMenuEnum.Copy -> doEntryPasteMode(
+            MainMultipleMenuEnum.Copy -> uiState.enterPasteMode(
                 sourceStorageData = intent.sourceStorageData,
                 sourceDirectoryPath = intent.sourceDirectoryPath,
                 sourceFiles = intent.sourceFiles,
                 isMoving = false
-            )
+            )?.setup()
 
-            MainMultipleMenuEnum.Move -> doEntryPasteMode(
+            MainMultipleMenuEnum.Move -> uiState.enterPasteMode(
                 sourceStorageData = intent.sourceStorageData,
                 sourceDirectoryPath = intent.sourceDirectoryPath,
                 sourceFiles = intent.sourceFiles,
                 isMoving = true
-            )
+            )?.setup()
 
-            MainMultipleMenuEnum.Delete -> withContext(Dispatchers.IO) {
-                if (doDeleteFiles(viewModel.selected)) {
-                    doRefreshDirectory()
-                }
+            MainMultipleMenuEnum.Delete -> {
+                if (uiState.doDeleteFiles(viewModel.selected)) uiState.refresh().setup()
             }
 
-            MainMultipleMenuEnum.Archive -> doEntryPackMode(
+            MainMultipleMenuEnum.Archive -> uiState.enterPackMode(
                 sourceStorageData = intent.sourceStorageData,
                 sourceDirectoryPath = intent.sourceDirectoryPath,
                 sourceFiles = intent.sourceFiles
-            )
-        }
-    }
-
-    /**
-     * 切换入文件粘贴模式
-     */
-    private suspend fun doEntryPasteMode(
-        sourceStorageData: StorageData,
-        sourceDirectoryPath: Path,
-        sourceFiles: List<File>,
-        isMoving: Boolean = false
-    ) {
-        if (sourceFiles.isEmpty()) {
-            val message = get<Context>().getString(R.string.entry_paste_is_empty_message)
-            AppViewEvent.PopupToastMessage(message).emit()
-            return
-        }
-        getOrNull<MainUiState.Normal>()?.copy(
-            viewModeState = MainListViewModeState.Paste(
-                sourceStorageData = sourceStorageData,
-                sourceDirectoryPath = sourceDirectoryPath,
-                sourceFiles = sourceFiles,
-                isMoving = isMoving
-            )
-        )?.setup()
-    }
-
-    /**
-     * 切换入打包模式
-     */
-    private suspend fun doEntryPackMode(
-        sourceStorageData: StorageData,
-        sourceDirectoryPath: Path,
-        sourceFiles: List<File>,
-    ) {
-        if (sourceFiles.isEmpty()) {
-            val message = get<Context>().getString(R.string.entry_pack_is_empty_message)
-            AppViewEvent.PopupToastMessage(message).emit()
-            return
-        }
-        getOrNull<MainUiState.Normal>()?.copy(
-            viewModeState = MainListViewModeState.Pack(
-                sourceStorageData = sourceStorageData,
-                sourceDirectoryPath = sourceDirectoryPath,
-                sourceFiles = sourceFiles
-            )
-        )?.setup()
-    }
-
-    /**
-     * 加载挂载的存储设备
-     */
-    private suspend fun loadExternalStorages(
-        viewMode: MainListViewModeState = MainListViewModeState.Normal
-    ) {
-        val uiStatePrototype = MainUiState.Normal(viewModeState = viewMode)
-        uiStatePrototype.copy(loadState = MainLoadState.ExternalStoragesLoading).setup()
-        runCatching {
-            withContext(Dispatchers.IO) { get<FileManager>().getMountedStorageVolumes() }
-        }.onSuccess { storages ->
-            uiStatePrototype.copy(
-                listState = MainListState.StorageVolume(storageVolumes = storages)
-            ).setup()
-        }.onFailure { exception ->
-            val message = exception.message ?: get<AppLibs>().getString(R.string.unknown_error)
-            AppViewEvent.PopupToastMessage(message).emit()
-        }
-    }
-
-    /**
-     * 加载目录信息
-     */
-    private suspend fun doLoadDirectory(
-        storageData: StorageData,
-        directoryPath: Path,
-        viewModeState: MainListViewModeState = MainListViewModeState.Normal,
-    ) {
-        val uiStatePrototype = getOrNull<MainUiState.Normal>()?.copy(
-            viewModeState = viewModeState
-        ) ?: MainUiState.Normal(
-            viewModeState = viewModeState
-        )
-        uiStatePrototype.copy(loadState = MainLoadState.DirectoryLoading).setup()
-        val directory = File(directoryPath.toString())
-        runCatching {
-            if (!directory.canRead()) return@runCatching emptyList()
-            withContext(Dispatchers.IO) {
-                File(directoryPath.toString()).listFilteredFiles()
-            }
-        }.onSuccess { files ->
-            uiStatePrototype.copy(
-                listState = MainListState.Directory(
-                    storageData = storageData,
-                    directoryPath = directoryPath,
-                    files = files,
-                    canRead = directory.canRead(),
-                    canWrite = directory.canWrite()
-                )
-            ).setup()
-        }.onFailure { exception ->
-            val message = exception.message ?: get<AppLibs>().getString(R.string.unknown_error)
-            AppViewEvent.PopupToastMessage(message).emit()
-        }
-    }
-
-    /**
-     * 执行删除文件操作
-     */
-    private suspend fun doDeleteFiles(fileSet: Set<File>): Boolean {
-        if (fileSet.isEmpty()) {
-            val message = get<Context>().getString(R.string.entry_paste_is_empty_message)
-            AppViewEvent.PopupToastMessage(message).emit()
-            return false
-        }
-        // 询问用户是否确认删除
-        val isAgree = MainDialogState.FileDeleteConfirm(fileSet).run {
-            popupAwaitDialogResult { deferredResult.awaitCompleted() }
-        } == true
-        if (!isAgree) return false
-        // 执行文件删除逻辑
-        fileSet.toList().deletes(onStartDelete = {
-            getOrNull<MainUiState.Normal>()?.copy(
-                loadState = MainLoadState.FilesDeleting(it)
             )?.setup()
-        })
-        // 重置页面当前loading状态为空
-        awaitStateOf<MainUiState.Normal>().copy(
-            loadState = MainLoadState.None
-        ).setup()
-        return true
+        }
     }
+
 
     /**
      * 粘贴模式底部菜单被点击
      */
     @UiIntentObserver(MainUiIntent.PasteMenuClick::class)
     private suspend fun onPasteMenuClick(intent: MainUiIntent.PasteMenuClick) {
-        val state = getOrNull<MainUiState.Normal>() ?: return
-        val viewMode = state.viewModeState as? MainListViewModeState.Paste ?: return
+        val uiState = getOrNull<MainUiState.Normal>() ?: return
         when (intent.menu) {
-            MainPasteMenuEnum.Paste -> doPasteFiles(
-                targetStorageData = intent.targetStorageData,
-                targetDirectoryPath = intent.targetDirectoryPath
-            )
-
-            else -> doLoadDirectory(
-                storageData = viewMode.sourceStorageData,
-                directoryPath = viewMode.sourceDirectoryPath
-            )
-        }
-    }
-
-    /**
-     * 粘贴文件
-     */
-    private suspend fun doPasteFiles(
-        targetStorageData: StorageData,
-        targetDirectoryPath: Path,
-    ) {
-        var state = getOrNull<MainUiState.Normal>() ?: return
-        val viewMode = state.viewModeState as? MainListViewModeState.Paste ?: return
-        val targetDirectoryFile = File(targetDirectoryPath.toString())
-
-        // 粘贴失败的列表
-        val failureList = mutableListOf<File>()
-
-        // 整体数量与已经完成的数量
-        val totality = viewMode.sourceFiles.size
-        var quantityCompleted = 0
-        var fileConflictStrategy: FileConflictStrategy? = null
-
-        // 逐个粘贴文件
-        withContext(Dispatchers.IO) {
-            viewMode.sourceFiles.forEach {
-                val dest = File(targetDirectoryFile, it.name)
-                // 更新加载状态
-                state = MainLoadState
-                    .Pasting(
-                        isMoving = viewMode.isMoving,
-                        src = it,
-                        dest = dest,
-                        totality = totality,
-                        quantityCompleted = quantityCompleted
-                    )
-                    .run { state.copy(loadState = this) }
-                    .apply { setup() }
-
-                val isSuccessful = state.doPauseFile(
-                    targetDirectoryFile = targetDirectoryFile,
-                    src = it,
-                    dest = dest,
-                    isMoving = viewMode.isMoving,
-                    fileConflictStrategy = fileConflictStrategy,
-                    onUpdateFileConflictStrategy = { fileConflictStrategy = it }
-                )
-                if (!isSuccessful) {
-                    failureList.add(it)
-                }
-                quantityCompleted += 1
-            }
-        }
-
-        // 取消加载状态
-        state.copy(loadState = MainLoadState.None).setup()
-
-        doLoadDirectory(targetStorageData, targetDirectoryPath)
-    }
-
-    private suspend fun MainUiState.Normal.doPauseFile(
-        targetDirectoryFile: File,
-        src: File,
-        dest: File,
-        isMoving: Boolean,
-        fileConflictStrategy: FileConflictStrategy?,
-        onUpdateFileConflictStrategy: (FileConflictStrategy) -> Unit
-    ): Boolean {
-        var dest = dest
-        var fileConflictStrategy = fileConflictStrategy
-        if (dest.exists() && fileConflictStrategy == null) {
-            val result = MainDialogState.FileConflict(oldFile = dest, newFile = src).run {
-                popupAwaitDialogResult { deferredResult.awaitCompleted() }
-            }
-            fileConflictStrategy = result?.first ?: FileConflictStrategy.Skip
-            if (result?.second == true) onUpdateFileConflictStrategy(fileConflictStrategy)
-        }
-        // 移动或拷贝文件
-        if (dest.exists()) when (fileConflictStrategy) {
-            null, FileConflictStrategy.Skip -> return true
-            FileConflictStrategy.KeepBoth -> {
-                dest = dest.generateUniqueFile(targetDirectoryFile)
+            MainPasteMenuEnum.Paste -> {
+                uiState.doPasteFiles(targetDirectoryPath = intent.targetDirectoryPath)
+                uiState
+                    .resetViewMode()
+                    .enterDirectory(intent.targetStorageData, intent.targetDirectoryPath)
+                    .setup()
             }
 
-            FileConflictStrategy.Overwrite -> {
-                dest.delete()
+            MainPasteMenuEnum.Cancel -> {
+                uiState.resetViewMode().setup()
             }
-        }
-
-        return if (isMoving) {
-            src.appMoveTo(dest)
-        } else {
-            src.appCopyTo(dest)
         }
     }
 
@@ -613,59 +616,30 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
     private suspend fun onPackMenuClick(
         intent: MainUiIntent.PackMenuClick
     ) {
-        val state = getOrNull<MainUiState.Normal>() ?: return
-        val viewMode = state.viewModeState as? MainListViewModeState.Pack ?: return
+        val uiState = getOrNull<MainUiState.Normal>() ?: return
+        val viewMode = uiState.viewModeState as? MainListViewModeState.Pack ?: return
         when (intent.menu) {
-            MainPackMenuEnum.Pack -> doPackFiles(
-                targetStorageData = intent.targetStorageData,
-                targetDirectoryPath = intent.targetDirectoryPath
-            )
+            MainPackMenuEnum.Pack -> {
+                val params = CreateArchiveActivity.params(
+                    dtm = mDataTransferManager,
+                    files = viewMode.sourceFiles.toList(),
+                    targetStorageData = intent.targetStorageData,
+                    targetDirectoryPath = intent.targetDirectoryPath
+                )
+                AppViewEvent.StartActivity(
+                    activity = CreateArchiveActivity::class.java,
+                    extras = params
+                ).emit()
+                uiState
+                    .resetViewMode()
+                    .enterDirectory(intent.targetStorageData, intent.targetDirectoryPath)
+                    .setup()
+            }
 
-            MainPackMenuEnum.Cancel -> doLoadDirectory(
-                storageData = viewMode.sourceStorageData,
-                directoryPath = viewMode.sourceDirectoryPath
-            )
+            MainPackMenuEnum.Cancel -> {
+                uiState.resetViewMode().setup()
+            }
         }
-    }
-
-    /**
-     * 执行具体的打包操作
-     */
-    private suspend fun doPackFiles(
-        targetStorageData: StorageData,
-        targetDirectoryPath: Path = Path(""),
-    ) {
-        val state = getOrNull<MainUiState.Normal>() ?: return
-        val viewMode = state.viewModeState as? MainListViewModeState.Pack ?: return
-
-        val params = CreateArchiveActivity.params(
-            dtm = mDataTransferManager,
-            files = viewMode.sourceFiles.toList(),
-            targetStorageData = targetStorageData,
-            targetDirectoryPath = targetDirectoryPath
-        )
-        AppViewEvent.StartActivity(
-            activity = CreateArchiveActivity::class.java,
-            extras = params
-        ).emit()
-        doLoadDirectory(targetStorageData, targetDirectoryPath)
-    }
-
-    /**
-     * 主页弹窗通用流程
-     */
-    private suspend fun <R> MainDialogState.popupAwaitDialogResult(
-        onAwaitResult: suspend () -> R
-    ): R? {
-        val dialog = this
-        val result = awaitStateOf<MainUiState.Normal>().run {
-            copy(dialogStates = dialogStates.toMutableSet().apply { add(dialog) }).setup()
-            onAwaitResult()
-        }
-        awaitStateOf<MainUiState.Normal>().run {
-            copy(dialogStates = dialogStates.toMutableSet().apply { remove(dialog) }).setup()
-        }
-        return result
     }
 
     @UiIntentObserver(MainUiIntent.SelectAllClick::class)
@@ -673,9 +647,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
         val uiState = getOrNull<MainUiState.Normal>() ?: return
         val listState = uiState.listState as? MainListState.Directory ?: return
         val viewModeState = uiState.viewModeState as? MainListViewModeState.MultipleSelect ?: return
-        uiState.copy(
-            viewModeState = viewModeState.copy(selected = listState.files.toSet())
-        ).setup()
+        uiState.copy(viewModeState = viewModeState.copy(selected = listState.files.toSet())).setup()
     }
 
     @UiIntentObserver(MainUiIntent.DeselectClick::class)
@@ -712,9 +684,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
     @UiIntentObserver(MainUiIntent.CancelSelectNoDuplicatesJob::class)
     private suspend fun onCancelSelectNoDuplicatesJob() {
         val uiState = getOrNull<MainUiState.Normal>() ?: return
-        if (uiState.loadState is MainLoadState.QueryDuplicateFiles) {
-            cancelActiveTaskAndRestore()
-        }
+        if (uiState.loadState is MainLoadState.QueryDuplicateFiles) cancelActiveTaskAndRestore()
     }
 
     @UiIntentObserver(MainUiIntent.InvertSelectionClick::class)
@@ -724,9 +694,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
         val viewModeState = uiState.viewModeState as? MainListViewModeState.MultipleSelect ?: return
         val all = listState.files.toSet()
         val inverted = all - viewModeState.selected
-        uiState.copy(
-            viewModeState = viewModeState.copy(selected = inverted)
-        ).setup()
+        uiState.copy(viewModeState = viewModeState.copy(selected = inverted)).setup()
     }
 
     @UiIntentObserver(MainUiIntent.CreateDirectoryClick::class)
@@ -742,7 +710,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
             return
         }
         if (directory.mkdirs()) {
-            doRefreshDirectory()
+            uiState.refresh().setup()
             AppViewEvent.PopupToastMessageByResId(R.string.directory_created_successfully).emit()
         } else {
             AppViewEvent.PopupToastMessageByResId(R.string.failed_to_create_directory).emit()
@@ -763,7 +731,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
             AppViewEvent.PopupToastMessageByResId(R.string.file_already_exists).emit()
         } else {
             file.renameTo(newFile)
-            doRefreshDirectory()
+            uiState.refresh().setup()
         }
     }
 }

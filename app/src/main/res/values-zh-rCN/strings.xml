@@ -21,7 +21,7 @@
     <string name="archive">归档</string>
     <string name="back">返回</string>
     <string name="select_destination_path">选择目标路径…</string>
-    <string name="entry_paste_is_empty_message">请至少选择一个文件或目录。</string>
+    <string name="enter_paste_is_empty_message">请至少选择一个文件或目录。</string>
     <string name="paste">粘贴</string>
     <string name="cancel">取消</string>
     <string name="copying_message">正在复制…</string>
@@ -40,7 +40,7 @@
     <string name="delete_file_message">删除“%s”？\n警告：此操作将永久删除，且无法撤销。</string>
     <string name="files_deleting">正在删除文件…</string>
     <string name="opening_archive_message">正在打开…</string>
-    <string name="entry_pack_is_empty_message">请至少选择一个文件或目录。</string>
+    <string name="enter_pack_is_empty_message">请至少选择一个文件或目录。</string>
     <string name="create_archive">创建归档</string>
     <string name="select_all_no_duplicates">全选（无重复）</string>
     <string name="select_all">全选</string>

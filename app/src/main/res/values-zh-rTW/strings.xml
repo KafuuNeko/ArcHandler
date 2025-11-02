@@ -21,7 +21,7 @@
     <string name="archive">封存</string>
     <string name="back">返回</string>
     <string name="select_destination_path">選擇目標路徑…</string>
-    <string name="entry_paste_is_empty_message">請至少選擇一個檔案或目錄。</string>
+    <string name="enter_paste_is_empty_message">請至少選擇一個檔案或目錄。</string>
     <string name="paste">貼上</string>
     <string name="cancel">取消</string>
     <string name="copying_message">正在複製…</string>
@@ -40,7 +40,7 @@
     <string name="delete_file_message">刪除「%s」？\n警告：此操作將永久刪除，且無法復原。</string>
     <string name="files_deleting">正在刪除檔案…</string>
     <string name="opening_archive_message">正在開啟…</string>
-    <string name="entry_pack_is_empty_message">請至少選擇一個檔案或目錄。</string>
+    <string name="enter_pack_is_empty_message">請至少選擇一個檔案或目錄。</string>
     <string name="create_archive">建立封存</string>
     <string name="select_all_no_duplicates">全選（無重複）</string>
     <string name="select_all">全選</string>
