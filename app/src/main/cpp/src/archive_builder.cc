@@ -159,6 +159,7 @@ void ArchiveBuilder::AddToArchive(
     if (entry_name.empty()) return;
 
     auto entry = CreateArchiveEntry(entry_name);
+    archive_entry_copy_stat(entry.get(), &st);
     if (S_ISDIR(st.st_mode)) {
         archive_entry_set_filetype(entry.get(), AE_IFDIR);
         archive_entry_set_size(entry.get(), 0);
