@@ -5,6 +5,7 @@
     <string name="archive_format_seven_zip_name" translatable="false">7-Zip</string>
     <string name="archive_format_tar_name" translatable="false">Tar</string>
     <string name="archive_format_cpio_name" translatable="false">Cpio</string>
+    <string name="archive_format_xar_name" translatable="false">Xar</string>
     <string name="archive_compression_type_none_name" translatable="false">None</string>
     <string name="archive_compression_type_store_name" translatable="false">Store</string>
     <string name="archive_compression_type_deflate_name" translatable="false">Deflate</string>

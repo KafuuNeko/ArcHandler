@@ -17,14 +17,14 @@ if (NOT TARGET libiconv::libiconv)
             IMPORTED_LOCATION "${LIBICONV_PATH}"
             INTERFACE_INCLUDE_DIRECTORIES "${ICONV_INCLUDE_DIR}"
     )
-endif()
+endif ()
 if (NOT TARGET libiconv::libcharset)
     add_library(libiconv::libcharset STATIC IMPORTED)
     set_target_properties(libiconv::libcharset PROPERTIES
             IMPORTED_LOCATION "${LIBCHARSET_PATH}"
             INTERFACE_INCLUDE_DIRECTORIES "${ICONV_INCLUDE_DIR}"
     )
-endif()
+endif ()
 
 # bzip2
 add_subdirectory(third_party/bzip2)
@@ -57,9 +57,9 @@ add_subdirectory(third_party/xz)
 # 设置LIBLZMA模块变量
 set(_xz_lib "${CMAKE_BINARY_DIR}/third_party/xz/liblzma.a")
 set(_xz_inc "${CMAKE_SOURCE_DIR}/third_party/xz/src/liblzma/api")
-set(LIBLZMA_LIBRARY_DEBUG  "${_xz_lib}" CACHE FILEPATH "liblzma debug lib" FORCE)
+set(LIBLZMA_LIBRARY_DEBUG "${_xz_lib}" CACHE FILEPATH "liblzma debug lib" FORCE)
 set(LIBLZMA_LIBRARY_RELEASE "${_xz_lib}" CACHE FILEPATH "liblzma release lib" FORCE)
-set(LIBLZMA_INCLUDE_DIR    "${_xz_inc}" CACHE PATH "liblzma includes" FORCE)
+set(LIBLZMA_INCLUDE_DIR "${_xz_inc}" CACHE PATH "liblzma includes" FORCE)
 set(LIBLZMA_FOUND TRUE CACHE BOOL "liblzma found by top-level" FORCE)
 set(LIBLZMA_LIBRARIES "${_xz_lib}" CACHE INTERNAL "liblzma library (forced)" FORCE)
 # 创建一个 modern CMake IMPORTED target
@@ -70,7 +70,7 @@ if (NOT TARGET LibLZMA::LibLZMA)
             INTERFACE_INCLUDE_DIRECTORIES "${_xz_inc}"
     )
     message(WARNING "Top-level: created IMPORTED target LibLZMA::LibLZMA -> ${_xz_lib}")
-endif()
+endif ()
 
 # libarchive
 set(ENABLE_ICONV ON)
@@ -80,6 +80,8 @@ set(ENABLE_LZ4 ON)
 set(ENABLE_LZMA ON)
 set(ENABLE_ZSTD ON)
 set(ENABLE_TAR ON)
+set(ENABLE_XAR ON)
+set(ENABLE_WARC ON)
 set(ENABLE_CPIO ON)
 set(ENABLE_CAT OFF)
 set(ENABLE_TEST OFF)

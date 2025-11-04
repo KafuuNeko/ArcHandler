@@ -1,6 +1,7 @@
 package cc.kafuu.archandler.libs.archive.impl.packer
 
 import cc.kafuu.archandler.libs.archive.IPacker
+import cc.kafuu.archandler.libs.archive.model.CompressionAlgorithm
 import cc.kafuu.archandler.libs.archive.model.CompressionOption
 import cc.kafuu.archandler.libs.extensions.collectFilesWithRelativePaths
 import kotlinx.coroutines.ensureActive
@@ -36,14 +37,6 @@ class SevenZipPacker(
      */
     private fun createOutArchive() = when (option) {
         is CompressionOption.Tar -> SevenZip.openOutArchiveTar()
-
-        is CompressionOption.BZip2 -> SevenZip.openOutArchiveBZip2().apply {
-            setLevel(option.compressionLevel)
-        }
-
-        is CompressionOption.GZip -> SevenZip.openOutArchiveGZip().apply {
-            setLevel(option.compressionLevel)
-        }
 
         is CompressionOption.SevenZip -> SevenZip.openOutArchive7z().apply {
             if (option.password != null && this is IOutFeatureSetEncryptHeader) {
@@ -120,22 +113,26 @@ class SevenZipPacker(
         allEntries: List<Pair<File, String>>,
         onGetStream: (Int) -> ISequentialInStream?
     ) = when (option) {
-        is CompressionOption.BZip2 -> createCallback<IOutItemBZip2>(
-            onGetItemInformation = { index, itemFactory ->
-                itemFactory?.createOutItem()
-            },
-            onGetStream = onGetStream
-        )
+        is CompressionOption.Raw -> when (option.algorithm) {
+            is CompressionAlgorithm.BZip2 -> createCallback<IOutItemBZip2>(
+                onGetItemInformation = { index, itemFactory ->
+                    itemFactory?.createOutItem()
+                },
+                onGetStream = onGetStream
+            )
 
-        is CompressionOption.GZip -> createCallback<IOutItemGZip>(
-            onGetItemInformation = { index, itemFactory ->
-                val (_, relativePath) = allEntries[index]
-                itemFactory?.createOutItem()?.apply {
-                    propertyPath = relativePath
-                }
-            },
-            onGetStream = onGetStream
-        )
+            is CompressionAlgorithm.GZip -> createCallback<IOutItemGZip>(
+                onGetItemInformation = { index, itemFactory ->
+                    val (_, relativePath) = allEntries[index]
+                    itemFactory?.createOutItem()?.apply {
+                        propertyPath = relativePath
+                    }
+                },
+                onGetStream = onGetStream
+            )
+
+            else -> throw IllegalArgumentException()
+        }
 
         is CompressionOption.Tar -> createCallback<IOutItemTar>(
             onGetItemInformation = { index, itemFactory ->

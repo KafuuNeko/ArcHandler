@@ -1,8 +1,8 @@
 
 #include <jni.h>
 #include <vector>
-#include <android/log.h>
 
+#include "native_logger.hpp"
 #include "utils/jni_utils.hpp"
 #include "src/archive_builder.hpp"
 #include "src/archive_extractor.hpp"
@@ -45,8 +45,7 @@ namespace internal {
             return JNI_TRUE;
         } catch (const std::exception &exception) {
             s_latest_error_message = exception.what();
-            __android_log_print(ANDROID_LOG_ERROR, k_log_tag, "CreateArchive failed: %s",
-                                exception.what());
+            logger::error("CreateArchive failed: %s", exception.what());
             return JNI_FALSE;
         }
     }
@@ -75,8 +74,7 @@ namespace internal {
             return JNI_TRUE;
         } catch (const std::exception &exception) {
             s_latest_error_message = exception.what();
-            __android_log_print(ANDROID_LOG_ERROR, k_log_tag, "ExtractArchive failed: %s",
-                                exception.what());
+            logger::error("ExtractArchive failed: %s", exception.what());
             return JNI_FALSE;
         }
     }
@@ -109,8 +107,7 @@ namespace internal {
             return CreateJStringArray(env, list_pathname.cbegin(), list_pathname.cend()).release();
         } catch (const std::exception &exception) {
             s_latest_error_message = exception.what();
-            __android_log_print(ANDROID_LOG_ERROR, k_log_tag, "ExtractArchive failed: %s",
-                                exception.what());
+            logger::error("ExtractArchive failed: %s", exception.what());
             return nullptr;
         }
     }

@@ -11,6 +11,7 @@
 #include <vector>
 #include <fstream>
 
+#include "native_logger.hpp"
 #include "archive_builder.hpp"
 #include "utils/file_utils.hpp"
 
@@ -94,17 +95,23 @@ ArchiveBuilder::AddFilterAndSetLevel(CompressionType compression, int32_t compre
 }
 
 void ArchiveBuilder::SetArchiveFormat(ArchiveFormat format) {
+    logger::debug("SetArchiveFormat(%d)", format);
+    int32_t rc = -1;
     switch (format) {
         case ArchiveFormat::Tar:
-            archive_write_set_format_pax(archive_.get());
+            rc = archive_write_set_format_pax(archive_.get());
             break;
         case ArchiveFormat::Cpio:
-            archive_write_set_format_cpio_newc(archive_.get());
+            rc = archive_write_set_format_cpio_newc(archive_.get());
             break;
         case ArchiveFormat::Zip:
-            archive_write_set_format_zip(archive_.get());
+            rc = archive_write_set_format_zip(archive_.get());
+            break;
+        case ArchiveFormat::Xar:
+            rc = archive_write_set_format_xar(archive_.get());
             break;
     }
+    logger::debug("SetArchiveFormat, rc=%d", rc);
 }
 
 

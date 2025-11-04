@@ -21,6 +21,14 @@ enum class ArchiveFormat(
         supportCompressionTypes = listOf(CompressionType.Store, CompressionType.Lzma),
         defaultCompressionType = CompressionType.Lzma
     ),
+    Xar(
+        displayName = R.string.archive_format_xar_name,
+        supportsPassword = false,
+        supportCompressionTypes = listOf(
+            CompressionType.Gzip, CompressionType.Lzma, CompressionType.Bzip2
+        ),
+        defaultCompressionType = CompressionType.Gzip
+    ),
     Tar(
         displayName = R.string.archive_format_tar_name,
         supportsPassword = false,

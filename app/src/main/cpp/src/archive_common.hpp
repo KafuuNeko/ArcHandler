@@ -4,7 +4,7 @@
 #include <archive_entry.h>
 
 enum class ArchiveFormat {
-    Tar = 0, Cpio = 1, Zip = 2
+    Tar = 0, Cpio = 1, Zip = 2, Xar = 3
 };
 
 enum class CompressionType {

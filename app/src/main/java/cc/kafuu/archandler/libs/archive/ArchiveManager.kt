@@ -42,9 +42,8 @@ class ArchiveManager {
             Regex(""".*\.zip\.\d{3}$""").matches(name) -> SevenZipArchive(file, ArchiveFormat.ZIP)
 
             listOf(
-                ".tar.gz", ".tar.bz2", ".tar.xz", ".tar.lz4", ".tar.zst",
-                ".cpio.gz", ".cpio.bz2", ".cpio.xz", ".cpio.lz4", ".cpio.zst",
-                ".gzip", ".gz", ".bzip2", ".bz2", ".xz", "lz4", "zst"
+                ".tar", ".xar", ".cpio",
+                ".gzip", ".gz", ".bzip2", ".bz2", ".xz", ".lz4", ".zst"
             ).any { file.name.endsWith(it, ignoreCase = true) } -> LibArchive(file)
 
             else -> when (file.extension.lowercase()) {
@@ -87,23 +86,13 @@ class ArchiveManager {
         compressionOption: CompressionOption
     ): IPacker {
         return when (compressionOption) {
-            is CompressionOption.Tar,
-            is CompressionOption.GZip,
-            is CompressionOption.BZip2,
             is CompressionOption.Zip,
             is CompressionOption.SevenZip -> SevenZipPacker(archiveFile, compressionOption)
 
-            is CompressionOption.TarBzip2,
-            is CompressionOption.TarGZip,
-            is CompressionOption.TarXz,
-            is CompressionOption.TarLz4,
-            is CompressionOption.TarZstd,
+            is CompressionOption.Raw,
+            is CompressionOption.Tar,
             is CompressionOption.Cpio,
-            is CompressionOption.CpioBzip2,
-            is CompressionOption.CpioGZip,
-            is CompressionOption.CpioXz,
-            is CompressionOption.CpioLz4,
-            is CompressionOption.CpioZstd -> LibArchivePacker(archiveFile, compressionOption)
+            is CompressionOption.Xar -> LibArchivePacker(archiveFile, compressionOption)
         }
     }
 }

@@ -1,6 +1,7 @@
 package cc.kafuu.archandler.libs.archive.impl.packer
 
 import cc.kafuu.archandler.libs.archive.IPacker
+import cc.kafuu.archandler.libs.archive.model.CompressionAlgorithm
 import cc.kafuu.archandler.libs.archive.model.CompressionOption
 import cc.kafuu.archandler.libs.extensions.commonBaseDir
 import cc.kafuu.archandler.libs.jni.NativeCallback
@@ -14,62 +15,31 @@ class LibArchivePacker(
     private val option: CompressionOption
 ) : IPacker {
     private fun getFormat() = when (option) {
-        is CompressionOption.Cpio,
-        is CompressionOption.CpioBzip2,
-        is CompressionOption.CpioGZip,
-        is CompressionOption.CpioXz,
-        is CompressionOption.CpioLz4,
-        is CompressionOption.CpioZstd -> LibArchiveFormat.Cpio
+        is CompressionOption.Cpio -> LibArchiveFormat.Cpio
 
-        is CompressionOption.Tar,
-        is CompressionOption.TarBzip2,
-        is CompressionOption.TarGZip,
-        is CompressionOption.TarXz,
-        is CompressionOption.TarLz4,
-        is CompressionOption.TarZstd -> LibArchiveFormat.Tar
+        is CompressionOption.Tar -> LibArchiveFormat.Tar
 
         is CompressionOption.Zip -> LibArchiveFormat.Zip
 
-        else -> throw IllegalArgumentException()
-    }
-
-    private fun getCompression() = when (option) {
-        is CompressionOption.Tar,
-        is CompressionOption.Cpio,
-        is CompressionOption.Zip -> LibCompressionType.None
-
-        is CompressionOption.TarBzip2,
-        is CompressionOption.CpioBzip2 -> LibCompressionType.Bzip2
-
-        is CompressionOption.CpioGZip,
-        is CompressionOption.TarGZip -> LibCompressionType.Gzip
-
-        is CompressionOption.CpioXz,
-        is CompressionOption.TarXz -> LibCompressionType.Xz
-
-        is CompressionOption.CpioLz4,
-        is CompressionOption.TarLz4 -> LibCompressionType.Lz4
-
-        is CompressionOption.CpioZstd,
-        is CompressionOption.TarZstd -> LibCompressionType.Zstd
+        is CompressionOption.Xar -> LibArchiveFormat.Xar
 
         else -> throw IllegalArgumentException()
     }
 
-    private fun getCompressionLevel() = when (option) {
-        is CompressionOption.BZip2 -> option.compressionLevel
-        is CompressionOption.CpioBzip2 -> option.compressionLevel
-        is CompressionOption.CpioGZip -> option.compressionLevel
-        is CompressionOption.CpioXz -> option.compressionLevel
-        is CompressionOption.CpioZstd -> option.compressionLevel
-        is CompressionOption.GZip -> option.compressionLevel
-        is CompressionOption.SevenZip -> option.compressionLevel
-        is CompressionOption.TarBzip2 -> option.compressionLevel
-        is CompressionOption.TarGZip -> option.compressionLevel
-        is CompressionOption.TarXz -> option.compressionLevel
-        is CompressionOption.TarZstd -> option.compressionLevel
-        is CompressionOption.Zip -> option.compressionLevel
-        else -> 0
+    private fun getCompressionAlgorithm() = when (option) {
+        is CompressionOption.Cpio -> option.algorithm
+        is CompressionOption.Raw -> option.algorithm
+        is CompressionOption.Tar -> option.algorithm
+        is CompressionOption.Xar -> option.algorithm
+        else -> null
+    }
+
+    private fun CompressionAlgorithm.getCompressionType() = when (this) {
+        is CompressionAlgorithm.BZip2 -> LibCompressionType.Bzip2
+        is CompressionAlgorithm.GZip -> LibCompressionType.Gzip
+        is CompressionAlgorithm.Lz4 -> LibCompressionType.Lz4
+        is CompressionAlgorithm.Xz -> LibCompressionType.Xz
+        is CompressionAlgorithm.Zstd -> LibCompressionType.Zstd
     }
 
     override suspend fun pack(
@@ -86,13 +56,14 @@ class LibArchivePacker(
         }
         var baseDir = files.commonBaseDir()?.path ?: return false
         if (!baseDir.startsWith("/")) baseDir = "/$baseDir"
+        val algorithm = getCompressionAlgorithm()
         return NativeLib.createArchive(
             outputPath = archiveFile.path,
             baseDir = baseDir,
             inputFiles = files.map { it.path },
             format = getFormat().id,
-            compression = getCompression().id,
-            compressionLevel = getCompressionLevel(),
+            compression = (algorithm?.getCompressionType() ?: LibCompressionType.None).id,
+            compressionLevel = algorithm?.compressionLevel ?: 0,
             listener = nativeListener
         )
     }

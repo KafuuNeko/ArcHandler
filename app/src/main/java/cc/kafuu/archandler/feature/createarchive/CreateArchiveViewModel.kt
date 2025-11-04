@@ -15,7 +15,6 @@ import cc.kafuu.archandler.libs.archive.model.CompressionOption
 import cc.kafuu.archandler.libs.core.AppViewEvent
 import cc.kafuu.archandler.libs.core.CoreViewModelWithEvent
 import cc.kafuu.archandler.libs.core.UiIntentObserver
-import cc.kafuu.archandler.libs.extensions.getNameExtension
 import cc.kafuu.archandler.libs.manager.DataTransferManager
 import cc.kafuu.archandler.libs.model.CreateArchiveData
 import kotlinx.coroutines.Dispatchers
@@ -158,7 +157,8 @@ class CreateArchiveViewModel : CoreViewModelWithEvent<CreateArchiveUiIntent, Cre
         }
         // 检查压缩包文件是否冲突
         val hasFileNameConflict = getPackageOptions().map {
-            File(targetDirectory, "${targetFileName}.${it.getNameExtension()}")
+
+            File(targetDirectory, "${targetFileName}.${it.fileExtension}")
         }.any { it.exists() }
         if (hasFileNameConflict) {
             AppViewEvent.PopupToastMessageByResId(R.string.archive_name_conflict_message).emit()
@@ -172,7 +172,7 @@ class CreateArchiveViewModel : CoreViewModelWithEvent<CreateArchiveUiIntent, Cre
         targetDirectory: File,
         targetFileName: String
     ): File? {
-        val packageFileName = "$targetFileName.${getNameExtension()}"
+        val packageFileName = "$targetFileName.${fileExtension}"
         val archiveFile = File(targetDirectory, packageFileName)
         mLastArchiveFile = archiveFile
         val isSuccessful = mArchiveManager.createPacker(
