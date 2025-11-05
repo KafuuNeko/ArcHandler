@@ -54,7 +54,8 @@ fun DirectoryView(
                 .fillMaxWidth()
                 .padding(horizontal = 10.dp),
             storageData = listState.storageData,
-            directoryPath = listState.directoryPath
+            directoryPath = listState.directoryPath,
+            onClickDevice = { MainUiIntent.ToStoragePage.also(emitIntent) }
         ) {
             MainUiIntent.FileSelected(listState.storageData, it).also(emitIntent)
         }

@@ -64,7 +64,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
     private val mDataTransferManager by inject<DataTransferManager>()
 
     // 列表状态栈
-    private var mListStateStack: Stack<MainListState> = Stack()
+    private var mListStateStack: Stack<MainListState> = Stack(256)
 
     // 压缩包密码提供请求接口
     val mPasswordProvider = object : IPasswordProvider {
@@ -450,6 +450,14 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
 
             MainDrawerMenuEnum.About -> AppViewEvent.StartActivity(AboutActivity::class.java).emit()
         }
+    }
+
+    /**
+     * 跳到存储设备页
+     */
+    @UiIntentObserver(MainUiIntent.ToStoragePage::class)
+    private suspend fun onToStoragePage() {
+        getOrNull<MainUiState.Normal>()?.loadExternalStorages()?.setup()
     }
 
     /**

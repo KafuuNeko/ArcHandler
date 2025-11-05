@@ -22,6 +22,8 @@ sealed class MainUiIntent {
 
     data class StorageVolumeSelected(val storageData: StorageData) : MainUiIntent()
 
+    data object ToStoragePage : MainUiIntent()
+
     data class FileSelected(
         val storageData: StorageData,
         val file: File

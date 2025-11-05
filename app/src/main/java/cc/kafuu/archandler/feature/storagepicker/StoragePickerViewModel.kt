@@ -128,9 +128,8 @@ class StoragePickerViewModel :
                 val currentPath = state.listState.directoryPath
                 val storageData = state.listState.storageData
                 val parent = currentPath.getParentPath()
-                if (parent == null || Path(storageData.directory.path).isSameFileOrDirectory(
-                        currentPath
-                    )
+                if (parent == null ||
+                    Path(storageData.directory.path).isSameFileOrDirectory(currentPath)
                 ) {
                     loadExternalStorages()
                 } else {
@@ -143,6 +142,11 @@ class StoragePickerViewModel :
                 StoragePickerUiState.Finished.setup()
             }
         }
+    }
+
+    @UiIntentObserver(StoragePickerUiIntent.ToStoragePage::class)
+    suspend fun onToStoragePage() {
+        loadExternalStorages()
     }
 
     @UiIntentObserver(StoragePickerUiIntent.ClosePage::class)

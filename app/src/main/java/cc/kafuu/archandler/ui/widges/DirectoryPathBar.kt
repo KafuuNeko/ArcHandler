@@ -15,6 +15,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import cc.kafuu.archandler.R
 import cc.kafuu.archandler.libs.model.StorageData
@@ -26,6 +27,7 @@ fun DirectoryPathBar(
     storageData: StorageData,
     directoryPath: Path,
     modifier: Modifier = Modifier,
+    onClickDevice: ()-> Unit,
     onClick: (File) -> Unit
 ) {
     val baseURI = storageData.directory.toURI()
@@ -45,6 +47,22 @@ fun DirectoryPathBar(
             .horizontalScroll(scrollState),
         verticalAlignment = Alignment.CenterVertically
     ) {
+        Text(
+            modifier = Modifier
+                .clickable { onClickDevice() },
+            text = stringResource(R.string.storage_volume),
+            style = MaterialTheme.typography.headlineMedium,
+            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.75f)
+        )
+
+        Image(
+            modifier = Modifier
+                .padding(horizontal = 2.5.dp)
+                .size(12.dp),
+            painter = painterResource(R.drawable.ic_arrow_forward),
+            contentDescription = null
+        )
+
         Text(
             modifier = Modifier
                 .clickable { onClick(storageData.directory) },
