@@ -2,11 +2,11 @@ package cc.kafuu.archandler.libs.extensions
 
 import cc.kafuu.archandler.libs.AppModel
 import cc.kafuu.archandler.libs.archive.ArchiveManager
+import cc.kafuu.archandler.libs.model.FileConflictStrategy
 import cc.kafuu.archandler.libs.model.FileType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
-import org.apache.commons.io.FileUtils
 import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
@@ -15,6 +15,7 @@ import java.security.MessageDigest
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlin.coroutines.coroutineContext
 import kotlin.math.log10
 import kotlin.math.pow
 
@@ -74,34 +75,6 @@ fun File.getReadableSize(): String {
     val readableSize = size / 1024.0.pow(unitIndex.toDouble())
 
     return "%.2f %s".format(readableSize, units[unitIndex])
-}
-
-fun File.appMoveTo(dest: File): Boolean {
-    try {
-        if (isDirectory) {
-            FileUtils.moveDirectory(this, dest)
-        } else {
-            FileUtils.moveFile(this, dest)
-        }
-        return true
-    } catch (e: IOException) {
-        e.printStackTrace()
-        return false
-    }
-}
-
-fun File.appCopyTo(dest: File): Boolean {
-    try {
-        if (isDirectory) {
-            FileUtils.copyDirectory(this, dest)
-        } else {
-            FileUtils.copyFile(this, dest)
-        }
-        return true
-    } catch (e: IOException) {
-        e.printStackTrace()
-        return false
-    }
 }
 
 fun File.createUniqueDirectory(): File? {
@@ -261,4 +234,122 @@ fun File.listFilteredFiles(
                     (showUnreadableDirectories || !file.isDirectory || file.canRead()) &&
                     (showUnreadableFiles || !file.isFile || file.canRead())
         } ?: emptyList()
+}
+
+fun File.copyFileCompat(dst: File): Boolean = try {
+    inputStream().use { input ->
+        dst.outputStream().use { output -> input.copyTo(output) }
+    }
+    true
+} catch (_: Exception) {
+    false
+}
+
+fun File.moveWithFallback(dst: File): Boolean {
+    try {
+        if (renameTo(dst)) return true
+    } catch (_: Exception) {
+    }
+    try {
+        if (dst.exists()) dst.delete()
+        inputStream().use { input -> dst.outputStream().use { output -> input.copyTo(output) } }
+        if (!delete()) {
+            dst.delete()
+            return false
+        }
+        return true
+    } catch (_: Exception) {
+        return false
+    }
+}
+
+suspend fun File.copyOrMoveTo(
+    target: File,
+    isMove: Boolean,
+    onStart: suspend (srcFile: File, finalTargetFile: File) -> Unit = { _, _ -> },
+    onConflict: suspend (srcFile: File, targetFile: File) -> FileConflictStrategy = { _, _ -> FileConflictStrategy.Skip },
+    onSuccess: suspend (srcFile: File, finalTargetFile: File, strategy: FileConflictStrategy) -> Unit = { _, _, _ -> }
+): Boolean {
+    val actualTarget = if (target.isDirectory) File(target, name) else target
+    coroutineContext.ensureActive()
+    // 处理文件
+    if (isFile) {
+        onStart(this, actualTarget)
+
+        // 是否存在冲突
+        val strategy = if (actualTarget.exists()) {
+            onConflict(this, actualTarget)
+        } else {
+            FileConflictStrategy.Overwrite
+        }
+
+        // 处理最终目标
+        val finalTarget = when (strategy) {
+            FileConflictStrategy.Skip -> actualTarget
+            FileConflictStrategy.Overwrite -> actualTarget
+            FileConflictStrategy.KeepBoth -> this.generateUniqueFile(actualTarget.parentFile!!)
+        }
+
+        if (strategy == FileConflictStrategy.Skip) {
+            onSuccess(this, finalTarget, strategy)
+            return true
+        }
+
+        // 执行 copy 或 move
+        val success = withContext(Dispatchers.IO) {
+            if (isMove) {
+                this@copyOrMoveTo.moveWithFallback(finalTarget)
+            } else {
+                this@copyOrMoveTo.copyFileCompat(finalTarget)
+            }
+        }
+
+        if (success) onSuccess(this, finalTarget, strategy)
+        return success
+    }
+    if (isDirectory) {
+        actualTarget.mkdirs()
+        listFiles()?.forEach { child ->
+            if (!child.copyOrMoveTo(actualTarget, isMove, onStart, onConflict, onSuccess)) {
+                return false
+            }
+        }
+        if (isMove) delete()
+        return true
+    }
+    return false
+}
+
+suspend fun List<File>.copyOrMoveTo(
+    target: File,
+    isMove: Boolean,
+    onStart: suspend (srcFile: File, finalTargetFile: File) -> Unit = { _, _ -> },
+    onConflict: suspend (srcFile: File, targetFile: File) -> FileConflictStrategy = { _, _ -> FileConflictStrategy.Skip },
+    onSuccess: suspend (srcFile: File, finalTargetFile: File, strategy: FileConflictStrategy) -> Unit = { _, _, _ -> },
+): Boolean = all { it.copyOrMoveTo(target, isMove, onStart, onConflict, onSuccess) }
+
+fun File.hasUnmovableItems(): Boolean {
+    if (!exists()) return true
+    if (!canRead() || !canWrite()) return true
+    if (isFile) return false
+    if (isDirectory) {
+        val children = listFiles() ?: return true
+        for (child in children) {
+            if (child.hasUnmovableItems()) return true
+        }
+        return false
+    }
+    return true
+}
+
+fun List<File>.hasUnmovableItems(): Boolean = all { it.hasUnmovableItems() }
+
+fun File.countAllFiles(): Int {
+    if (isFile) return 1
+    if (!isDirectory) return 0
+    var count = 0
+    listFiles()?.forEach { child ->
+        count += child.countAllFiles()
+    }
+    return count
 }

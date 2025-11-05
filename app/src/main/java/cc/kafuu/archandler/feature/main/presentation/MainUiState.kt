@@ -99,12 +99,14 @@ sealed class MainLoadState {
 
     data object DirectoryLoading : MainLoadState()
 
+    data object FileScanning : MainLoadState()
+
     data class Pasting(
         val isMoving: Boolean,
         val src: File,
         val dest: File,
         val totality: Int,
-        val quantityCompleted: Int
+        val currentIndex: Int
     ) : MainLoadState()
 
     data class ArchiveOpening(

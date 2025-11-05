@@ -79,6 +79,10 @@ private fun MainLoadDialogSwitch(
     when (loadState) {
         MainLoadState.None -> Unit
 
+        MainLoadState.FileScanning -> {
+            AppLoadDialog(message = stringResource(R.string.scanning_files_message))
+        }
+
         MainLoadState.ExternalStoragesLoading -> {
             AppLoadDialog(message = stringResource(R.string.storage_loading_message))
         }
@@ -91,7 +95,7 @@ private fun MainLoadDialogSwitch(
             val message = stringResource(
                 if (loadState.isMoving) R.string.moving_message else R.string.copying_message
             )
-            val progress = "${loadState.quantityCompleted + 1}/${loadState.totality}"
+            val progress = "${loadState.currentIndex + 1}/${loadState.totality}"
             AppLoadDialog(messages = listOf(message, progress))
         }
 

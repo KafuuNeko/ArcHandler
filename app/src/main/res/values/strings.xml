@@ -116,4 +116,7 @@
     <string name="new_file_label">New File</string>
     <string name="size_colon">Size:\n%1$s</string>
     <string name="modified_colon">Modified:\n%1$s</string>
+    <string name="scanning_files_message">Scanning files…</string>
+    <string name="has_unmovable_files_message">Some files could not be moved</string>
+    <string name="cannot_write_directory_message">Cannot write to the destination directory</string>
 </resources>

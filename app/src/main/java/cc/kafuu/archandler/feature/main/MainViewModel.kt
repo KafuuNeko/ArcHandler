@@ -22,13 +22,13 @@ import cc.kafuu.archandler.libs.archive.IPasswordProvider
 import cc.kafuu.archandler.libs.core.AppViewEvent
 import cc.kafuu.archandler.libs.core.CoreViewModelWithEvent
 import cc.kafuu.archandler.libs.core.UiIntentObserver
-import cc.kafuu.archandler.libs.extensions.appCopyTo
-import cc.kafuu.archandler.libs.extensions.appMoveTo
+import cc.kafuu.archandler.libs.extensions.copyOrMoveTo
+import cc.kafuu.archandler.libs.extensions.countAllFiles
 import cc.kafuu.archandler.libs.extensions.createChooserIntent
 import cc.kafuu.archandler.libs.extensions.createUniqueDirectory
 import cc.kafuu.archandler.libs.extensions.deletes
-import cc.kafuu.archandler.libs.extensions.generateUniqueFile
 import cc.kafuu.archandler.libs.extensions.getSameNameDirectory
+import cc.kafuu.archandler.libs.extensions.hasUnmovableItems
 import cc.kafuu.archandler.libs.extensions.listFilteredFiles
 import cc.kafuu.archandler.libs.extensions.sha256Of
 import cc.kafuu.archandler.libs.manager.CacheManager
@@ -341,56 +341,46 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
         targetDirectoryPath: Path
     ) = withContext(Dispatchers.IO) {
         val viewMode = viewModeState as? MainListViewModeState.Paste ?: return@withContext
+        MainLoadState.FileScanning.run { copy(loadState = this) }.setup()
+        // 验证目标目录是否允许写入
         val targetDirectoryFile = File(targetDirectoryPath.toString())
-
-        // 粘贴失败的列表
-        val failureList = mutableListOf<File>()
-
-        // 整体数量与已经完成的数量
-        val totality = viewMode.sourceFiles.size
-        var quantityCompleted = 0
+        if (!targetDirectoryFile.canWrite()) {
+            AppViewEvent.PopupToastMessageByResId(R.string.cannot_write_directory_message).emit()
+            setup()
+            return@withContext
+        }
+        // 如果是移动文件，则验证源文件是否可被移动
+        if (viewMode.isMoving && viewMode.sourceFiles.hasUnmovableItems()) {
+            AppViewEvent.PopupToastMessageByResId(R.string.has_unmovable_files_message).emit()
+            setup()
+            return@withContext
+        }
+        val totality = viewMode.sourceFiles.sumOf { it.countAllFiles() }
+        var currentIndex = 0
         var fileConflictStrategy: FileConflictStrategy? = null
-
-        // 逐个粘贴文件
-        viewMode.sourceFiles.forEach {
-            var currentConflict = fileConflictStrategy
-            var dest = File(targetDirectoryFile, it.name)
-            // 更新加载状态
-            MainLoadState
-                .Pasting(
-                    isMoving = viewMode.isMoving,
-                    src = it, dest = dest, totality = totality,
-                    quantityCompleted = quantityCompleted
-                )
-                .run { copy(loadState = this) }
-                .apply { setup() }
-            // 如果文件存在则让用户选择冲突处理类型
-            if (dest.exists() && currentConflict == null) {
-                val result = MainDialogState.FileConflict(oldFile = dest, newFile = it).run {
+        viewMode.sourceFiles.copyOrMoveTo(
+            target = targetDirectoryFile,
+            isMove = viewMode.isMoving,
+            onStart = { src, dst ->
+                MainLoadState
+                    .Pasting(
+                        isMoving = viewMode.isMoving,
+                        src = src, dest = dst, totality = totality,
+                        currentIndex = currentIndex++
+                    )
+                    .run { copy(loadState = this) }
+                    .setup()
+            },
+            onConflict = { src, dst ->
+                fileConflictStrategy?.run { return@copyOrMoveTo this }
+                val result = MainDialogState.FileConflict(oldFile = src, newFile = dst).run {
                     popupAwaitDialogResult { deferredResult.awaitCompleted() }
                 }
-                currentConflict = result?.first ?: FileConflictStrategy.Skip
+                val currentConflict = result?.first ?: FileConflictStrategy.Skip
                 if (result?.second == true) fileConflictStrategy = currentConflict
+                return@copyOrMoveTo currentConflict
             }
-            // 移动或拷贝文件
-            if (dest.exists()) when (currentConflict) {
-                null, FileConflictStrategy.Skip -> {
-                    quantityCompleted += 1
-                    return@forEach
-                }
-
-                FileConflictStrategy.KeepBoth -> {
-                    dest = dest.generateUniqueFile(targetDirectoryFile)
-                }
-
-                FileConflictStrategy.Overwrite -> {
-                    dest.delete()
-                }
-            }
-            val isSuccessful = if (viewMode.isMoving) it.appMoveTo(dest) else it.appCopyTo(dest)
-            if (!isSuccessful) failureList.add(it)
-            quantityCompleted += 1
-        }
+        )
         // 流程结束，重置状态
         setup()
     }

@@ -84,9 +84,6 @@ dependencies {
     // XXPermissions
     implementation(libs.xxpermissions)
 
-    // Apache Commons IO
-    implementation(libs.commons.io)
-
     // Coil
     implementation(libs.coil.compose)
 
