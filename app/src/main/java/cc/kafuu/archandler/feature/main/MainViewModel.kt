@@ -528,7 +528,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
         if (uiState.loadState is MainLoadState.Unpacking) {
             cancelActiveTaskAndRestore()
             mCacheManager.clearCache(AppCacheType.MERGE_SPLIT_ARCHIVE)
-            uiState.refresh().setup()
+            uiState.copy(loadState = MainLoadState.None).refresh().setup()
         }
     }
 
@@ -683,6 +683,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
     private suspend fun onCancelSelectNoDuplicatesJob() {
         val uiState = getOrNull<MainUiState.Normal>() ?: return
         if (uiState.loadState is MainLoadState.QueryDuplicateFiles) cancelActiveTaskAndRestore()
+        uiState.copy(loadState = MainLoadState.None).refresh().setup()
     }
 
     @UiIntentObserver(MainUiIntent.InvertSelectionClick::class)
