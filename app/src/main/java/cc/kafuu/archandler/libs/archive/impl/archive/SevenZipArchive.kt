@@ -6,6 +6,7 @@ import cc.kafuu.archandler.libs.archive.model.ArchiveEntry
 import cc.kafuu.archandler.libs.manager.CacheManager
 import cc.kafuu.archandler.libs.model.AppCacheType
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
@@ -22,7 +23,6 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.RandomAccessFile
 import kotlin.coroutines.cancellation.CancellationException
-import kotlin.coroutines.coroutineContext
 
 class SevenZipArchive(
     private val archiveFile: File,
@@ -167,7 +167,7 @@ class SevenZipArchive(
         val target = mSimpleArchive?.archiveItems?.count { it.path != null && !it.isFolder } ?: 0
 
         mSimpleArchive?.archiveItems?.forEach { item ->
-            coroutineContext.ensureActive()
+            currentCoroutineContext().ensureActive()
             val path = item.path ?: return@forEach
             val outFile = resolveSafeFile(destDir, path)
             if (item.isFolder) {
@@ -178,7 +178,7 @@ class SevenZipArchive(
             outFile.parentFile?.mkdirs()
             try {
                 FileOutputStream(outFile).use { out ->
-                    val ctx = coroutineContext
+                    val ctx = currentCoroutineContext()
                     item.extractSlow({ data ->
                         if (!ctx.isActive) throw CancellationException()
                         out.write(data)

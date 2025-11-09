@@ -4,6 +4,7 @@ import cc.kafuu.archandler.libs.archive.IPacker
 import cc.kafuu.archandler.libs.archive.model.CompressionAlgorithm
 import cc.kafuu.archandler.libs.archive.model.CompressionOption
 import cc.kafuu.archandler.libs.extensions.collectFilesWithRelativePaths
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.isActive
 import net.sf.sevenzipjbinding.ICryptoGetTextPassword
@@ -25,7 +26,6 @@ import net.sf.sevenzipjbinding.impl.RandomAccessFileOutStream
 import java.io.File
 import java.io.RandomAccessFile
 import kotlin.coroutines.cancellation.CancellationException
-import kotlin.coroutines.coroutineContext
 
 class SevenZipPacker(
     private val archiveFile: File,
@@ -115,7 +115,7 @@ class SevenZipPacker(
     ) = when (option) {
         is CompressionOption.Raw -> when (option.algorithm) {
             is CompressionAlgorithm.BZip2 -> createCallback<IOutItemBZip2>(
-                onGetItemInformation = { index, itemFactory ->
+                onGetItemInformation = { _, itemFactory ->
                     itemFactory?.createOutItem()
                 },
                 onGetStream = onGetStream
@@ -183,8 +183,8 @@ class SevenZipPacker(
             val allEntries = sourceFiles.flatMap { file ->
                 file.collectFilesWithRelativePaths(file)
             }
-            coroutineContext.ensureActive()
-            val ctx = coroutineContext
+            currentCoroutineContext().ensureActive()
+            val ctx = currentCoroutineContext()
             val total = allEntries.size
             val callback = createCallback(allEntries) { index ->
                 if (!ctx.isActive) throw CancellationException()
@@ -207,7 +207,7 @@ class SevenZipPacker(
         files: List<File>,
         listener: (current: Int, total: Int, filePath: String) -> Unit
     ) = try {
-        coroutineContext.ensureActive()
+        currentCoroutineContext().ensureActive()
         RandomAccessFile(archiveFile, "rw").use { raf ->
             createArchive(RandomAccessFileOutStream(raf), files, listener)
         }

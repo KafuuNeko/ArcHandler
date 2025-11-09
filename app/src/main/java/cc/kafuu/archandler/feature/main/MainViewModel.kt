@@ -41,6 +41,7 @@ import cc.kafuu.archandler.ui.utils.Stack
 import com.hjq.permissions.Permission
 import com.hjq.permissions.XXPermissions
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 import org.koin.core.component.KoinComponent
@@ -48,7 +49,6 @@ import org.koin.core.component.get
 import org.koin.core.component.inject
 import java.io.File
 import java.nio.file.Path
-import kotlin.coroutines.coroutineContext
 import kotlin.io.path.Path
 
 class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
@@ -233,7 +233,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
         // 清理缓存
         mCacheManager.clearCache(AppCacheType.MERGE_SPLIT_ARCHIVE)
         // 再次验证协程是否正在进行
-        coroutineContext.ensureActive()
+        currentCoroutineContext().ensureActive()
         // 解压流程完成，重置状态
         setup()
         if (dest == null) {
@@ -672,7 +672,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
                 if (fileMap.contains(this)) return@forEach
                 fileMap[this] = file
             }
-            coroutineContext.ensureActive()
+            currentCoroutineContext().ensureActive()
         }
         uiState.copy(
             viewModeState = viewModeState.copy(selected = fileMap.map { it.value }.toSet())

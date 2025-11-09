@@ -5,6 +5,7 @@ import cc.kafuu.archandler.libs.archive.ArchiveManager
 import cc.kafuu.archandler.libs.model.FileConflictStrategy
 import cc.kafuu.archandler.libs.model.FileType
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -15,7 +16,6 @@ import java.security.MessageDigest
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import kotlin.coroutines.coroutineContext
 import kotlin.math.log10
 import kotlin.math.pow
 
@@ -153,7 +153,7 @@ suspend fun File.sha256Of(bufferSize: Int = 1 * 1024 * 1024): String {
     ) {
         val buf = ByteArray(bufferSize)
         while (true) {
-            kotlin.coroutines.coroutineContext.ensureActive()
+            currentCoroutineContext().ensureActive()
             val read = input.read(buf)
             if (read <= 0) break
             md.update(buf, 0, read)
@@ -177,7 +177,7 @@ fun List<File>.commonBaseDir(): File? {
     val paths: List<List<String>> = this.map { file ->
         val p = try {
             file.absoluteFile.canonicalPath
-        } catch (e: IOException) {
+        } catch (_: IOException) {
             file.absoluteFile.absolutePath
         }
 
@@ -271,7 +271,7 @@ suspend fun File.copyOrMoveTo(
     onSuccess: suspend (srcFile: File, finalTargetFile: File, strategy: FileConflictStrategy) -> Unit = { _, _, _ -> }
 ): Boolean {
     val actualTarget = if (target.isDirectory) File(target, name) else target
-    coroutineContext.ensureActive()
+    currentCoroutineContext().ensureActive()
     // 处理文件
     if (isFile) {
         onStart(this, actualTarget)

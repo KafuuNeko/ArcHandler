@@ -18,6 +18,7 @@ import cc.kafuu.archandler.libs.core.UiIntentObserver
 import cc.kafuu.archandler.libs.manager.DataTransferManager
 import cc.kafuu.archandler.libs.model.CreateArchiveData
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -122,7 +123,7 @@ class CreateArchiveViewModel : CoreViewModelWithEvent<CreateArchiveUiIntent, Cre
         var targetFileName = uiState.targetFileName
         var preArchiveFile: File? = null
         uiState.getPackageOptions().forEach {
-            coroutineContext.ensureActive()
+            currentCoroutineContext().ensureActive()
             val archiveFile = it.doPacking(
                 sourceFiles = sourceFiles,
                 targetDirectory = uiState.targetDirectory,

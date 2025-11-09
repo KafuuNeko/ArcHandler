@@ -7,6 +7,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
@@ -37,7 +38,7 @@ abstract class CoreActivityWithEvent : CoreActivity() {
             getViewEventFlow()
                 .flowWithLifecycle(lifecycle, Lifecycle.State.CREATED)
                 .collect { wrapper ->
-                    coroutineContext.ensureActive()
+                    currentCoroutineContext().ensureActive()
                     wrapper.consumeIfNotHandled {
                         onReceivedViewEvent(it)
                     }
