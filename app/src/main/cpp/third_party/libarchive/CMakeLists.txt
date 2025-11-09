@@ -1251,7 +1251,16 @@ ENDIF(ENABLE_ICONV)
 # Find Libxml2
 #
 IF(ENABLE_LIBXML2 AND HAVE_ICONV)
-  FIND_PACKAGE(LibXml2)
+# TODO: 在顶层手动设置
+#  FIND_PACKAGE(LibXml2)
+  message(WARNING "==== Checking LibXML2 detection ====")
+  message(WARNING "LIBXML2_FOUND = ${LIBXML2_FOUND}")
+  message(WARNING "LIBXML2_INCLUDE_DIR = ${LIBXML2_INCLUDE_DIR}")
+  if (TARGET LibXml2::LibXml2)
+    message(WARNING "LIBXML2 target FOUND ✅")
+  else()
+    message(WARNING "LIBXML2 target NOT FOUND ❌")
+  endif()
 ELSE()
   SET(LIBXML2_FOUND FALSE)
 ENDIF()
@@ -1262,9 +1271,13 @@ IF(LIBXML2_FOUND)
   SET(HAVE_LIBXML2 1)
   # libxml2's include files use iconv.h
   SET(CMAKE_REQUIRED_INCLUDES ${ICONV_INCLUDE_DIR} ${LIBXML2_INCLUDE_DIR})
-  CHECK_INCLUDE_FILES("libxml/xmlreader.h" HAVE_LIBXML_XMLREADER_H)
-  CHECK_INCLUDE_FILES("libxml/xmlwriter.h" HAVE_LIBXML_XMLWRITER_H)
-  CHECK_INCLUDE_FILES("libxml/xmlversion.h" HAVE_LIBXML_XMLVERSION_H)
+#  TODO: 固定设置为找到
+  SET(HAVE_LIBXML_XMLREADER_H 1)
+  SET(HAVE_LIBXML_XMLWRITER_H 1)
+  SET(HAVE_LIBXML_XMLVERSION_H 1)
+#  CHECK_INCLUDE_FILES("libxml/xmlreader.h" HAVE_LIBXML_XMLREADER_H)
+#  CHECK_INCLUDE_FILES("libxml/xmlwriter.h" HAVE_LIBXML_XMLWRITER_H)
+#  CHECK_INCLUDE_FILES("libxml/xmlversion.h" HAVE_LIBXML_XMLVERSION_H)
   # Test if a macro is needed for the library.
   TRY_MACRO_FOR_LIBRARY(
     "${ICONV_INCLUDE_DIR};${LIBXML2_INCLUDE_DIR}"
@@ -1273,6 +1286,7 @@ IF(LIBXML2_FOUND)
     "#include <stddef.h>\n#include <libxml/xmlreader.h>\nint main() {return xmlTextReaderRead((xmlTextReaderPtr)(void *)0);}"
     "WITHOUT_LIBXML_STATIC;LIBXML_STATIC")
   IF(NOT WITHOUT_LIBXML_STATIC AND LIBXML_STATIC)
+    message(WARNING "LIBXML2 ADD_DEFINITIONS DLIBXML_STATIC")
     ADD_DEFINITIONS(-DLIBXML_STATIC)
   ENDIF(NOT WITHOUT_LIBXML_STATIC AND LIBXML_STATIC)
   CMAKE_POP_CHECK_STATE()	# Restore the state of the variables

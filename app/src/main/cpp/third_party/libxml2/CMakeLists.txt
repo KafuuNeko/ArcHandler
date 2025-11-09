@@ -109,7 +109,8 @@ math(EXPR LIBXML_VERSION_NUMBER "
 set(MODULE_EXTENSION "${CMAKE_SHARED_LIBRARY_SUFFIX}")
 
 if(LIBXML2_WITH_ICONV)
-    find_package(Iconv REQUIRED)
+#    TODO: 在顶层直接设置
+#    find_package(Iconv REQUIRED)
 endif()
 
 if(LIBXML2_WITH_ICU)

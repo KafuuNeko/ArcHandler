@@ -25,6 +25,21 @@ if (NOT TARGET libiconv::libcharset)
             INTERFACE_INCLUDE_DIRECTORIES "${ICONV_INCLUDE_DIR}"
     )
 endif ()
+if (NOT TARGET Iconv::Iconv)
+    add_library(Iconv::Iconv STATIC IMPORTED GLOBAL)
+    set_target_properties(Iconv::Iconv PROPERTIES
+            IMPORTED_LOCATION "${LIBICONV_PATH}"
+            INTERFACE_INCLUDE_DIRECTORIES "${ICONV_INCLUDE_DIR}"
+            INTERFACE_LINK_LIBRARIES "Iconv::charset"
+    )
+endif ()
+if (NOT TARGET Iconv::charset)
+    add_library(Iconv::charset STATIC IMPORTED GLOBAL)
+    set_target_properties(Iconv::charset PROPERTIES
+            IMPORTED_LOCATION "${LIBCHARSET_PATH}"
+            INTERFACE_INCLUDE_DIRECTORIES "${ICONV_INCLUDE_DIR}"
+    )
+endif ()
 
 # bzip2
 add_subdirectory(third_party/bzip2)
@@ -72,9 +87,27 @@ if (NOT TARGET LibLZMA::LibLZMA)
     message(WARNING "Top-level: created IMPORTED target LibLZMA::LibLZMA -> ${_xz_lib}")
 endif ()
 
+# libxml2
+add_subdirectory(third_party/libxml2)
+file(COPY
+        "${CMAKE_SOURCE_DIR}/third_party/libxml2/include/libxml"
+        DESTINATION
+        "${CMAKE_BINARY_DIR}/third_party/libxml2"
+)
+set(_libxml2_a "${CMAKE_BINARY_DIR}/third_party/libxml2/libxml2.a" CACHE FILEPATH "libxml2 static lib" FORCE)
+set(LIBXML2_FOUND TRUE CACHE BOOL "libxml2 found by top-level" FORCE)
+set(LIBXML2_INCLUDE_DIR "${CMAKE_BINARY_DIR}/third_party/libxml2")
+set(LIBXML2_LIBRARIES LibXml2)
+
+#libmd
+set(LIBMD_LIBRARY "${CMAKE_SOURCE_DIR}/lib/${ANDROID_ABI}/libmd.a")
+set(LIBMD_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/third_party/libmd/include")
+
 # libarchive
 set(ENABLE_ICONV ON)
 set(ENABLE_ZLIB ON)
+set(LIBXML_STATIC ON)
+set(ENABLE_LIBXML2 ON)
 set(ENABLE_BZip2 ON)
 set(ENABLE_LZ4 ON)
 set(ENABLE_LZMA ON)
@@ -89,8 +122,15 @@ set(ENABLE_EXAMPLES OFF)
 add_subdirectory(third_party/libarchive)
 target_include_directories(archive_static
         PRIVATE ${LIBLZMA_INCLUDE_DIR}
+        PRIVATE ${LIBMD_INCLUDE_DIR}
         PUBLIC third_party/libarchive
 )
+target_compile_definitions(archive_static PRIVATE
+        ARCHIVE_CRYPTO_SHA1_LIBMD=1
+        ARCHIVE_CRYPTO_MD5_LIBMD=1
+)
+target_link_libraries(archive_static ${LIBMD_LIBRARY})
+target_compile_options(archive_static PRIVATE -Wno-deprecated-declarations)
 
 # native
 add_library(${CMAKE_PROJECT_NAME} SHARED
