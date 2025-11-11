@@ -24,6 +24,8 @@ sealed class MainUiIntent {
 
     data object ToStoragePage : MainUiIntent()
 
+    data class EntryUserDirectory(val path: Path) : MainUiIntent()
+
     data class FileSelected(
         val storageData: StorageData,
         val file: File

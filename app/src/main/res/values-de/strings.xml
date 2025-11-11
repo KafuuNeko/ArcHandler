@@ -100,4 +100,11 @@
     <string name="new_file_label">Neue Datei</string>
     <string name="size_colon">Größe:\n%1$s</string>
     <string name="modified_colon">Geändert:\n%1$s</string>
+    <string name="scanning_files_message">Dateien werden durchsucht…</string>
+    <string name="has_unmovable_files_message">Einige Dateien konnten nicht verschoben werden</string>
+    <string name="cannot_write_directory_message">Kann nicht in das Zielverzeichnis schreiben</string>
+    <string name="file_import_confirm_message">Möchten Sie %d Dateien importieren?</string>
+    <string name="importing_message">Importiere…</string>
+    <string name="file_imported_successfully">Datei erfolgreich importiert</string>
+    <string name="no_importable_files_found">Keine importierbaren Dateien gefunden</string>
 </resources>

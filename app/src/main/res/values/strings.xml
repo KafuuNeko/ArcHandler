@@ -119,4 +119,8 @@
     <string name="scanning_files_message">Scanning files…</string>
     <string name="has_unmovable_files_message">Some files could not be moved</string>
     <string name="cannot_write_directory_message">Cannot write to the destination directory</string>
+    <string name="file_import_confirm_message">Do you want to import %d files?</string>
+    <string name="importing_message">Importing...</string>
+    <string name="file_imported_successfully">File imported successfully</string>
+    <string name="no_importable_files_found">No importable files found</string>
 </resources>

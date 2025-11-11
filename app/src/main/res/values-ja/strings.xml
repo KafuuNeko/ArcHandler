@@ -100,4 +100,11 @@
     <string name="new_file_label">新しいファイル</string>
     <string name="size_colon">サイズ:\n%1$s</string>
     <string name="modified_colon">更新日時:\n%1$s</string>
+    <string name="scanning_files_message">ファイルをスキャン中…</string>
+    <string name="has_unmovable_files_message">一部のファイルを移動できませんでした</string>
+    <string name="cannot_write_directory_message">宛先ディレクトリに書き込めません</string>
+    <string name="file_import_confirm_message">%d 件のファイルをインポートしますか？</string>
+    <string name="importing_message">インポート中…</string>
+    <string name="file_imported_successfully">ファイルが正常にインポートされました</string>
+    <string name="no_importable_files_found">インポート可能なファイルは見つかりませんでした</string>
 </resources>

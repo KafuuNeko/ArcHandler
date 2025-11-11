@@ -50,6 +50,32 @@
         <activity
             android:name=".feature.about.AboutActivity"
             android:theme="@style/Theme.ArcHandler" />
+
+        <activity
+            android:name=".feature.importfile.ImportFileActivity"
+            android:theme="@style/Theme.ArcHandlerTransparent"
+            android:resizeableActivity="false"
+            android:supportsPictureInPicture="false"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="content" android:mimeType="*/*" />
+                <data android:scheme="file" android:mimeType="*/*" />
+            </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="*/*" />
+            </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.SEND_MULTIPLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="*/*" />
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>

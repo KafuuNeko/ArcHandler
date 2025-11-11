@@ -13,6 +13,8 @@ object AppModel : KotprefModel() {
 
     const val KEY_DATA = "data"
 
+    const val KEY_USER_REDIRECT_PATH = "user_redirect_path"
+
     var isShowHiddenFiles by booleanPref(default = false)
 
     var isShowUnreadableDirectories by booleanPref(default = false)

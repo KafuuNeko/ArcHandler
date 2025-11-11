@@ -2,10 +2,13 @@ package cc.kafuu.archandler.feature.storagepicker
 
 import android.os.Bundle
 import androidx.activity.viewModels
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
 import cc.kafuu.archandler.feature.storagepicker.model.StoragePickerParams
 import cc.kafuu.archandler.feature.storagepicker.presention.StoragePickerUiIntent
 import cc.kafuu.archandler.feature.storagepicker.presention.StoragePickerUiState
@@ -30,12 +33,14 @@ class StoragePickerActivity : CoreActivityWithEvent() {
     @Composable
     override fun ViewContent() {
         val uiState by mViewModel.uiStateFlow.collectAsState()
-        StoragePickerLayout(
-            uiState = uiState,
-            emitIntent = { intent -> mViewModel.emit(intent) }
-        )
         LaunchedEffect(uiState) {
             if (uiState is StoragePickerUiState.Finished) finish()
+        }
+        Surface(modifier = Modifier.fillMaxSize()) {
+            StoragePickerLayout(
+                uiState = uiState,
+                emitIntent = { intent -> mViewModel.emit(intent) }
+            )
         }
     }
 

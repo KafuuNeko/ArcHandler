@@ -100,4 +100,11 @@
     <string name="new_file_label">새 파일</string>
     <string name="size_colon">크기:\n%1$s</string>
     <string name="modified_colon">수정됨:\n%1$s</string>
+    <string name="scanning_files_message">파일 검색 중…</string>
+    <string name="has_unmovable_files_message">일부 파일을 이동할 수 없습니다</string>
+    <string name="cannot_write_directory_message">대상 디렉터리에 쓸 수 없습니다</string>
+    <string name="file_import_confirm_message">%d개의 파일을 가져오시겠습니까?</string>
+    <string name="importing_message">가져오는 중…</string>
+    <string name="file_imported_successfully">파일 가져오기 성공</string>
+    <string name="no_importable_files_found">가져올 수 있는 파일이 없습니다</string>
 </resources>

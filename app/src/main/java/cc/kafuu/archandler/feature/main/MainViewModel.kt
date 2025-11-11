@@ -733,4 +733,12 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
             uiState.refresh().setup()
         }
     }
+
+    @UiIntentObserver(MainUiIntent.EntryUserDirectory::class)
+    private suspend fun onEntryUserDirectory(intent: MainUiIntent.EntryUserDirectory) {
+        getOrNull<MainUiState.Normal>()?.enterDirectory(
+            storageData = get<FileManager>().getUserStorage(),
+            directoryPath = intent.path
+        )?.setup()
+    }
 }

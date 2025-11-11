@@ -14,7 +14,7 @@ class FileManager(private val mContext: Context) {
         private const val TAG = "FileManager"
     }
 
-    private fun getUserStorage() = StorageData(
+    fun getUserStorage() = StorageData(
         name = mContext.getString(R.string.app_name),
         directory = File(mContext.filesDir, "user").apply {
             if (!exists()) mkdirs()

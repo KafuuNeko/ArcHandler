@@ -100,5 +100,12 @@
     <string name="new_file_label">新檔案</string>
     <string name="size_colon">大小：\n%1$s</string>
     <string name="modified_colon">修改時間：\n%1$s</string>
+    <string name="scanning_files_message">正在掃描檔案…</string>
+    <string name="has_unmovable_files_message">部分檔案無法移動</string>
+    <string name="cannot_write_directory_message">無法寫入目標目錄</string>
+    <string name="file_import_confirm_message">是否匯入 %d 個檔案？</string>
+    <string name="importing_message">匯入中…</string>
+    <string name="file_imported_successfully">檔案匯入成功</string>
+    <string name="no_importable_files_found">未找到可匯入的檔案</string>
 </resources>
 

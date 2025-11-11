@@ -4,10 +4,13 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
 import cc.kafuu.archandler.feature.createarchive.presentation.CreateArchiveUiIntent
 import cc.kafuu.archandler.feature.createarchive.presentation.CreateArchiveUiState
 import cc.kafuu.archandler.feature.createarchive.presentation.CreateArchiveViewEvent
@@ -55,12 +58,14 @@ class CreateArchiveActivity : CoreActivityWithEvent() {
     @Composable
     override fun ViewContent() {
         val uiState by mViewModel.uiStateFlow.collectAsState()
-        CreateArchiveLayout(
-            uiState = uiState,
-            emitIntent = { intent -> mViewModel.emit(intent) }
-        )
         LaunchedEffect(uiState) {
             if (uiState is CreateArchiveUiState.Finished) finish()
+        }
+        Surface(modifier = Modifier.fillMaxSize()) {
+            CreateArchiveLayout(
+                uiState = uiState,
+                emitIntent = { intent -> mViewModel.emit(intent) }
+            )
         }
     }
 

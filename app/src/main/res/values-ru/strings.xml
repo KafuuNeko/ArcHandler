@@ -100,4 +100,11 @@
     <string name="new_file_label">Новый файл</string>
     <string name="size_colon">Размер:\n%1$s</string>
     <string name="modified_colon">Изменено:\n%1$s</string>
+    <string name="scanning_files_message">Сканирование файлов…</string>
+    <string name="has_unmovable_files_message">Некоторые файлы не удалось переместить</string>
+    <string name="cannot_write_directory_message">Невозможно записать в целевой каталог</string>
+    <string name="file_import_confirm_message">Вы хотите импортировать %d файлов?</string>
+    <string name="importing_message">Импорт…</string>
+    <string name="file_imported_successfully">Файл успешно импортирован</string>
+    <string name="no_importable_files_found">Импортируемые файлы не найдены</string>
 </resources>
