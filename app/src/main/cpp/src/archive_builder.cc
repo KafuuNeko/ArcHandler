@@ -98,8 +98,17 @@ void ArchiveBuilder::SetArchiveFormat(ArchiveFormat format) {
     logger::debug("SetArchiveFormat(%d)", format);
     int32_t rc = -1;
     switch (format) {
-        case ArchiveFormat::Tar:
+        case ArchiveFormat::TarUstar:
+            rc = archive_write_set_format_ustar(archive_.get());
+            break;
+        case ArchiveFormat::TarPax:
             rc = archive_write_set_format_pax(archive_.get());
+            break;
+        case ArchiveFormat::TarGnu:
+            rc = archive_write_set_format_gnutar(archive_.get());
+            break;
+        case ArchiveFormat::TarV7:
+            rc = archive_write_set_format_v7tar(archive_.get());
             break;
         case ArchiveFormat::Cpio:
             rc = archive_write_set_format_cpio_newc(archive_.get());

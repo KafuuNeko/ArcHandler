@@ -19,7 +19,7 @@ namespace internal {
             jstring base_dir,
             jobject input_files,
             jobject listener,
-            ArchiveFormat format = ArchiveFormat::Tar,
+            ArchiveFormat format = ArchiveFormat::TarPax,
             CompressionType compression = CompressionType::None,
             jint compression_level = -1
     ) {

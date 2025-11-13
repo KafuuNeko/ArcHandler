@@ -3,7 +3,10 @@
     <string name="file_info_format" translatable="false">%s - %s</string>
     <string name="archive_format_zip_name" translatable="false">Zip</string>
     <string name="archive_format_seven_zip_name" translatable="false">7-Zip</string>
-    <string name="archive_format_tar_name" translatable="false">Tar</string>
+    <string name="archive_format_tar_ustar_name" translatable="false">Tar(POSIX.1-1988)</string>
+    <string name="archive_format_tar_pax_name" translatable="false">Tar(POSIX.1-2001)</string>
+    <string name="archive_format_tar_gnu_name" translatable="false">Tar(GNU)</string>
+    <string name="archive_format_tar_v7_name" translatable="false">Tar(V7)</string>
     <string name="archive_format_cpio_name" translatable="false">Cpio</string>
     <string name="archive_format_xar_name" translatable="false">Xar</string>
     <string name="archive_compression_type_none_name" translatable="false">None</string>

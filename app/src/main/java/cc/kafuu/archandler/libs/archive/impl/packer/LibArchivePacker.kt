@@ -17,7 +17,12 @@ class LibArchivePacker(
     private fun getFormat() = when (option) {
         is CompressionOption.Cpio -> LibArchiveFormat.Cpio
 
-        is CompressionOption.Tar -> LibArchiveFormat.Tar
+        is CompressionOption.Tar -> when (option.tarType) {
+            CompressionOption.Tar.Type.Ustar -> LibArchiveFormat.TarUstar
+            CompressionOption.Tar.Type.Pax -> LibArchiveFormat.TarPax
+            CompressionOption.Tar.Type.Gnu -> LibArchiveFormat.TarGnu
+            CompressionOption.Tar.Type.V7 -> LibArchiveFormat.TarV7
+        }
 
         is CompressionOption.Zip -> LibArchiveFormat.Zip
 

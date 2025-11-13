@@ -1,10 +1,9 @@
 package cc.kafuu.archandler.feature.createarchive.model
 
-import androidx.annotation.StringRes
 import cc.kafuu.archandler.R
 
 enum class ArchiveFormat(
-    @StringRes val displayName: Int,
+    val displayName: Int,
     val supportsPassword: Boolean,
     val supportCompressionTypes: List<CompressionType>,
     val defaultCompressionType: CompressionType = CompressionType.None
@@ -29,8 +28,32 @@ enum class ArchiveFormat(
         ),
         defaultCompressionType = CompressionType.Gzip
     ),
-    Tar(
-        displayName = R.string.archive_format_tar_name,
+    TarUstar(
+        displayName = R.string.archive_format_tar_ustar_name,
+        supportsPassword = false,
+        supportCompressionTypes = listOf(
+            CompressionType.None, CompressionType.Gzip, CompressionType.Xz,
+            CompressionType.Bzip2, CompressionType.Lz4, CompressionType.Zstd
+        )
+    ),
+    TarPax(
+        displayName = R.string.archive_format_tar_pax_name,
+        supportsPassword = false,
+        supportCompressionTypes = listOf(
+            CompressionType.None, CompressionType.Gzip, CompressionType.Xz,
+            CompressionType.Bzip2, CompressionType.Lz4, CompressionType.Zstd
+        )
+    ),
+    TarGnu(
+        displayName = R.string.archive_format_tar_gnu_name,
+        supportsPassword = false,
+        supportCompressionTypes = listOf(
+            CompressionType.None, CompressionType.Gzip, CompressionType.Xz,
+            CompressionType.Bzip2, CompressionType.Lz4, CompressionType.Zstd
+        )
+    ),
+    TarV7(
+        displayName = R.string.archive_format_tar_v7_name,
         supportsPassword = false,
         supportCompressionTypes = listOf(
             CompressionType.None, CompressionType.Gzip, CompressionType.Xz,

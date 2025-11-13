@@ -32,8 +32,11 @@ sealed class CompressionOption {
     }
 
     data class Tar(
-        val algorithm: CompressionAlgorithm? = null
+        val algorithm: CompressionAlgorithm? = null,
+        val tarType: Type
     ) : CompressionOption() {
+        enum class Type { Ustar, Pax, Gnu, V7 }
+
         override val fileExtension: String
             get() = "tar${(algorithm?.let { ".${it.getNameExtension()}" } ?: "")}"
     }

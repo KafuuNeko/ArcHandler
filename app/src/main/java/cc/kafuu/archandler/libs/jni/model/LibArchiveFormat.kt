@@ -1,8 +1,11 @@
 package cc.kafuu.archandler.libs.jni.model
 
 enum class LibArchiveFormat(val id: Int) {
-    Tar(0),
-    Cpio(1),
-    Zip(2),
-    Xar(3)
+    TarUstar(0),
+    TarPax(1),
+    TarGnu(2),
+    TarV7(3),
+    Cpio(4),
+    Zip(5),
+    Xar(6)
 }

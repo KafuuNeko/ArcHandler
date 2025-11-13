@@ -25,8 +25,20 @@ fun CreateArchiveUiState.Normal.getPackageOptions() = when (archiveOptions.forma
         )
     )
 
-    ArchiveFormat.Tar -> listOf(
-        Tar(algorithm = getPackageAlgorithm())
+    ArchiveFormat.TarUstar -> listOf(
+        Tar(algorithm = getPackageAlgorithm(), tarType = Tar.Type.Ustar)
+    )
+
+    ArchiveFormat.TarPax -> listOf(
+        Tar(algorithm = getPackageAlgorithm(), tarType = Tar.Type.Pax)
+    )
+
+    ArchiveFormat.TarGnu -> listOf(
+        Tar(algorithm = getPackageAlgorithm(), tarType = Tar.Type.Gnu)
+    )
+
+    ArchiveFormat.TarV7 -> listOf(
+        Tar(algorithm = getPackageAlgorithm(), tarType = Tar.Type.V7)
     )
 
     ArchiveFormat.Cpio -> listOf(

@@ -16,7 +16,7 @@ public:
             std::string base_dir,
             std::vector<std::string> input_files,
             ProgressListener listener = nullptr,
-            ArchiveFormat format = ArchiveFormat::Tar,
+            ArchiveFormat format = ArchiveFormat::TarPax,
             CompressionType compression = CompressionType::None,
             int32_t compression_level = 0
     );
