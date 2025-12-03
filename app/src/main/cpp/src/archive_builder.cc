@@ -10,6 +10,7 @@
 #include <string>
 #include <vector>
 #include <fstream>
+#include <sys/stat.h>
 
 #include "native_logger.hpp"
 #include "archive_builder.hpp"
@@ -40,7 +41,7 @@ ArchiveBuilder::ConfigureZipOptions(CompressionType compression, int32_t compres
         opt += ",zip:compression=store";
     } else {
         opt += ",zip:compression=deflate";
-        opt += "zip:compression-level=" + std::to_string(lvl);
+        opt += ",zip:compression-level=" + std::to_string(lvl);
     }
     return archive_write_set_options(archive_.get(), opt.c_str());
 }
