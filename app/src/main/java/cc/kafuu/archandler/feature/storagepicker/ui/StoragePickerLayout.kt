@@ -1,15 +1,26 @@
 package cc.kafuu.archandler.feature.storagepicker.ui
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -17,6 +28,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import cc.kafuu.archandler.R
 import cc.kafuu.archandler.feature.storagepicker.model.PickMode
+import cc.kafuu.archandler.feature.storagepicker.presention.StoragePickerDialogState
 import cc.kafuu.archandler.feature.storagepicker.presention.StoragePickerListState
 import cc.kafuu.archandler.feature.storagepicker.presention.StoragePickerLoadState
 import cc.kafuu.archandler.feature.storagepicker.presention.StoragePickerUiIntent
@@ -24,6 +36,7 @@ import cc.kafuu.archandler.feature.storagepicker.presention.StoragePickerUiState
 import cc.kafuu.archandler.libs.model.StorageData
 import cc.kafuu.archandler.libs.utils.TestUtils
 import cc.kafuu.archandler.ui.dialogs.AppLoadDialog
+import cc.kafuu.archandler.ui.dialogs.InputConfirmDialog
 import cc.kafuu.archandler.ui.theme.AppTheme
 import cc.kafuu.archandler.ui.widges.AppPrimaryButton
 import cc.kafuu.archandler.ui.widges.AppTopBar
@@ -42,6 +55,7 @@ fun StoragePickerLayout(
         is StoragePickerUiState.Normal -> Box(modifier = Modifier.fillMaxSize()) {
             NormalView(uiState, emitIntent)
             LoadSwitch(uiState.loadState)
+            DialogSwitch(uiState.dialogState)
         }
     }
 }
@@ -71,6 +85,8 @@ private fun NormalView(
     val title = when (uiState.pickMode) {
         PickMode.ChooseDirectory -> stringResource(R.string.select_folder_title)
     }
+    val canShowMoreOptions = uiState.listState is StoragePickerListState.Directory
+    
     Scaffold(
         modifier = Modifier
             .statusBarsPadding(),
@@ -79,7 +95,14 @@ private fun NormalView(
                 modifier = Modifier,
                 title = title,
                 backIconPainter = painterResource(R.drawable.ic_close),
-                onBack = { emitIntent(StoragePickerUiIntent.ClosePage) }
+                onBack = { emitIntent(StoragePickerUiIntent.ClosePage) },
+                actions = {
+                    if (canShowMoreOptions) {
+                        MoreOptionsMenu(
+                            onCreateDirectory = { emitIntent(StoragePickerUiIntent.ShowCreateDirectoryDialog) }
+                        )
+                    }
+                }
             )
         }
     ) { paddingValues ->
@@ -107,6 +130,57 @@ private fun NormalView(
             }
             SelectOption(uiState, emitIntent)
         }
+    }
+}
+
+@Composable
+private fun MoreOptionsMenu(
+    onCreateDirectory: () -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    
+    Box {
+        Image(
+            modifier = Modifier
+                .padding(horizontal = 10.dp)
+                .size(24.dp)
+                .clickable { expanded = true },
+            painter = painterResource(R.drawable.ic_more_vert),
+            contentDescription = null
+        )
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.create_directory)) },
+                onClick = {
+                    onCreateDirectory()
+                    expanded = false
+                }
+            )
+        }
+    }
+}
+
+@Composable
+private fun DialogSwitch(
+    dialogState: StoragePickerDialogState
+) {
+    val coroutineScope = rememberCoroutineScope()
+    when (dialogState) {
+        is StoragePickerDialogState.None -> Unit
+
+        is StoragePickerDialogState.CreateDirectoryInput -> InputConfirmDialog(
+            title = stringResource(R.string.create_directory),
+            hintText = stringResource(R.string.enter_directory_name_hint),
+            onDismissRequest = {
+                dialogState.deferredResult.complete(coroutineScope, null)
+            },
+            onConfirmRequest = {
+                dialogState.deferredResult.complete(coroutineScope, it)
+            }
+        )
     }
 }
 

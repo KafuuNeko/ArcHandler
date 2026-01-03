@@ -2,6 +2,7 @@ package cc.kafuu.archandler.feature.storagepicker.presention
 
 import cc.kafuu.archandler.feature.storagepicker.model.PickMode
 import cc.kafuu.archandler.libs.model.StorageData
+import cc.kafuu.archandler.libs.utils.DeferredResult
 import java.io.File
 import java.nio.file.Path
 
@@ -10,6 +11,7 @@ sealed class StoragePickerUiState {
     data class Normal(
         val pickMode: PickMode = PickMode.ChooseDirectory,
         val loadState: StoragePickerLoadState = StoragePickerLoadState.None,
+        val dialogState: StoragePickerDialogState = StoragePickerDialogState.None,
         val listState: StoragePickerListState = StoragePickerListState.Undecided
     ) : StoragePickerUiState()
 
@@ -38,4 +40,12 @@ sealed class StoragePickerListState {
         val canRead: Boolean = true,
         val canWrite: Boolean = true
     ) : StoragePickerListState()
+}
+
+sealed class StoragePickerDialogState {
+    data object None : StoragePickerDialogState()
+
+    data class CreateDirectoryInput(
+        val deferredResult: DeferredResult<String?> = DeferredResult()
+    ) : StoragePickerDialogState()
 }

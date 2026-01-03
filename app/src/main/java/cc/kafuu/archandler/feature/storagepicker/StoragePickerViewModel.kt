@@ -6,6 +6,7 @@ import cc.kafuu.archandler.R
 import cc.kafuu.archandler.feature.storagepicker.model.PickMode
 import cc.kafuu.archandler.feature.storagepicker.model.StoragePickerParams
 import cc.kafuu.archandler.feature.storagepicker.model.StoragePickerResult
+import cc.kafuu.archandler.feature.storagepicker.presention.StoragePickerDialogState
 import cc.kafuu.archandler.feature.storagepicker.presention.StoragePickerListState
 import cc.kafuu.archandler.feature.storagepicker.presention.StoragePickerLoadState
 import cc.kafuu.archandler.feature.storagepicker.presention.StoragePickerUiIntent
@@ -37,6 +38,23 @@ class StoragePickerViewModel :
     KoinComponent {
 
     private val _dataTransferManager by inject<DataTransferManager>()
+
+    /**
+     * 弹窗通用流程
+     */
+    private suspend fun <R> StoragePickerDialogState.popupAwaitDialogResult(
+        onAwaitResult: suspend () -> R
+    ): R? {
+        val state = awaitStateOf<StoragePickerUiState.Normal>() {
+            it.dialogState is StoragePickerDialogState.None
+        }
+        val result = state.run {
+            copy(dialogState = this@popupAwaitDialogResult).setup()
+            onAwaitResult()
+        }
+        state.setup()
+        return result
+    }
 
     /**
      * 加载挂载的存储设备
@@ -182,5 +200,45 @@ class StoragePickerViewModel :
         }
         AppViewEvent.SetResult(Activity.RESULT_OK, intent).emit()
         StoragePickerUiState.Finished.setup()
+    }
+
+    @UiIntentObserver(StoragePickerUiIntent.ShowCreateDirectoryDialog::class)
+    suspend fun onShowCreateDirectoryDialog() {
+        val state = getOrNull<StoragePickerUiState.Normal>() ?: return
+        val listState = state.listState as? StoragePickerListState.Directory ?: return
+        
+        if (!listState.canWrite) {
+            AppViewEvent.PopupToastMessageByResId(R.string.failed_to_create_directory).emit()
+            return
+        }
+        
+        val directoryName = StoragePickerDialogState.CreateDirectoryInput().run {
+            popupAwaitDialogResult { deferredResult.awaitCompleted() }
+        } ?: return
+        
+        if (directoryName.isBlank()) return
+        
+        val directory = File(listState.directoryPath.toString(), directoryName)
+        if (directory.exists()) {
+            AppViewEvent.PopupToastMessageByResId(R.string.directory_already_exists).emit()
+            return
+        }
+        
+        runCatching {
+            withContext(Dispatchers.IO) {
+                directory.mkdirs()
+            }
+        }.onSuccess { success ->
+            if (success) {
+                // 刷新目录列表
+                doLoadDirectory(listState.storageData, listState.directoryPath)
+                AppViewEvent.PopupToastMessageByResId(R.string.directory_created_successfully).emit()
+            } else {
+                AppViewEvent.PopupToastMessageByResId(R.string.failed_to_create_directory).emit()
+            }
+        }.onFailure { exception ->
+            val message = exception.message ?: get<AppLibs>().getString(R.string.failed_to_create_directory)
+            AppViewEvent.PopupToastMessage(message).emit()
+        }
     }
 }

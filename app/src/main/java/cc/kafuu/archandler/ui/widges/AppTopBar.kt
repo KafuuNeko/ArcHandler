@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -29,7 +30,8 @@ fun AppTopBar(
     title: String,
     height: Dp = 50.dp,
     backIconPainter: Painter = painterResource(R.drawable.ic_back),
-    onBack: () -> Unit = {}
+    onBack: () -> Unit = {},
+    actions: @Composable () -> Unit = {}
 ) {
     Row(
         modifier = modifier
@@ -47,11 +49,14 @@ fun AppTopBar(
         Spacer(modifier = Modifier.width(10.dp))
 
         Text(
+            modifier = Modifier.weight(1f),
             text = title,
             maxLines = 1,
             style = MaterialTheme.typography.titleMedium,
             overflow = TextOverflow.Ellipsis
         )
+
+        actions()
     }
 }
 

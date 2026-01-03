@@ -21,4 +21,6 @@ sealed class StoragePickerUiIntent {
 
     data object SelectionCompleted : StoragePickerUiIntent()
 
+    data object ShowCreateDirectoryDialog : StoragePickerUiIntent()
+
 }
