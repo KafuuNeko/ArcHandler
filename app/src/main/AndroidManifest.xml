@@ -48,6 +48,10 @@
             android:theme="@style/Theme.ArcHandler" />
 
         <activity
+            android:name=".feature.archiveview.ArchiveViewActivity"
+            android:theme="@style/Theme.ArcHandler" />
+
+        <activity
             android:name=".feature.about.AboutActivity"
             android:theme="@style/Theme.ArcHandler" />
 

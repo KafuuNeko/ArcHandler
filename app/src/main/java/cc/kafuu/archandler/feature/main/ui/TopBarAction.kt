@@ -132,6 +132,17 @@ private fun MultipleSelectAction(
                 onSwitchExpanded(false)
             }
         )
+        
+        // 如果选中的是单个压缩包，显示解压到当前目录选项
+        if (cc.kafuu.archandler.libs.archive.ArchiveManager.isExtractable(file)) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.extract_to_current_directory)) },
+                onClick = {
+                    emitIntent(MainUiIntent.ExtractToCurrentDirectory(file))
+                    onSwitchExpanded(false)
+                }
+            )
+        }
     }
 
 }

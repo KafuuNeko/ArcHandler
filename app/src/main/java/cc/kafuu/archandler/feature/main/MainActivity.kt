@@ -13,6 +13,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import android.content.Intent
+import cc.kafuu.archandler.feature.archiveview.ArchiveViewActivity
 import cc.kafuu.archandler.feature.main.presentation.MainUiIntent
 import cc.kafuu.archandler.feature.main.presentation.MainUiState
 import cc.kafuu.archandler.feature.main.presentation.MainViewEvent
@@ -77,6 +79,12 @@ class MainActivity : CoreActivityWithEvent() {
         super.onReceivedViewEvent(viewEvent)
         when (viewEvent) {
             MainViewEvent.JumpFilePermissionSetting -> onJumpFilePermissionSetting()
+            is MainViewEvent.StartArchiveViewActivity -> {
+                val intent = Intent(this, ArchiveViewActivity::class.java).apply {
+                    putExtras(viewEvent.params)
+                }
+                startActivity(intent)
+            }
         }
     }
 

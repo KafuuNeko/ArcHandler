@@ -66,15 +66,16 @@ fun File.getLastModifiedDate(format: String = "yyyy-MM-dd HH:mm:ss"): String {
     return SimpleDateFormat(format, Locale.getDefault()).format(Date(lastModified()))
 }
 
-fun File.getReadableSize(): String {
-    val size = length()
-    if (size == 0L) return "0 B"
-
+fun Long.getReadableSize(): String {
+    if (this == 0L) return "0 B"
     val units = arrayOf("B", "KB", "MB", "GB", "TB", "PB")
-    val unitIndex = (log10(size.toDouble()) / log10(1024.0)).toInt().coerceAtMost(units.size - 1)
-    val readableSize = size / 1024.0.pow(unitIndex.toDouble())
-
+    val unitIndex = (kotlin.math.log10(this.toDouble()) / kotlin.math.log10(1024.0)).toInt().coerceAtMost(units.size - 1)
+    val readableSize = this / 1024.0.pow(unitIndex.toDouble())
     return "%.2f %s".format(readableSize, units[unitIndex])
+}
+
+fun File.getReadableSize(): String {
+    return length().getReadableSize()
 }
 
 fun File.createUniqueDirectory(): File? {

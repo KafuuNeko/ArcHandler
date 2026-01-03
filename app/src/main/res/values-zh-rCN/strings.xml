@@ -107,5 +107,10 @@
     <string name="importing_message">正在导入…</string>
     <string name="file_imported_successfully">文件导入成功</string>
     <string name="no_importable_files_found">未找到可导入的文件</string>
+    <string name="archive_opening_message">正在打开压缩包…</string>
+    <string name="loading_entries_message">正在加载内容…</string>
+    <string name="extract_archive">解压</string>
+    <string name="extract_to_current_directory">解压到当前目录</string>
+    <string name="archive_unpacking_success_message">解压成功</string>
 </resources>
 

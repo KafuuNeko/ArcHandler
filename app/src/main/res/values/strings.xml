@@ -126,4 +126,9 @@
     <string name="importing_message">Importing...</string>
     <string name="file_imported_successfully">File imported successfully</string>
     <string name="no_importable_files_found">No importable files found</string>
+    <string name="archive_opening_message">Opening archive…</string>
+    <string name="loading_entries_message">Loading entries…</string>
+    <string name="extract_archive">Extract</string>
+    <string name="extract_to_current_directory">Extract to current directory</string>
+    <string name="archive_unpacking_success_message">Extraction successful</string>
 </resources>

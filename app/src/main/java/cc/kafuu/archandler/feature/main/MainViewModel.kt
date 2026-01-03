@@ -3,6 +3,7 @@ package cc.kafuu.archandler.feature.main
 import android.content.Context
 import cc.kafuu.archandler.R
 import cc.kafuu.archandler.feature.about.AboutActivity
+import cc.kafuu.archandler.feature.archiveview.ArchiveViewActivity
 import cc.kafuu.archandler.feature.createarchive.CreateArchiveActivity
 import cc.kafuu.archandler.feature.main.model.MainDrawerMenuEnum
 import cc.kafuu.archandler.feature.main.model.MainMultipleMenuEnum
@@ -509,17 +510,11 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
             get<Context>().createChooserIntent(intent.file.name, intent.file)
                 ?.let { AppViewEvent.StartActivityByIntent(it) }
                 ?.emit()
-        } else enqueueAsyncTask {
-            val dest = uiState.doFileExtract(intent.file)
-            if (dest == null) {
-                AppViewEvent
-                    .PopupToastMessageByResId(R.string.archive_unpacking_failed_message)
-                    .emit()
-            } else {
-                uiState
-                    .enterDirectory(intent.storageData, Path(dest.path))
-                    .setup()
-            }
+        } else {
+            // 打开压缩包预览页面
+            MainViewEvent.StartArchiveViewActivity(
+                ArchiveViewActivity.params(mDataTransferManager, intent.file)
+            ).emit()
         }
     }
 
@@ -745,5 +740,26 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
             storageData = get<FileManager>().getUserStorage(),
             directoryPath = intent.path
         )?.setup()
+    }
+
+    /**
+     * 解压到当前目录
+     */
+    @UiIntentObserver(MainUiIntent.ExtractToCurrentDirectory::class)
+    private suspend fun onExtractToCurrentDirectory(intent: MainUiIntent.ExtractToCurrentDirectory) {
+        val uiState = getOrNull<MainUiState.Normal>() ?: return
+        val listState = uiState.listState as? MainListState.Directory ?: return
+        enqueueAsyncTask {
+            val dest = uiState.doFileExtract(intent.file)
+            if (dest == null) {
+                AppViewEvent
+                    .PopupToastMessageByResId(R.string.archive_unpacking_failed_message)
+                    .emit()
+            } else {
+                uiState
+                    .enterDirectory(listState.storageData, Path(dest.path))
+                    .setup()
+            }
+        }
     }
 }
