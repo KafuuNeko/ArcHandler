@@ -1,16 +1,27 @@
 package cc.kafuu.archandler.feature.archiveview.ui
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -98,15 +109,14 @@ private fun NormalView(
                 .fillMaxSize()
         ) {
             // 显示当前路径
-            if (uiState.currentPath.isNotEmpty()) {
-                PathBar(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 10.dp, vertical = 5.dp),
-                    currentPath = uiState.currentPath,
-                    archiveFileName = uiState.archiveFile.name
-                )
-            }
+            PathBar(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 10.dp, vertical = 5.dp),
+                currentPath = uiState.currentPath,
+                archiveFileName = uiState.archiveFile.name,
+                emitIntent = emitIntent
+            )
 
             // 条目列表
             AppLazyColumn(
@@ -153,14 +163,68 @@ private fun NormalView(
 private fun PathBar(
     modifier: Modifier = Modifier,
     currentPath: String,
-    archiveFileName: String
+    archiveFileName: String,
+    emitIntent: (uiIntent: ArchiveViewUiIntent) -> Unit = {}
 ) {
-    // 简单的路径显示，可以后续优化为可点击的路径导航
-    androidx.compose.material3.Text(
-        modifier = modifier,
-        text = "$archiveFileName / $currentPath",
-        style = androidx.compose.material3.MaterialTheme.typography.bodySmall
-    )
+    val pathSegments = if (currentPath.isEmpty()) {
+        emptyList()
+    } else {
+        currentPath.trim('/').split('/').filter { it.isNotEmpty() }
+    }
+
+    val scrollState = rememberScrollState()
+
+    LaunchedEffect(pathSegments, currentPath) {
+        scrollState.animateScrollTo(scrollState.maxValue)
+    }
+
+    Row(
+        modifier = modifier
+            .horizontalScroll(scrollState),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // 压缩包名称（根目录）
+        Text(
+            modifier = Modifier
+                .clickable {
+                    emitIntent(ArchiveViewUiIntent.PathSelected(""))
+                },
+            text = archiveFileName,
+            style = MaterialTheme.typography.headlineMedium,
+            color = if (pathSegments.isEmpty()) {
+                MaterialTheme.colorScheme.onBackground.copy(alpha = 1f)
+            } else {
+                MaterialTheme.colorScheme.onBackground.copy(alpha = 0.75f)
+            }
+        )
+
+        // 路径段
+        pathSegments.forEachIndexed { index, segment ->
+            val accumulatedPath = pathSegments.take(index + 1).joinToString("/")
+
+            Image(
+                modifier = Modifier
+                    .padding(horizontal = 2.5.dp)
+                    .size(12.dp),
+                painter = painterResource(R.drawable.ic_arrow_forward),
+                contentDescription = null
+            )
+
+            Text(
+                modifier = Modifier
+                    .clickable {
+                        emitIntent(ArchiveViewUiIntent.PathSelected(accumulatedPath))
+                    },
+                text = segment,
+                style = MaterialTheme.typography.headlineMedium,
+                color = if (pathSegments.size == index + 1) {
+                    MaterialTheme.colorScheme.onBackground.copy(alpha = 1f)
+                } else {
+                    MaterialTheme.colorScheme.onBackground.copy(alpha = 0.75f)
+                }
+            )
+        }
+    }
 }
 
 @Composable
@@ -190,13 +254,13 @@ private fun ExtractButton(
     modifier: Modifier = Modifier,
     emitIntent: (uiIntent: ArchiveViewUiIntent) -> Unit = {}
 ) {
-    androidx.compose.material3.Button(
+    Button(
         modifier = modifier
             .padding(10.dp)
             .fillMaxWidth(),
         onClick = { emitIntent(ArchiveViewUiIntent.ExtractArchive) }
     ) {
-        androidx.compose.material3.Text(stringResource(R.string.extract_archive))
+        Text(stringResource(R.string.extract_archive))
     }
 }
 

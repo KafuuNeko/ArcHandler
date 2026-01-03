@@ -177,9 +177,14 @@ class ArchiveViewViewModel : CoreViewModelWithEvent<ArchiveViewUiIntent, Archive
             ArchiveViewUiState.Finished.setup()
         } else {
             // 返回上一级目录
-            val parentPath = uiState.currentPath.split('/').dropLast(1).joinToString("/")
+            val parentPath = if (mPathStack.isNotEmpty()) {
+                // 如果路径栈不为空，使用栈中弹出的路径
+                mPathStack.pop()
+            } else {
+                // 如果路径栈为空，通过计算父路径返回
+                uiState.currentPath.split('/').dropLast(1).joinToString("/")
+            }
             loadEntries(parentPath)
-            mPathStack.pop()
         }
     }
 
@@ -201,6 +206,25 @@ class ArchiveViewViewModel : CoreViewModelWithEvent<ArchiveViewUiIntent, Archive
         }
         mPathStack.push(getOrNull<ArchiveViewUiState.Normal>()?.currentPath ?: "")
         loadEntries(newPath)
+    }
+
+    /**
+     * 路径导航
+     */
+    @UiIntentObserver(ArchiveViewUiIntent.PathSelected::class)
+    private fun onPathSelected(intent: ArchiveViewUiIntent.PathSelected) {
+        val targetPath = intent.path
+        val currentPath = getOrNull<ArchiveViewUiState.Normal>()?.currentPath ?: ""
+        
+        // 如果点击的是当前路径，不做任何操作
+        if (targetPath == currentPath) return
+        
+        // 导航到指定路径
+        loadEntries(targetPath)
+        
+        // 清空路径栈，因为这是通过路径导航的跳转操作
+        // 路径栈主要用于返回按钮的逐级返回
+        mPathStack.clear()
     }
 
     /**

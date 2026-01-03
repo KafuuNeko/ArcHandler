@@ -10,6 +10,8 @@ sealed class ArchiveViewUiIntent {
 
     data class EntrySelected(val entry: ArchiveEntry) : ArchiveViewUiIntent()
 
+    data class PathSelected(val path: String) : ArchiveViewUiIntent()
+
     data object ExtractArchive : ArchiveViewUiIntent()
 
     data class ExtractToDirectoryCompleted(val transferId: String?) : ArchiveViewUiIntent()
