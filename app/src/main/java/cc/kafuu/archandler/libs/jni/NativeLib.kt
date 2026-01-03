@@ -1,5 +1,7 @@
 package cc.kafuu.archandler.libs.jni
 
+import cc.kafuu.archandler.libs.archive.model.ArchiveEntry
+
 object NativeLib {
     init {
         System.loadLibrary("archandler")
@@ -26,5 +28,5 @@ object NativeLib {
 
     external fun fetchArchiveFiles(
         archivePath: String
-    ): Array<String>?
+    ): Array<ArchiveEntry>?
 }

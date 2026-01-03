@@ -1,6 +1,11 @@
 
 #include <jni.h>
 #include <vector>
+#include <string>
+#include <map>
+#include <algorithm>
+#include <filesystem>
+#include <archive_entry.h>
 
 #include "native_logger.hpp"
 #include "utils/jni_utils.hpp"
@@ -98,26 +103,134 @@ namespace internal {
         try {
             ArchiveExtractor extractor(JStringToCString(env, archive_path));
             auto list_entity = extractor.ListEntry();
-            auto list_files = std::vector<ArchiveExtractor::ArchiveEntry>();
-            std::copy_if(
-                    list_entity.cbegin(), list_entity.cend(),
-                    std::back_inserter(list_files),
-                    [](const ArchiveExtractor::ArchiveEntry &entity) {
-                        return entity.mode == AE_IFREG;
+
+            // 获取 ArchiveEntry 类
+            auto entry_class_ptr = FindClass(env,
+                                             "cc/kafuu/archandler/libs/archive/model/ArchiveEntry");
+            if (!entry_class_ptr) {
+                s_latest_error_message = "Failed to find ArchiveEntry class";
+                logger::error("ListArchiveFiles failed: %s", s_latest_error_message.c_str());
+                return nullptr;
+            }
+
+            // 标准化路径（统一使用正斜杠，移除末尾斜杠）
+            auto normalize_path = [](const std::string &path) -> std::string {
+                if (path.empty()) return path;
+                std::string normalized = path;
+                // 统一使用正斜杠
+                std::replace(normalized.begin(), normalized.end(), '\\', '/');
+                // 移除末尾斜杠（除非是根路径"/"）
+                if (normalized.length() > 1 && normalized.back() == '/') {
+                    normalized.pop_back();
+                }
+                return normalized;
+            };
+            
+            // 路径 -> 条目信息
+            std::map<std::string, ArchiveExtractor::ArchiveEntry> entry_map;
+            
+            // 添加所有显式存在的条目
+            for (const auto &entity : list_entity) {
+                std::string normalized_path = normalize_path(entity.pathname);
+                entry_map[normalized_path] = entity;
+                
+                // 对于文件路径，提取所有父目录并添加到map中
+                if (entity.mode == AE_IFREG && !normalized_path.empty()) {
+                    // 使用字符串操作提取父目录（避免filesystem路径在不同平台上的差异）
+                    std::string current_path = normalized_path;
+                    while (true) {
+                        // 查找最后一个斜杠
+                        auto last_slash = current_path.find_last_of('/');
+                        // 没有父目录了，或者已经是根目录
+                        if (last_slash == std::string::npos || last_slash == 0) break;
+                        // 提取父目录路径
+                        std::string parent_path = current_path.substr(0, last_slash);
+                        // 如果目录还不存在，添加它
+                        if (entry_map.find(parent_path) == entry_map.end()) {
+                            ArchiveExtractor::ArchiveEntry dir_entry;
+                            dir_entry.pathname = parent_path;
+                            dir_entry.mode = AE_IFDIR;
+                            dir_entry.entry_size = 0;  // 目录大小始终为0
+                            dir_entry.modify_time_ms = entity.modify_time_ms;  // 使用文件的修改时间
+                            entry_map[parent_path] = dir_entry;
+                        }
+                        
+                        current_path = parent_path;
                     }
+                }
+            }
+
+            // 创建对象数组
+            auto size = static_cast<jsize>(entry_map.size());
+            auto array_ptr = WrapLocalRef(
+                    env,
+                    env->NewObjectArray(size, entry_class_ptr.get(), nullptr)
             );
-            auto list_pathname = std::vector<std::string>(list_files.size());
-            std::transform(
-                    list_files.cbegin(), list_files.cend(),
-                    list_pathname.begin(),
-                    [](const ArchiveExtractor::ArchiveEntry &entity) {
-                        return std::string(entity.pathname);
+            if (!array_ptr) {
+                s_latest_error_message = "Failed to create ArchiveEntry array";
+                logger::error("ListArchiveFiles failed: %s", s_latest_error_message.c_str());
+                return nullptr;
+            }
+
+            // 填充数组
+            jsize i = 0;
+            for (const auto &[pathname, entity] : entry_map) {
+                // 判断是否是目录
+                bool is_directory = (entity.mode == AE_IFDIR);
+
+                // 从路径中提取文件名
+                std::string name;
+                if (!pathname.empty()) {
+                    // 使用字符串操作提取文件名（避免filesystem路径在不同平台上的差异）
+                    std::string normalized = normalize_path(pathname);
+                    auto last_slash = normalized.find_last_of('/');
+                    if (last_slash != std::string::npos) {
+                        name = normalized.substr(last_slash + 1);
+                    } else {
+                        name = normalized;
                     }
-            );
-            return CreateJStringArray(env, list_pathname.cbegin(), list_pathname.cend()).release();
+                    // 如果名称仍然为空（例如根目录"/"），使用路径本身
+                    if (name.empty()) {
+                        if (normalized == "/" || normalized.empty()) {
+                            name = "/";
+                        } else if (is_directory) {
+                            name = normalized;
+                            if (!name.empty() && name.back() == '/') {
+                                name.pop_back();
+                            }
+                            auto last_slash2 = name.find_last_of('/');
+                            if (last_slash2 != std::string::npos && last_slash2 < name.length() - 1) {
+                                name = name.substr(last_slash2 + 1);
+                            }
+                        }
+                    }
+                }
+
+                // 对于目录，大小应该始终为0
+                int64_t entry_size = is_directory ? 0 : entity.entry_size;
+                // 确保大小不为负数（libarchive可能返回-1）
+                if (entry_size < 0) entry_size = 0;
+
+                // 创建ArchiveEntry对象
+                // 注意：compressedSize在libarchive中不可用
+                auto entry_obj = CreateArchiveEntry(
+                        env, pathname, name, is_directory,
+                        entry_size, entry_size, entity.modify_time_ms
+                );
+
+                if (!entry_obj) {
+                    s_latest_error_message = "Failed to create ArchiveEntry object";
+                    logger::error("ListArchiveFiles failed: %s", s_latest_error_message.c_str());
+                    return nullptr;
+                }
+
+                env->SetObjectArrayElement(array_ptr.get(), i++, entry_obj.get());
+            }
+
+            return array_ptr.release();
         } catch (const std::exception &exception) {
             s_latest_error_message = exception.what();
-            logger::error("ExtractArchive failed: %s", exception.what());
+            logger::error("ListArchiveFiles failed: %s", exception.what());
             return nullptr;
         }
     }

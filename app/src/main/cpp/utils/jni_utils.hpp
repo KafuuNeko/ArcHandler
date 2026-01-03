@@ -262,6 +262,52 @@ public:
 };
 
 /**
+ * @brief 创建Java Long型数据包装类
+ */
+inline auto CreateJavaLong(JNIEnv *env, jlong value) {
+    auto long_class_ptr = FindClass(env, "java/lang/Long");
+    jmethodID long_ctor = env->GetMethodID(long_class_ptr.get(), "<init>", "(J)V");
+    return WrapLocalRef(env, env->NewObject(long_class_ptr.get(), long_ctor, value));
+}
+
+/**
+ * @brief 创建 ArchiveEntry Kotlin 对象
+ */
+inline auto CreateArchiveEntry(
+        JNIEnv *env,
+        const std::string &path,
+        const std::string &name,
+        bool is_directory,
+        int64_t size,
+        int64_t compressed_size,
+        int64_t last_modified
+) {
+    auto entry_class_ptr = FindClass(env, "cc/kafuu/archandler/libs/archive/model/ArchiveEntry");
+    if (!entry_class_ptr) return WrapLocalRef(env, static_cast<jobject>(nullptr));
+    jmethodID entry_ctor = env->GetMethodID(
+            entry_class_ptr.get(),
+            "<init>",
+            "(Ljava/lang/String;Ljava/lang/String;ZJJJ)V"
+    );
+    if (!entry_ctor) return WrapLocalRef(env, static_cast<jobject>(nullptr));
+    auto j_path = CreateJavaString(env, path);
+    auto j_name = CreateJavaString(env, name);
+    return WrapLocalRef(
+            env,
+            env->NewObject(
+                    entry_class_ptr.get(),
+                    entry_ctor,
+                    j_path.get(),
+                    j_name.get(),
+                    is_directory ? JNI_TRUE : JNI_FALSE,
+                    static_cast<jlong>(size),
+                    static_cast<jlong>(compressed_size),
+                    static_cast<jlong>(last_modified)
+            )
+    );
+}
+
+/**
  * 调用 NativeCallback
  * @throw OperationCancelledException 如果检测到 Kotlin 的 CancellationException
  */

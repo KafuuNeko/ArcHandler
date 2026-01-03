@@ -15,7 +15,9 @@ import java.io.File
 class LibArchive(private val archiveFile: File) : IArchive {
     override suspend fun open(provider: IPasswordProvider?): Boolean = true
 
-    override fun list(dir: String): List<ArchiveEntry> = emptyList()
+    override fun list(dir: String): List<ArchiveEntry> {
+        return NativeLib.fetchArchiveFiles(archiveFile.path)?.toList() ?: emptyList()
+    }
 
     override fun extract(
         entry: ArchiveEntry,
