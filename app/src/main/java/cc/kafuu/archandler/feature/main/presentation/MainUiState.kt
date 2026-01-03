@@ -121,7 +121,8 @@ sealed class MainLoadState {
     ) : MainLoadState()
 
     data class FilesDeleting(
-        val file: File
+        val deletedCount: Int,
+        val totalCount: Int
     ) : MainLoadState()
 
     data class QueryDuplicateFiles(

@@ -119,7 +119,8 @@ private fun MainLoadDialogSwitch(
 
         is MainLoadState.FilesDeleting -> {
             val message = stringResource(R.string.files_deleting)
-            AppLoadDialog(messages = listOf(message, loadState.file.name))
+            val progress = "${loadState.deletedCount}/${loadState.totalCount}"
+            AppLoadDialog(messages = listOf(message, progress))
         }
 
         is MainLoadState.QueryDuplicateFiles -> {

@@ -118,19 +118,72 @@ fun File.getSameNameDirectory(): File {
     return File(this.parentFile, name)
 }
 
-fun List<File>.deletes(
-    onStartDelete: ((file: File) -> Unit)? = null,
-    onFinishedDelete: ((file: File, isSuccessful: Boolean) -> Unit)? = null
-) {
-    for (file in this) {
+/**
+ * 优化的删除函数，支持协程和基于时间的批量更新
+ * @param onProgressUpdate 进度更新回调，参数为 (已删除文件数, 总文件数)
+ * @param updateIntervalMs 更新间隔时间（毫秒），默认 200ms
+ */
+suspend fun List<File>.deletes(
+    onProgressUpdate: ((deletedCount: Int, totalCount: Int) -> Unit)? = null,
+    updateIntervalMs: Long = 200
+) = withContext(Dispatchers.IO) {
+    var deletedCount = 0
+    val filesToDelete = mutableListOf<File>()
+    val directoriesToDelete = mutableListOf<File>()
+    
+    // 使用迭代方式收集所有需要删除的文件（避免递归栈溢出）
+    val stack = mutableListOf<File>()
+    stack.addAll(this@deletes)
+    
+    while (stack.isNotEmpty()) {
+        currentCoroutineContext().ensureActive()
+        val file = stack.removeAt(stack.size - 1)
+        
         if (file.isDirectory) {
-            file.listFiles()?.asList()?.deletes(onStartDelete, onFinishedDelete)
-            file.delete()
-            continue
+            file.listFiles()?.forEach { child ->
+                stack.add(child)
+            }
+            directoriesToDelete.add(file)
+        } else {
+            filesToDelete.add(file)
         }
-        onStartDelete?.invoke(file)
-        val isSuccessful = file.delete()
-        onFinishedDelete?.invoke(file, isSuccessful)
+    }
+    
+    // 先删除所有文件，再删除目录
+    val allFilesToDelete = filesToDelete + directoriesToDelete.reversed()
+    val totalFiles = allFilesToDelete.size
+    
+    // 初始化进度更新
+    if (onProgressUpdate != null && totalFiles > 0) {
+        withContext(Dispatchers.Main) {
+            onProgressUpdate(0, totalFiles)
+        }
+    }
+    
+    var lastUpdateTime = System.currentTimeMillis()
+    
+    // 批量删除文件
+    for ((index, file) in allFilesToDelete.withIndex()) {
+        currentCoroutineContext().ensureActive()
+        
+        val isSuccessful = try {
+            file.delete()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+        
+        if (isSuccessful) deletedCount++
+        
+        // 基于时间间隔更新进度（减少 UI 更新频率）
+        val currentTime = System.currentTimeMillis()
+        if (onProgressUpdate != null && 
+            (currentTime - lastUpdateTime >= updateIntervalMs || index == totalFiles - 1)) {
+            withContext(Dispatchers.Main) {
+                onProgressUpdate(deletedCount, totalFiles)
+            }
+            lastUpdateTime = currentTime
+        }
     }
 }
 

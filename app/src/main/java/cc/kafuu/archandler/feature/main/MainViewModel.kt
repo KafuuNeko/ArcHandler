@@ -326,9 +326,14 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
             .run { popupAwaitDialogResult { deferredResult.awaitCompleted() } } == true
         if (!isAgree) return@withContext false
         // 执行文件删除逻辑
-        fileSet
-            .toList()
-            .deletes(onStartDelete = { copy(loadState = MainLoadState.FilesDeleting(it)).setup() })
+        fileSet.toList().deletes(
+            onProgressUpdate = { deletedCount, totalCount ->
+                // 基于时间间隔更新 UI
+                copy(loadState = MainLoadState.FilesDeleting(deletedCount, totalCount)).setup()
+            },
+            // 每200ms更新一次 UI
+            updateIntervalMs = 200
+        )
         // 重置状态
         setup()
         return@withContext true
