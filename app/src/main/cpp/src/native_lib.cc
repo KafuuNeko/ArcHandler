@@ -33,6 +33,7 @@ namespace internal {
             auto j_index = CreateJavaInteger(env, static_cast<jint>(index));
             auto j_total = CreateJavaInteger(env, static_cast<jint>(total));
             auto params = std::vector<jobject>{j_path.get(), j_index.get(), j_total.get()};
+            // 如果检测到取消异常，会抛出 OperationCancelledException
             CallNativeCallback(env, listener, params);
         });
         builder.SetFormat(format);
@@ -43,6 +44,10 @@ namespace internal {
         try {
             builder.Create();
             return JNI_TRUE;
+        } catch (const OperationCancelledException &) {
+            // 操作被取消，这是正常情况，不需要记录错误
+            s_latest_error_message = "Operation cancelled";
+            return JNI_FALSE;
         } catch (const std::exception &exception) {
             s_latest_error_message = exception.what();
             logger::error("CreateArchive failed: %s", exception.what());
@@ -67,11 +72,16 @@ namespace internal {
                         auto j_index = CreateJavaInteger(env, static_cast<jint>(index));
                         auto j_total = CreateJavaInteger(env, static_cast<jint>(total));
                         std::vector<jobject> params{j_path.get(), j_index.get(), j_total.get()};
+                        // 如果检测到取消异常，会抛出 OperationCancelledException
                         CallNativeCallback(env, listener, params);
                     },
                     overwrite
             );
             return JNI_TRUE;
+        } catch (const OperationCancelledException &) {
+            // 操作被取消，这是正常情况，不需要记录错误
+            s_latest_error_message = "Operation cancelled";
+            return JNI_FALSE;
         } catch (const std::exception &exception) {
             s_latest_error_message = exception.what();
             logger::error("ExtractArchive failed: %s", exception.what());

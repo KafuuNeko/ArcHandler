@@ -8,6 +8,7 @@
 #include <type_traits>
 #include <string>
 #include <functional>
+#include <stdexcept>
 
 /**
  * jobject 局部通用删除器
@@ -251,6 +252,19 @@ static std::vector<std::string> JStringListToCVector(JNIEnv *env, jobject string
     return result;
 }
 
+/**
+ * 取消异常类，用于表示操作被用户取消
+ */
+class OperationCancelledException : public std::runtime_error {
+public:
+    explicit OperationCancelledException(const std::string &message = "Operation cancelled")
+        : std::runtime_error(message) {}
+};
+
+/**
+ * 调用 NativeCallback
+ * @throw OperationCancelledException 如果检测到 Kotlin 的 CancellationException
+ */
 static void CallNativeCallback(JNIEnv *env, jobject listener, const std::vector<jobject> &args) {
     if (!listener) return;
 
@@ -275,7 +289,20 @@ static void CallNativeCallback(JNIEnv *env, jobject listener, const std::vector<
     env->CallVoidMethod(listener, invoke_method, arg_array_ptr.get());
 
     if (env->ExceptionCheck()) {
-        env->ExceptionDescribe();
-        env->ExceptionClear();
+        // 检查是否是 CancellationException
+        auto exception = env->ExceptionOccurred();
+        if (exception) {
+            auto cancellation_exception_class = FindClass(env, "kotlin/coroutines/cancellation/CancellationException");
+            if (cancellation_exception_class) {
+                auto is_instance = env->IsInstanceOf(exception, cancellation_exception_class.get());
+                if (is_instance == JNI_TRUE) {
+                    env->ExceptionClear();
+                    throw OperationCancelledException("Operation cancelled by user");
+                }
+            }
+            // 其他异常，清除并记录
+            env->ExceptionDescribe();
+            env->ExceptionClear();
+        }
     }
 }

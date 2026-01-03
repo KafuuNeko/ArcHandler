@@ -8,6 +8,9 @@ import cc.kafuu.archandler.libs.jni.NativeCallback
 import cc.kafuu.archandler.libs.jni.NativeLib
 import cc.kafuu.archandler.libs.jni.model.LibArchiveFormat
 import cc.kafuu.archandler.libs.jni.model.LibCompressionType
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.isActive
+import kotlin.coroutines.cancellation.CancellationException
 import java.io.File
 
 class LibArchivePacker(
@@ -51,8 +54,13 @@ class LibArchivePacker(
         files: List<File>,
         listener: (Int, Int, String) -> Unit
     ): Boolean {
+        val ctx = currentCoroutineContext()
         val nativeListener = object : NativeCallback {
             override fun invoke(vararg args: Any?) {
+                // 检查协程是否仍然活跃，如果已取消则抛出异常
+                if (!ctx.isActive) {
+                    throw CancellationException("Archive packing cancelled")
+                }
                 val path = (args[0] as? String) ?: ""
                 val index = (args[1] as? Int) ?: 0
                 val total = (args[2] as? Int) ?: 0
