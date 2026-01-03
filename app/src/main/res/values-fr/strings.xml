@@ -107,4 +107,9 @@
     <string name="importing_message">Importation…</string>
     <string name="file_imported_successfully">Fichier importé avec succès</string>
     <string name="no_importable_files_found">Aucun fichier importable trouvé</string>
+    <string name="archive_opening_message">Ouverture de l\'archive…</string>
+    <string name="loading_entries_message">Chargement des entrées…</string>
+    <string name="extract_archive">Extraire</string>
+    <string name="extract_to_current_directory">Extraire dans le répertoire actuel</string>
+    <string name="archive_unpacking_success_message">Extraction réussie</string>
 </resources>

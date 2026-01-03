@@ -107,4 +107,9 @@
     <string name="importing_message">インポート中…</string>
     <string name="file_imported_successfully">ファイルが正常にインポートされました</string>
     <string name="no_importable_files_found">インポート可能なファイルは見つかりませんでした</string>
+    <string name="archive_opening_message">アーカイブを開いています…</string>
+    <string name="loading_entries_message">エントリを読み込み中…</string>
+    <string name="extract_archive">展開</string>
+    <string name="extract_to_current_directory">現在のディレクトリに展開</string>
+    <string name="archive_unpacking_success_message">展開成功</string>
 </resources>

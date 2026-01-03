@@ -107,4 +107,9 @@
     <string name="importing_message">Импорт…</string>
     <string name="file_imported_successfully">Файл успешно импортирован</string>
     <string name="no_importable_files_found">Импортируемые файлы не найдены</string>
+    <string name="archive_opening_message">Открытие архива…</string>
+    <string name="loading_entries_message">Загрузка записей…</string>
+    <string name="extract_archive">Распаковать</string>
+    <string name="extract_to_current_directory">Распаковать в текущую папку</string>
+    <string name="archive_unpacking_success_message">Распаковка успешна</string>
 </resources>
