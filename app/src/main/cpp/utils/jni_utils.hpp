@@ -77,7 +77,6 @@ inline auto CreateJavaString(JNIEnv *env, const std::string &value) {
     return WrapLocalRef(env, env->NewStringUTF(value.c_str()));
 }
 
-
 /**
  * @brief 创建Kotlin二元组
  */
@@ -153,6 +152,37 @@ inline auto CreateJIntArray(JNIEnv *env, Iterator begin, Iterator end) {
     std::transform(begin, end, j_ints.begin(), [](auto v) { return static_cast<jint>(v); });
     env->SetIntArrayRegion(array.get(), 0, static_cast<jsize>(size), j_ints.data());
     return array;
+}
+
+/**
+ * @brief 创建任意 Java 对象类型的数组
+ * @param mapper 应该返回一个由 WrapLocalRef 包装的智能指针
+ */
+template<typename Iterator, typename Mapper>
+static auto CreateJObjectArray(
+        JNIEnv *env, const char *class_path, Iterator begin, Iterator end, Mapper mapper
+) {
+    auto size = std::distance(begin, end);
+
+    auto target_class_ptr = FindClass(env, class_path);
+    if (!target_class_ptr) {
+        return WrapLocalRef(env, static_cast<jobjectArray>(nullptr));
+    }
+
+    auto array_ptr = WrapLocalRef(
+            env, env->NewObjectArray(static_cast<jsize>(size), target_class_ptr.get(), nullptr)
+    );
+    if (!array_ptr) return array_ptr;
+
+    jsize index = 0;
+    for (auto it = begin; it != end; ++it, ++index) {
+        auto item_obj = mapper(*it);
+        if (!item_obj) {
+            return WrapLocalRef(env, static_cast<jobjectArray>(nullptr));
+        }
+        env->SetObjectArrayElement(array_ptr.get(), index, item_obj.get());
+    }
+    return array_ptr;
 }
 
 /**

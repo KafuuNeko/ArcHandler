@@ -1,5 +1,6 @@
 package cc.kafuu.archandler.libs.archive.impl.archive
 
+import android.util.Log
 import cc.kafuu.archandler.libs.archive.IArchive
 import cc.kafuu.archandler.libs.archive.IPasswordProvider
 import cc.kafuu.archandler.libs.archive.model.ArchiveEntry
@@ -8,15 +9,16 @@ import cc.kafuu.archandler.libs.jni.NativeLib
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.runBlocking
-import kotlin.coroutines.cancellation.CancellationException
 import java.io.File
+import kotlin.coroutines.cancellation.CancellationException
 
 
 class LibArchive(private val archiveFile: File) : IArchive {
     override suspend fun open(provider: IPasswordProvider?): Boolean = true
 
     override fun list(dir: String): List<ArchiveEntry> {
-        return NativeLib.fetchArchiveFiles(archiveFile.path)?.toList() ?: emptyList()
+        val files = NativeLib.fetchArchiveFiles(archiveFile.path)?.toList() ?: emptyList()
+        return files.sortedBy { it.path }
     }
 
     override fun extract(
