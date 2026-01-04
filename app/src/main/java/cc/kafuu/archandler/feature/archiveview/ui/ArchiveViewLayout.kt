@@ -99,7 +99,8 @@ private fun NormalView(
         topBar = {
             AppTopBar(
                 title = uiState.archiveFile.name,
-                onBack = { emitIntent(ArchiveViewUiIntent.Back) }
+                onBack = { emitIntent(ArchiveViewUiIntent.Close) },
+                backIconPainter = painterResource(R.drawable.ic_close)
             )
         },
     ) { paddingValues ->
