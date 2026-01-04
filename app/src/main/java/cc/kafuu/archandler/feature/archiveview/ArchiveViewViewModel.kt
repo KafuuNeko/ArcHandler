@@ -51,6 +51,9 @@ class ArchiveViewViewModel : CoreViewModelWithEvent<ArchiveViewUiIntent, Archive
     // 当前打开的压缩包实例
     private var mArchive: IArchive? = null
 
+    // 缓存的压缩包完整文件列表
+    private var mCachedAllEntries: List<ArchiveEntry>? = null
+
     // 目录路径栈，用于返回导航
     private val mPathStack = Stack<String>()
 
@@ -106,6 +109,12 @@ class ArchiveViewViewModel : CoreViewModelWithEvent<ArchiveViewUiIntent, Archive
         getOrNull<ArchiveViewUiState.Normal>()?.copy(
             loadState = ArchiveViewLoadState.LoadingEntries
         )?.setup()
+
+        // 缓存完整的文件列表
+        mCachedAllEntries = runCatching {
+            archive.list("")
+        }.getOrNull() ?: emptyList()
+
         loadEntries("")
     }
 
@@ -113,10 +122,7 @@ class ArchiveViewViewModel : CoreViewModelWithEvent<ArchiveViewUiIntent, Archive
      * 加载条目列表
      */
     private fun loadEntries(currentPath: String) {
-        val archive = mArchive ?: return
-        val allEntries = runCatching {
-            archive.list("")
-        }.getOrNull() ?: emptyList()
+        val allEntries = mCachedAllEntries ?: return
 
         // 过滤出当前路径下的直接子项
         val normalizedPath = if (currentPath.isEmpty()) {
