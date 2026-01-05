@@ -112,5 +112,12 @@
     <string name="extract_archive">解压</string>
     <string name="extract_to_current_directory">解压到当前目录</string>
     <string name="archive_unpacking_success_message">解压成功</string>
+    <string name="sort">排序</string>
+    <string name="date_new_old">日期（从新到旧）</string>
+    <string name="date_old_new">日期（从旧到新）</string>
+    <string name="size_big_small">大小（从大到小）</string>
+    <string name="size_small_big">大小（从小到大）</string>
+    <string name="name_a_z">文件名（A 到 Z）</string>
+    <string name="name_z_a">文件名（Z 到 A）</string>
 </resources>
 

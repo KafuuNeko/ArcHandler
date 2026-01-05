@@ -44,6 +44,7 @@ import cc.kafuu.archandler.ui.dialogs.AppLoadDialog
 import cc.kafuu.archandler.ui.dialogs.FileConflictDialog
 import cc.kafuu.archandler.ui.dialogs.InputConfirmDialog
 import cc.kafuu.archandler.ui.dialogs.PasswordInputDialog
+import cc.kafuu.archandler.ui.dialogs.SortSelectDialog
 import cc.kafuu.archandler.ui.dialogs.TextConfirmDialog
 import cc.kafuu.archandler.ui.theme.AppTheme
 import cc.kafuu.archandler.ui.widges.AppPrimaryButton
@@ -203,6 +204,16 @@ private fun MainDialogSwitch(
             onCancel = { dialogState.deferredResult.complete(coroutineScope, null) },
             onSelected = { strategy, applyToAllConflicts ->
                 dialogState.deferredResult.complete(coroutineScope, strategy to applyToAllConflicts)
+            }
+        )
+
+        is MainDialogState.SortSelect -> SortSelectDialog(
+            currentSortType = dialogState.currentSortType,
+            onDismissRequest = {
+                dialogState.deferredResult.complete(coroutineScope, dialogState.currentSortType)
+            },
+            onConfirmRequest = { sortType ->
+                dialogState.deferredResult.complete(coroutineScope, sortType)
             }
         )
     }

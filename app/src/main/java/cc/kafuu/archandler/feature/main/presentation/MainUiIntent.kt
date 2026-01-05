@@ -70,6 +70,8 @@ sealed class MainUiIntent {
     data object InvertSelectionClick : MainUiIntent()
 
     data class RenameClick(val file: File) : MainUiIntent()
-    
+
     data class ExtractToCurrentDirectory(val file: File) : MainUiIntent()
+
+    data object ShowSortDialog : MainUiIntent()
 }

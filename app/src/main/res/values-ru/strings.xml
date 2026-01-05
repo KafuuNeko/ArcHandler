@@ -112,4 +112,11 @@
     <string name="extract_archive">Распаковать</string>
     <string name="extract_to_current_directory">Распаковать в текущую папку</string>
     <string name="archive_unpacking_success_message">Распаковка успешна</string>
+    <string name="sort">Сортировка</string>
+    <string name="date_new_old">Дата (сначала новые)</string>
+    <string name="date_old_new">Дата (сначала старые)</string>
+    <string name="size_big_small">Размер (по убыванию)</string>
+    <string name="size_small_big">Размер (по возрастанию)</string>
+    <string name="name_a_z">Имя файла (A–Z)</string>
+    <string name="name_z_a">Имя файла (Z–A)</string>
 </resources>

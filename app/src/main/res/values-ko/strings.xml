@@ -112,4 +112,11 @@
     <string name="extract_archive">추출</string>
     <string name="extract_to_current_directory">현재 디렉터리에 추출</string>
     <string name="archive_unpacking_success_message">추출 성공</string>
+    <string name="sort">정렬</string>
+    <string name="date_new_old">날짜 (최신순)</string>
+    <string name="date_old_new">날짜 (오래된 순)</string>
+    <string name="size_big_small">크기 (큰 것부터)</string>
+    <string name="size_small_big">크기 (작은 것부터)</string>
+    <string name="name_a_z">파일 이름 (A → Z)</string>
+    <string name="name_z_a">파일 이름 (Z → A)</string>
 </resources>

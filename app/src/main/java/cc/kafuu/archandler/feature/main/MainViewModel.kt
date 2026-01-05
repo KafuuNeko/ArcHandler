@@ -9,6 +9,7 @@ import cc.kafuu.archandler.feature.main.model.MainDrawerMenuEnum
 import cc.kafuu.archandler.feature.main.model.MainMultipleMenuEnum
 import cc.kafuu.archandler.feature.main.model.MainPackMenuEnum
 import cc.kafuu.archandler.feature.main.model.MainPasteMenuEnum
+import cc.kafuu.archandler.feature.main.model.SortType
 import cc.kafuu.archandler.feature.main.presentation.MainDialogState
 import cc.kafuu.archandler.feature.main.presentation.MainListState
 import cc.kafuu.archandler.feature.main.presentation.MainListViewModeState
@@ -38,6 +39,7 @@ import cc.kafuu.archandler.libs.manager.FileManager
 import cc.kafuu.archandler.libs.model.AppCacheType
 import cc.kafuu.archandler.libs.model.FileConflictStrategy
 import cc.kafuu.archandler.libs.model.StorageData
+import cc.kafuu.archandler.libs.utils.parallelSortWith
 import cc.kafuu.archandler.ui.utils.Stack
 import com.hjq.permissions.Permission
 import com.hjq.permissions.XXPermissions
@@ -126,7 +128,13 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
                     withContext(Dispatchers.IO) { directory.listFilteredFiles() }
                 }
                 if (result.isFailure) errorMessage(result.exceptionOrNull())
-                val files = result.getOrNull() ?: emptyList()
+                var files = result.getOrNull() ?: emptyList()
+
+                // 应用排序
+                files = files.toMutableList().apply {
+                    parallelSortWith(sortType.createComparator())
+                }
+
                 copy(
                     listState = listState.copy(
                         files = files,
@@ -404,7 +412,9 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
         if (!XXPermissions.isGranted(get(), Permission.MANAGE_EXTERNAL_STORAGE)) {
             MainUiState.PermissionDenied.setup()
         } else {
-            MainUiState.Normal().loadExternalStorages().setup()
+            // 从AppModel读取排序类型
+            val sortType = SortType.fromValue(AppModel.listSortType)
+            MainUiState.Normal(sortType = sortType).loadExternalStorages().setup()
         }
     }
 
@@ -761,5 +771,20 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
                     .setup()
             }
         }
+    }
+
+    /**
+     * 显示排序对话框
+     */
+    @UiIntentObserver(MainUiIntent.ShowSortDialog::class)
+    private suspend fun onShowSortDialog() {
+        val uiState = getOrNull<MainUiState.Normal>() ?: return
+        val newSortType = MainDialogState.SortSelect(uiState.sortType).run {
+            popupAwaitDialogResult { deferredResult.awaitCompleted() }
+        } ?: return
+
+        // 更新AppModel和UI状态
+        AppModel.listSortType = newSortType.value
+        uiState.copy(sortType = newSortType).refresh().setup()
     }
 }

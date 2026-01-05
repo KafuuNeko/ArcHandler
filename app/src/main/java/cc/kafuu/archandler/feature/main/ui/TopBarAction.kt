@@ -42,6 +42,14 @@ fun TopBarAction(
         expanded = expanded,
         onDismissRequest = { expanded = false }
     ) {
+        DropdownMenuItem(
+            text = { Text(stringResource(R.string.sort)) },
+            onClick = {
+                emitIntent(MainUiIntent.ShowSortDialog)
+                expanded = false
+            }
+        )
+
         when (uiState.viewModeState) {
             is MainListViewModeState.Pack,
             is MainListViewModeState.Paste -> Unit

@@ -131,4 +131,11 @@
     <string name="extract_archive">Extract</string>
     <string name="extract_to_current_directory">Extract to current directory</string>
     <string name="archive_unpacking_success_message">Extraction successful</string>
+    <string name="sort">Sort</string>
+    <string name="date_new_old">Date (From new to old)</string>
+    <string name="date_old_new">Date (From old to new)</string>
+    <string name="size_big_small">Size (From big to small)</string>
+    <string name="size_small_big">Size (From small to big)</string>
+    <string name="name_a_z">File Name (From A to Z)</string>
+    <string name="name_z_a">File Name (From Z to A)</string>
 </resources>

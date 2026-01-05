@@ -112,4 +112,11 @@
     <string name="extract_archive">Extraire</string>
     <string name="extract_to_current_directory">Extraire dans le répertoire actuel</string>
     <string name="archive_unpacking_success_message">Extraction réussie</string>
+    <string name="sort">Trier</string>
+    <string name="date_new_old">Date (du plus récent au plus ancien)</string>
+    <string name="date_old_new">Date (du plus ancien au plus récent)</string>
+    <string name="size_big_small">Taille (du plus grand au plus petit)</string>
+    <string name="size_small_big">Taille (du plus petit au plus grand)</string>
+    <string name="name_a_z">Nom du fichier (A à Z)</string>
+    <string name="name_z_a">Nom du fichier (Z à A)</string>
 </resources>

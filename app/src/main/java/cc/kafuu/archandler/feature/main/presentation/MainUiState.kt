@@ -1,6 +1,7 @@
 package cc.kafuu.archandler.feature.main.presentation
 
 import androidx.compose.foundation.lazy.LazyListState
+import cc.kafuu.archandler.feature.main.model.SortType
 import cc.kafuu.archandler.libs.model.FileConflictStrategy
 import cc.kafuu.archandler.libs.model.StorageData
 import cc.kafuu.archandler.libs.utils.DeferredResult
@@ -18,6 +19,7 @@ sealed class MainUiState {
         val dialogState: MainDialogState = MainDialogState.None,
         val viewModeState: MainListViewModeState = MainListViewModeState.Normal,
         val listState: MainListState = MainListState.Undecided,
+        val sortType: SortType = SortType.DATE_NEW_TO_OLD
     ) : MainUiState()
 
     data object Finished : MainUiState()
@@ -49,6 +51,11 @@ sealed class MainDialogState {
         val oldFile: File,
         val newFile: File,
         val deferredResult: DeferredResult<Pair<FileConflictStrategy, Boolean>?> = DeferredResult()
+    ) : MainDialogState()
+
+    data class SortSelect(
+        val currentSortType: SortType,
+        val deferredResult: DeferredResult<SortType> = DeferredResult()
     ) : MainDialogState()
 }
 

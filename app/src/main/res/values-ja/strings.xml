@@ -112,4 +112,11 @@
     <string name="extract_archive">展開</string>
     <string name="extract_to_current_directory">現在のディレクトリに展開</string>
     <string name="archive_unpacking_success_message">展開成功</string>
+    <string name="sort">並び替え</string>
+    <string name="date_new_old">日付（新しい順）</string>
+    <string name="date_old_new">日付（古い順）</string>
+    <string name="size_big_small">サイズ（大きい順）</string>
+    <string name="size_small_big">サイズ（小さい順）</string>
+    <string name="name_a_z">ファイル名（A→Z）</string>
+    <string name="name_z_a">ファイル名（Z→A）</string>
 </resources>

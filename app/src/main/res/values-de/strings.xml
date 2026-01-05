@@ -112,4 +112,11 @@
     <string name="extract_archive">Extrahieren</string>
     <string name="extract_to_current_directory">In aktuelles Verzeichnis extrahieren</string>
     <string name="archive_unpacking_success_message">Extrahierung erfolgreich</string>
+    <string name="sort">Sortieren</string>
+    <string name="date_new_old">Datum (neu → alt)</string>
+    <string name="date_old_new">Datum (alt → neu)</string>
+    <string name="size_big_small">Größe (groß → klein)</string>
+    <string name="size_small_big">Größe (klein → groß)</string>
+    <string name="name_a_z">Dateiname (A → Z)</string>
+    <string name="name_z_a">Dateiname (Z → A)</string>
 </resources>

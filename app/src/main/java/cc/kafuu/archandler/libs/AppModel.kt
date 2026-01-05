@@ -21,4 +21,6 @@ object AppModel : KotprefModel() {
 
     var isShowUnreadableFiles by booleanPref(default = true)
 
+    var listSortType by intPref(default = 0)
+
 }
