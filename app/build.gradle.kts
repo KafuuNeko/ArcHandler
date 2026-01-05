@@ -90,6 +90,9 @@ dependencies {
     // Glide
     implementation(libs.glide)
 
+    // LazyColumnScrollbar
+    implementation(libs.lazyColumnScrollbar)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

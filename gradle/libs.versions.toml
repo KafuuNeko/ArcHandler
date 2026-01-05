@@ -15,6 +15,7 @@ composeBom = "2024.11.00"
 roomRuntime = "2.6.1"
 xxpermissions = "20.0"
 xZipJbindingXandroid = "Release-16.02-2.03"
+lazyColumnScrollbar = "2.2.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -41,6 +42,7 @@ kotpref = { module = "com.chibatching.kotpref:kotpref", version.ref = "kotpref" 
 x-zip-jbinding-xandroid = { module = "com.github.omicronapps:7-Zip-JBinding-4Android", version.ref = "xZipJbindingXandroid" }
 xxpermissions = { module = "com.github.getActivity:XXPermissions", version.ref = "xxpermissions" }
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin" }
+lazyColumnScrollbar = { module = "com.github.nanihadesuka:LazyColumnScrollbar", version.ref = "lazyColumnScrollbar" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
