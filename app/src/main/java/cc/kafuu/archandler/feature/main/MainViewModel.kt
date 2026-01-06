@@ -125,15 +125,14 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
             is MainListState.Directory -> {
                 val directory = File(listState.directoryPath.toString())
                 val result = runCatching {
-                    withContext(Dispatchers.IO) { directory.listFilteredFiles() }
+                    withContext(Dispatchers.IO) {
+                        directory.listFilteredFiles().toMutableList().apply {
+                            parallelSortWith(sortType.createComparator())
+                        }
+                    }
                 }
                 if (result.isFailure) errorMessage(result.exceptionOrNull())
-                var files = result.getOrNull() ?: emptyList()
-
-                // 应用排序
-                files = files.toMutableList().apply {
-                    parallelSortWith(sortType.createComparator())
-                }
+                val files = result.getOrNull() ?: emptyList()
 
                 copy(
                     listState = listState.copy(
