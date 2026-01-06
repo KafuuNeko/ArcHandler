@@ -56,6 +56,10 @@
             android:theme="@style/Theme.ArcHandler" />
 
         <activity
+            android:name=".feature.settings.SettingsActivity"
+            android:theme="@style/Theme.ArcHandler" />
+
+        <activity
             android:name=".feature.importfile.ImportFileActivity"
             android:theme="@style/Theme.ArcHandlerTransparent"
             android:resizeableActivity="false"

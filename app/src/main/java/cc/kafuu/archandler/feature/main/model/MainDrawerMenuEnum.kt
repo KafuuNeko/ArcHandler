@@ -11,5 +11,6 @@ enum class MainDrawerMenuEnum(
     Code(R.drawable.ic_code, R.string.code_repository),
     Feedback(R.drawable.ic_feedback, R.string.feedback),
     Rate(R.drawable.ic_rate, R.string.rate),
+    Settings(R.drawable.ic_settings, R.string.settings),
     About(R.drawable.ic_about, R.string.about)
 }

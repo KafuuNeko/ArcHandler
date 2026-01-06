@@ -138,4 +138,12 @@
     <string name="size_small_big">Size (From small to big)</string>
     <string name="name_a_z">File Name (From A to Z)</string>
     <string name="name_z_a">File Name (From Z to A)</string>
+    <string name="settings">Settings</string>
+    <string name="settings_description">Customize your file browsing experience</string>
+    <string name="show_hidden_files">Show hidden files</string>
+    <string name="show_hidden_files_description">Display files and folders starting with a dot (.)</string>
+    <string name="show_unreadable_directories">Show unreadable directories</string>
+    <string name="show_unreadable_directories_description">Display directories that cannot be read</string>
+    <string name="show_unreadable_files">Show unreadable files</string>
+    <string name="show_unreadable_files_description">Display files that cannot be read</string>
 </resources>

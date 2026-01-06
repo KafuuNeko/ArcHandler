@@ -6,6 +6,7 @@ import cc.kafuu.archandler.feature.about.AboutActivity
 import cc.kafuu.archandler.feature.archiveview.ArchiveViewActivity
 import cc.kafuu.archandler.feature.createarchive.CreateArchiveActivity
 import cc.kafuu.archandler.feature.main.model.MainDrawerMenuEnum
+import cc.kafuu.archandler.feature.settings.SettingsActivity
 import cc.kafuu.archandler.feature.main.model.MainMultipleMenuEnum
 import cc.kafuu.archandler.feature.main.model.MainPackMenuEnum
 import cc.kafuu.archandler.feature.main.model.MainPasteMenuEnum
@@ -451,6 +452,8 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
     private suspend fun onMainDrawerMenuClick(intent: MainUiIntent.MainDrawerMenuClick) {
         if (!isStateOf<MainUiState.Normal>()) return
         when (intent.menu) {
+            MainDrawerMenuEnum.Settings -> AppViewEvent.StartActivity(SettingsActivity::class.java).emit()
+
             MainDrawerMenuEnum.Code -> {
                 get<AppLibs>().jumpToUrl(AppModel.CODE_REPOSITORY_URL)
             }

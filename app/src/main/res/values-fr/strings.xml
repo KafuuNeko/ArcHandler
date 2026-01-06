@@ -119,4 +119,12 @@
     <string name="size_small_big">Taille (du plus petit au plus grand)</string>
     <string name="name_a_z">Nom du fichier (A à Z)</string>
     <string name="name_z_a">Nom du fichier (Z à A)</string>
+    <string name="settings">Paramètres</string>
+    <string name="settings_description">Personnalisez votre expérience de navigation de fichiers</string>
+    <string name="show_hidden_files">Afficher les fichiers masqués</string>
+    <string name="show_hidden_files_description">Afficher les fichiers et dossiers commençant par un point (.)</string>
+    <string name="show_unreadable_directories">Afficher les répertoires illisibles</string>
+    <string name="show_unreadable_directories_description">Afficher les répertoires qui ne peuvent pas être lus</string>
+    <string name="show_unreadable_files">Afficher les fichiers illisibles</string>
+    <string name="show_unreadable_files_description">Afficher les fichiers qui ne peuvent pas être lus</string>
 </resources>

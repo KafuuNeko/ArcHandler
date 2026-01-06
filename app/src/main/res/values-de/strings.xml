@@ -119,4 +119,12 @@
     <string name="size_small_big">Größe (klein → groß)</string>
     <string name="name_a_z">Dateiname (A → Z)</string>
     <string name="name_z_a">Dateiname (Z → A)</string>
+    <string name="settings">Einstellungen</string>
+    <string name="settings_description">Passen Sie Ihre Dateibrowsing-Erfahrung an</string>
+    <string name="show_hidden_files">Versteckte Dateien anzeigen</string>
+    <string name="show_hidden_files_description">Dateien und Ordner anzeigen, die mit einem Punkt (.) beginnen</string>
+    <string name="show_unreadable_directories">Unlesbare Verzeichnisse anzeigen</string>
+    <string name="show_unreadable_directories_description">Verzeichnisse anzeigen, die nicht gelesen werden können</string>
+    <string name="show_unreadable_files">Unlesbare Dateien anzeigen</string>
+    <string name="show_unreadable_files_description">Dateien anzeigen, die nicht gelesen werden können</string>
 </resources>

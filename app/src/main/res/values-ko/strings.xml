@@ -119,4 +119,12 @@
     <string name="size_small_big">크기 (작은 것부터)</string>
     <string name="name_a_z">파일 이름 (A → Z)</string>
     <string name="name_z_a">파일 이름 (Z → A)</string>
+    <string name="settings">설정</string>
+    <string name="settings_description">파일 탐색 환경을 사용자 지정</string>
+    <string name="show_hidden_files">숨김 파일 표시</string>
+    <string name="show_hidden_files_description">점(.)으로 시작하는 파일과 폴더 표시</string>
+    <string name="show_unreadable_directories">읽을 수 없는 디렉터리 표시</string>
+    <string name="show_unreadable_directories_description">읽을 수 없는 디렉터리 표시</string>
+    <string name="show_unreadable_files">읽을 수 없는 파일 표시</string>
+    <string name="show_unreadable_files_description">읽을 수 없는 파일 표시</string>
 </resources>

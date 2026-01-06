@@ -119,4 +119,12 @@
     <string name="size_small_big">Размер (по возрастанию)</string>
     <string name="name_a_z">Имя файла (A–Z)</string>
     <string name="name_z_a">Имя файла (Z–A)</string>
+    <string name="settings">Настройки</string>
+    <string name="settings_description">Настройте работу с файлами</string>
+    <string name="show_hidden_files">Показывать скрытые файлы</string>
+    <string name="show_hidden_files_description">Отображение файлов и папок, начинающихся с точки (.)</string>
+    <string name="show_unreadable_directories">Показывать нечитаемые каталоги</string>
+    <string name="show_unreadable_directories_description">Отображение каталогов, которые невозможно прочитать</string>
+    <string name="show_unreadable_files">Показывать нечитаемые файлы</string>
+    <string name="show_unreadable_files_description">Отображение файлов, которые невозможно прочитать</string>
 </resources>

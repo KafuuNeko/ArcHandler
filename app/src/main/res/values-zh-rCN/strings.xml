@@ -119,5 +119,13 @@
     <string name="size_small_big">大小（从小到大）</string>
     <string name="name_a_z">文件名（A 到 Z）</string>
     <string name="name_z_a">文件名（Z 到 A）</string>
+    <string name="settings">设置</string>
+    <string name="settings_description">自定义您的文件浏览体验</string>
+    <string name="show_hidden_files">显示隐藏文件</string>
+    <string name="show_hidden_files_description">显示以点 (.) 开头的文件和文件夹</string>
+    <string name="show_unreadable_directories">显示不可读目录</string>
+    <string name="show_unreadable_directories_description">显示无法读取的目录</string>
+    <string name="show_unreadable_files">显示不可读文件</string>
+    <string name="show_unreadable_files_description">显示无法读取的文件</string>
 </resources>
 
