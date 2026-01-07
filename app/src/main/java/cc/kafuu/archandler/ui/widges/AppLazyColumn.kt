@@ -2,6 +2,7 @@ package cc.kafuu.archandler.ui.widges
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.LazyListState
@@ -34,11 +35,12 @@ fun <T> AppLazyColumn(
     } else {
         if (enableScrollbar) {
             LazyColumnScrollbar(
+                modifier = modifier,
                 state = state,
                 settings = scrollbarSettings
             ) {
                 LazyColumn(
-                    modifier = modifier,
+                    modifier = Modifier.fillMaxSize(),
                     verticalArrangement = verticalArrangement,
                     horizontalAlignment = horizontalAlignment,
                     state = state,
@@ -51,7 +53,7 @@ fun <T> AppLazyColumn(
             }
         } else {
             LazyColumn(
-                modifier = modifier,
+                modifier = Modifier.fillMaxSize(),
                 verticalArrangement = verticalArrangement,
                 horizontalAlignment = horizontalAlignment,
                 state = state,
