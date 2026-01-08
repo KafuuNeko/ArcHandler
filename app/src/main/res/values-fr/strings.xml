@@ -127,4 +127,7 @@
     <string name="show_unreadable_directories_description">Afficher les répertoires qui ne peuvent pas être lus</string>
     <string name="show_unreadable_files">Afficher les fichiers illisibles</string>
     <string name="show_unreadable_files_description">Afficher les fichiers qui ne peuvent pas être lus</string>
+    <string name="list_layout_type">Liste</string>
+    <string name="list_layout_type_description">Basculer le mode d\'affichage (Liste/Grille)</string>
+    <string name="switch_layout_type">Changer de disposition</string>
 </resources>

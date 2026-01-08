@@ -86,7 +86,7 @@ private fun NormalView(
         PickMode.ChooseDirectory -> stringResource(R.string.select_folder_title)
     }
     val canShowMoreOptions = uiState.listState is StoragePickerListState.Directory
-    
+
     Scaffold(
         modifier = Modifier
             .statusBarsPadding(),
@@ -97,6 +97,27 @@ private fun NormalView(
                 backIconPainter = painterResource(R.drawable.ic_close),
                 onBack = { emitIntent(StoragePickerUiIntent.ClosePage) },
                 actions = {
+                    // 布局切换按钮
+                    Image(
+                        modifier = Modifier
+                            .padding(horizontal = 10.dp)
+                            .size(24.dp)
+                            .clickable {
+                                emitIntent(
+                                    StoragePickerUiIntent.SwitchLayoutType(uiState.layoutType.toggle())
+                                )
+                            },
+                        painter = painterResource(
+                            if (uiState.layoutType == cc.kafuu.archandler.libs.model.LayoutType.LIST) {
+                                R.drawable.ic_grid_view
+                            } else {
+                                R.drawable.ic_list_view
+                            }
+                        ),
+                        contentDescription = stringResource(R.string.switch_layout_type)
+                    )
+
+                    // 更多选项按钮
                     if (canShowMoreOptions) {
                         MoreOptionsMenu(
                             onCreateDirectory = { emitIntent(StoragePickerUiIntent.ShowCreateDirectoryDialog) }
@@ -118,6 +139,7 @@ private fun NormalView(
                     modifier = Modifier.weight(1f),
                     loadState = uiState.loadState,
                     listState = listState,
+                    layoutType = uiState.layoutType,
                     emitIntent = emitIntent
                 )
 
@@ -125,6 +147,7 @@ private fun NormalView(
                     modifier = Modifier.weight(1f),
                     loadState = uiState.loadState,
                     listState = listState,
+                    layoutType = uiState.layoutType,
                     emitIntent = emitIntent
                 )
             }
@@ -138,7 +161,7 @@ private fun MoreOptionsMenu(
     onCreateDirectory: () -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
-    
+
     Box {
         Image(
             modifier = Modifier

@@ -1,6 +1,7 @@
 package cc.kafuu.archandler.feature.main.ui
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -28,11 +29,14 @@ import cc.kafuu.archandler.libs.extensions.getFileType
 import cc.kafuu.archandler.libs.extensions.getLastModifiedDate
 import cc.kafuu.archandler.libs.extensions.getReadableSize
 import cc.kafuu.archandler.libs.model.FileType
+import cc.kafuu.archandler.libs.model.LayoutType
 import cc.kafuu.archandler.libs.model.StorageData
 import cc.kafuu.archandler.ui.utils.rememberVideoThumbnailPainter
 import cc.kafuu.archandler.ui.widges.AppLazyColumn
 import cc.kafuu.archandler.ui.widges.AppOptionalIconTextItemCard
 import cc.kafuu.archandler.ui.widges.DirectoryPathBar
+import cc.kafuu.archandler.ui.widges.AppGridFileItemCard
+import cc.kafuu.archandler.ui.widges.AppLazyGridView
 import cc.kafuu.archandler.ui.widges.IconMessageView
 import coil.compose.rememberAsyncImagePainter
 import java.io.File
@@ -43,6 +47,7 @@ fun DirectoryView(
     loadState: MainLoadState,
     listState: MainListState.Directory,
     viewMode: MainListViewModeState,
+    layoutType: LayoutType = LayoutType.LIST,
     emitIntent: (uiIntent: MainUiIntent) -> Unit = {},
 ) {
     Column(
@@ -60,36 +65,49 @@ fun DirectoryView(
             MainUiIntent.FileSelected(listState.storageData, it).also(emitIntent)
         }
 
-        AppLazyColumn(
-            modifier = Modifier
-                .padding(top = 10.dp)
-                .padding(horizontal = 10.dp)
-                .weight(1f),
-            state = listState.lazyListState,
-            items = listState.files,
-            emptyState = {
-                if (loadState !is MainLoadState.None) {
-                    Spacer(modifier = Modifier.weight(1f))
-                    return@AppLazyColumn
+        val selectedSet = (viewMode as? MainListViewModeState.MultipleSelect)?.selected
+        val isGridLayout = layoutType == LayoutType.GRID
+
+        if (isGridLayout) {
+            // 网格布局
+            AppLazyGridView(
+                modifier = Modifier
+                    .padding(top = 10.dp)
+                    .padding(horizontal = 10.dp)
+                    .weight(1f),
+                state = listState.lazyGridState,
+                items = listState.files,
+                emptyView = { EmptyView(loadState) },
+                gridItemContent = { file ->
+                    GridFileItem(
+                        storageData = listState.storageData,
+                        file = file,
+                        multipleSelectMode = selectedSet != null,
+                        selectedSet = selectedSet,
+                        emitIntent = emitIntent
+                    )
                 }
-                IconMessageView(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
-                    icon = painterResource(R.drawable.ic_empty_folder),
-                    message = stringResource(R.string.empty_directory),
-                )
-            }
-        ) { file ->
-            val selectedSet = (viewMode as? MainListViewModeState.MultipleSelect)?.selected
-            FileItem(
-                storageData = listState.storageData,
-                file = file,
-                multipleSelectMode = selectedSet != null,
-                selectedSet = selectedSet,
-                emitIntent = emitIntent
             )
-            Spacer(modifier = Modifier.height(10.dp))
+        } else {
+            // 列表布局
+            AppLazyColumn(
+                modifier = Modifier
+                    .padding(top = 10.dp)
+                    .padding(horizontal = 10.dp)
+                    .weight(1f),
+                state = listState.lazyListState,
+                items = listState.files,
+                emptyState = { EmptyView(loadState) }
+            ) { file ->
+                ListFileItem(
+                    storageData = listState.storageData,
+                    file = file,
+                    multipleSelectMode = selectedSet != null,
+                    selectedSet = selectedSet,
+                    emitIntent = emitIntent
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+            }
         }
 
         if (viewMode !is MainListViewModeState.Normal) {
@@ -129,7 +147,7 @@ fun DirectoryView(
 
 
 @Composable
-private fun FileItem(
+private fun ListFileItem(
     storageData: StorageData,
     file: File,
     multipleSelectMode: Boolean,
@@ -170,6 +188,75 @@ private fun FileItem(
             file = file
         ).also(emitIntent)
     }
+}
+
+@Composable
+private fun ColumnScope.EmptyView(loadState: MainLoadState) {
+    if (loadState !is MainLoadState.None) {
+        Spacer(modifier = Modifier.weight(1f))
+        return
+    }
+    IconMessageView(
+        modifier = Modifier
+            .fillMaxWidth()
+            .weight(1f),
+        icon = painterResource(R.drawable.ic_empty_folder),
+        message = stringResource(R.string.empty_directory),
+    )
+}
+
+/**
+ * 网格布局的文件项
+ */
+@Composable
+private fun GridFileItem(
+    storageData: StorageData,
+    file: File,
+    multipleSelectMode: Boolean,
+    selectedSet: Set<File>?,
+    emitIntent: (uiIntent: MainUiIntent) -> Unit = {},
+) {
+    val text = file.name
+    val secondaryText = file.takeIf { it.isFile }?.let {
+        stringResource(
+            R.string.file_info_format,
+            file.getLastModifiedDate(), file.getReadableSize()
+        )
+    }
+    val checked = selectedSet?.contains(file) == true
+    val painter = file.getFileType().let { type ->
+        val defaultIcon = painterResource(type.icon)
+        when (type) {
+            FileType.Image -> rememberAsyncImagePainter(model = file, placeholder = defaultIcon)
+            FileType.Movie -> rememberVideoThumbnailPainter(model = file, placeholder = defaultIcon)
+            else -> defaultIcon
+        }
+    }
+
+    AppGridFileItemCard(
+        modifier = Modifier.fillMaxWidth(),
+        icon = {
+            androidx.compose.foundation.Image(
+                painter = painter,
+                contentDescription = text,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+        },
+        text = text,
+        secondaryText = secondaryText,
+        selected = checked,
+        showCheckbox = multipleSelectMode,
+        onClick = {
+            MainUiIntent.FileSelected(
+                storageData = storageData,
+                file = file
+            ).also(emitIntent)
+        },
+        onLongClick = {
+            emitIntent(MainUiIntent.FileMultipleSelectMode(!multipleSelectMode, file))
+        }
+    )
 }
 
 @Composable

@@ -6,4 +6,5 @@ sealed class SettingsUiIntent {
     data class ToggleShowHiddenFiles(val enabled: Boolean) : SettingsUiIntent()
     data class ToggleShowUnreadableDirectories(val enabled: Boolean) : SettingsUiIntent()
     data class ToggleShowUnreadableFiles(val enabled: Boolean) : SettingsUiIntent()
+    data class SwitchLayoutType(val layoutType: cc.kafuu.archandler.libs.model.LayoutType) : SettingsUiIntent()
 }

@@ -127,4 +127,7 @@
     <string name="show_unreadable_directories_description">Отображение каталогов, которые невозможно прочитать</string>
     <string name="show_unreadable_files">Показывать нечитаемые файлы</string>
     <string name="show_unreadable_files_description">Отображение файлов, которые невозможно прочитать</string>
+    <string name="list_layout_type">Список</string>
+    <string name="list_layout_type_description">Переключить режим просмотра (Список/Сетка)</string>
+    <string name="switch_layout_type">Переключить макет</string>
 </resources>

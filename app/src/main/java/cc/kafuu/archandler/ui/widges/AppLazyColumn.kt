@@ -53,7 +53,7 @@ fun <T> AppLazyColumn(
             }
         } else {
             LazyColumn(
-                modifier = Modifier.fillMaxSize(),
+                modifier = modifier,
                 verticalArrangement = verticalArrangement,
                 horizontalAlignment = horizontalAlignment,
                 state = state,

@@ -10,6 +10,7 @@ import cc.kafuu.archandler.feature.storagepicker.model.PickMode
 import cc.kafuu.archandler.feature.storagepicker.model.StoragePickerParams
 import cc.kafuu.archandler.feature.storagepicker.model.StoragePickerResult
 import cc.kafuu.archandler.libs.AppLibs
+import cc.kafuu.archandler.libs.AppModel
 import cc.kafuu.archandler.libs.archive.ArchiveManager
 import cc.kafuu.archandler.libs.archive.IArchive
 import cc.kafuu.archandler.libs.archive.IPasswordProvider
@@ -22,6 +23,7 @@ import cc.kafuu.archandler.libs.manager.DataTransferManager
 import cc.kafuu.archandler.libs.manager.FileManager
 import cc.kafuu.archandler.libs.model.AppCacheType
 import cc.kafuu.archandler.libs.model.ArchiveViewData
+import cc.kafuu.archandler.libs.model.LayoutType
 import cc.kafuu.archandler.libs.model.StorageData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
@@ -84,9 +86,12 @@ class ArchiveViewViewModel : CoreViewModelWithEvent<ArchiveViewUiIntent, Archive
      * 加载压缩包
      */
     private suspend fun loadArchive(archiveFile: File) {
+        // 从AppModel读取布局类型
+        val layoutType = LayoutType.fromValue(AppModel.listLayoutType)
         ArchiveViewUiState.Normal(
             archiveFile = archiveFile,
-            loadState = ArchiveViewLoadState.ArchiveOpening
+            loadState = ArchiveViewLoadState.ArchiveOpening,
+            layoutType = layoutType
         ).setup()
         val archive = runCatching {
             withContext(Dispatchers.IO) {
@@ -164,10 +169,9 @@ class ArchiveViewViewModel : CoreViewModelWithEvent<ArchiveViewUiIntent, Archive
                 )
             }
         }
-
-        val archiveFile = getOrNull<ArchiveViewUiState.Normal>()?.archiveFile ?: File("")
-        ArchiveViewUiState.Normal(
-            archiveFile = archiveFile,
+        val state = getOrNull<ArchiveViewUiState.Normal>()
+            ?: ArchiveViewUiState.Normal(archiveFile = File(""))
+        state.copy(
             currentPath = currentPath,
             entries = currentEntries.sortedWith(compareBy<ArchiveEntry> { !it.isDirectory }.thenBy { it.name }),
             loadState = ArchiveViewLoadState.None
@@ -277,7 +281,6 @@ class ArchiveViewViewModel : CoreViewModelWithEvent<ArchiveViewUiIntent, Archive
         val result = intent.transferId?.let {
             mDataTransferManager.takeAs<StoragePickerResult.ChooseDirectory>(intent.transferId)
         } ?: return
-
         val currentState = getOrNull<ArchiveViewUiState.Normal>() ?: return
         currentState.copy(loadState = ArchiveViewLoadState.Extracting(0, "", 0)).setup()
         val archive = mArchive ?: run {
@@ -288,21 +291,17 @@ class ArchiveViewViewModel : CoreViewModelWithEvent<ArchiveViewUiIntent, Archive
         val destDir = File(result.directoryPath.toString())
         val resultExtract = runCatching {
             withContext(Dispatchers.IO) {
-                var currentIndex = 0
-                var total = 0
                 archive.extractAll(destDir) { index, path, target ->
-                    currentIndex = index
-                    total = target
                     withContext(Dispatchers.Main) {
-                        getOrNull<ArchiveViewUiState.Normal>()?.copy(
-                            loadState = ArchiveViewLoadState.Extracting(index, path, target)
-                        )?.setup()
+                        uiState
+                            .copy(loadState = ArchiveViewLoadState.Extracting(index, path, target))
+                            .setup()
                     }
                     currentCoroutineContext().ensureActive()
                 }
             }
         }
-        getOrNull<ArchiveViewUiState.Normal>()?.copy(loadState = ArchiveViewLoadState.None)?.setup()
+        uiState.setup()
         mCacheManager.clearCache(AppCacheType.MERGE_SPLIT_ARCHIVE)
         if (resultExtract.isFailure) {
             errorMessage(resultExtract.exceptionOrNull())
@@ -328,9 +327,18 @@ class ArchiveViewViewModel : CoreViewModelWithEvent<ArchiveViewUiIntent, Archive
      * 显示错误消息
      */
     private suspend fun errorMessage(exception: Throwable?) {
-        val message = exception?.message
-            ?: get<AppLibs>().getString(R.string.unknown_error)
+        val message = exception?.message ?: get<AppLibs>().getString(R.string.unknown_error)
         AppViewEvent.PopupToastMessage(message).emit()
+    }
+
+    /**
+     * 切换布局类型
+     */
+    @UiIntentObserver(ArchiveViewUiIntent.SwitchLayoutType::class)
+    fun onSwitchLayoutType(intent: ArchiveViewUiIntent.SwitchLayoutType) {
+        val uiState = getOrNull<ArchiveViewUiState.Normal>() ?: return
+        AppModel.listLayoutType = intent.layoutType.value
+        uiState.copy(layoutType = intent.layoutType).setup()
     }
 
 

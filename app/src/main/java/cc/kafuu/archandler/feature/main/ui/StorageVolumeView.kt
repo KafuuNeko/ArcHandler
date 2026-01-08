@@ -1,5 +1,6 @@
 package cc.kafuu.archandler.feature.main.ui
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -24,8 +25,12 @@ import cc.kafuu.archandler.feature.main.presentation.MainListViewModeState
 import cc.kafuu.archandler.feature.main.presentation.MainLoadState
 import cc.kafuu.archandler.feature.main.presentation.MainUiIntent
 import cc.kafuu.archandler.feature.main.ui.common.BottomMenu
+import cc.kafuu.archandler.libs.model.LayoutType
+import cc.kafuu.archandler.libs.model.StorageData
 import cc.kafuu.archandler.ui.widges.AppIconTextItemCard
 import cc.kafuu.archandler.ui.widges.AppLazyColumn
+import cc.kafuu.archandler.ui.widges.AppGridFileItemCard
+import cc.kafuu.archandler.ui.widges.AppLazyGridView
 import cc.kafuu.archandler.ui.widges.IconMessageView
 
 @Composable
@@ -34,6 +39,7 @@ fun StorageVolumeView(
     loadState: MainLoadState,
     listState: MainListState.StorageVolume,
     viewMode: MainListViewModeState,
+    layoutType: LayoutType = LayoutType.LIST,
     emitIntent: (uiIntent: MainUiIntent) -> Unit = {},
 ) {
     Column(
@@ -45,30 +51,55 @@ fun StorageVolumeView(
             text = stringResource(R.string.storage_volume),
             style = MaterialTheme.typography.headlineMedium
         )
-        AppLazyColumn(
-            modifier = Modifier
-                .padding(top = 10.dp)
-                .weight(1f),
-            emptyState = {
-                if (loadState !is MainLoadState.None) return@AppLazyColumn
-                IconMessageView(
-                    modifier = Modifier.fillMaxSize(),
-                    icon = painterResource(R.drawable.ic_storage),
-                    message = stringResource(R.string.no_accessible_storage_devices),
-                )
-            },
-            items = listState.storageVolumes
-        ) {
-            AppIconTextItemCard(
+        if (layoutType == LayoutType.GRID) {
+            // 网格布局
+            AppLazyGridView(
                 modifier = Modifier
-                    .fillMaxWidth(),
-                painter = painterResource(R.drawable.ic_storage),
-                text = it.name,
-                secondaryText = it.directory.path
+                    .padding(top = 10.dp)
+                    .weight(1f),
+                items = listState.storageVolumes,
+                emptyView = {
+                    if (loadState !is MainLoadState.None) return@AppLazyGridView
+                    IconMessageView(
+                        modifier = Modifier.fillMaxSize(),
+                        icon = painterResource(R.drawable.ic_storage),
+                        message = stringResource(R.string.no_accessible_storage_devices),
+                    )
+                },
+                gridItemContent = { storage ->
+                    GridStorageItem(
+                        storageData = storage,
+                        onClick = { emitIntent(MainUiIntent.StorageVolumeSelected(storage)) }
+                    )
+                }
+            )
+        } else {
+            // 列表布局
+            AppLazyColumn(
+                modifier = Modifier
+                    .padding(top = 10.dp)
+                    .weight(1f),
+                emptyState = {
+                    if (loadState !is MainLoadState.None) return@AppLazyColumn
+                    IconMessageView(
+                        modifier = Modifier.fillMaxSize(),
+                        icon = painterResource(R.drawable.ic_storage),
+                        message = stringResource(R.string.no_accessible_storage_devices),
+                    )
+                },
+                items = listState.storageVolumes
             ) {
-                emitIntent(MainUiIntent.StorageVolumeSelected(it))
+                AppIconTextItemCard(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    painter = painterResource(R.drawable.ic_storage),
+                    text = it.name,
+                    secondaryText = it.directory.path
+                ) {
+                    emitIntent(MainUiIntent.StorageVolumeSelected(it))
+                }
+                Spacer(modifier = Modifier.height(10.dp))
             }
-            Spacer(modifier = Modifier.height(10.dp))
         }
         when (viewMode) {
             is MainListViewModeState.Paste -> {
@@ -130,4 +161,27 @@ private fun StoragePackMenuView(
             MainUiIntent.PackMenuClick(menu = MainPackMenuEnum.Cancel).also(emitIntent)
         }
     }
+}
+
+/**
+ * 网格布局的存储项
+ */
+@Composable
+private fun GridStorageItem(
+    storageData: StorageData,
+    onClick: () -> Unit = {}
+) {
+    AppGridFileItemCard(
+        modifier = Modifier.fillMaxWidth(),
+        icon = {
+            Image(
+                painter = painterResource(R.drawable.ic_storage),
+                contentDescription = storageData.name,
+                modifier = Modifier.fillMaxSize()
+            )
+        },
+        text = storageData.name,
+        secondaryText = storageData.directory.path,
+        onClick = onClick
+    )
 }

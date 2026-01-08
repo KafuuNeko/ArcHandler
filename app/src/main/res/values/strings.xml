@@ -146,4 +146,7 @@
     <string name="show_unreadable_directories_description">Display directories that cannot be read</string>
     <string name="show_unreadable_files">Show unreadable files</string>
     <string name="show_unreadable_files_description">Display files that cannot be read</string>
+    <string name="list_layout_type">List Layout</string>
+    <string name="list_layout_type_description">Toggle list view mode (List/Grid)</string>
+    <string name="switch_layout_type">Switch Layout</string>
 </resources>

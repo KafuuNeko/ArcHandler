@@ -5,6 +5,7 @@ import cc.kafuu.archandler.feature.settings.presentation.SettingsUiState
 import cc.kafuu.archandler.libs.AppModel
 import cc.kafuu.archandler.libs.core.CoreViewModelWithEvent
 import cc.kafuu.archandler.libs.core.UiIntentObserver
+import cc.kafuu.archandler.libs.model.LayoutType
 
 class SettingsViewModel : CoreViewModelWithEvent<SettingsUiIntent, SettingsUiState>(
     initStatus = SettingsUiState.None
@@ -12,10 +13,12 @@ class SettingsViewModel : CoreViewModelWithEvent<SettingsUiIntent, SettingsUiSta
     @UiIntentObserver(SettingsUiIntent.Init::class)
     private fun onInit() {
         if (!isStateOf<SettingsUiState.None>()) return
+        val layoutType = LayoutType.fromValue(AppModel.listLayoutType)
         SettingsUiState.Normal(
             showHiddenFiles = AppModel.isShowHiddenFiles,
             showUnreadableDirectories = AppModel.isShowUnreadableDirectories,
-            showUnreadableFiles = AppModel.isShowUnreadableFiles
+            showUnreadableFiles = AppModel.isShowUnreadableFiles,
+            layoutType = layoutType
         ).setup()
     }
 
@@ -43,5 +46,12 @@ class SettingsViewModel : CoreViewModelWithEvent<SettingsUiIntent, SettingsUiSta
         val state = getOrNull<SettingsUiState.Normal>() ?: return
         AppModel.isShowUnreadableFiles = intent.enabled
         state.copy(showUnreadableFiles = intent.enabled).setup()
+    }
+
+    @UiIntentObserver(SettingsUiIntent.SwitchLayoutType::class)
+    private suspend fun onSwitchLayoutType(intent: SettingsUiIntent.SwitchLayoutType) {
+        val state = getOrNull<SettingsUiState.Normal>() ?: return
+        AppModel.listLayoutType = intent.layoutType.value
+        state.copy(layoutType = intent.layoutType).setup()
     }
 }

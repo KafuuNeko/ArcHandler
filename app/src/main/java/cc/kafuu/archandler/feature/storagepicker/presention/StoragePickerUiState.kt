@@ -1,6 +1,7 @@
 package cc.kafuu.archandler.feature.storagepicker.presention
 
 import cc.kafuu.archandler.feature.storagepicker.model.PickMode
+import cc.kafuu.archandler.libs.model.LayoutType
 import cc.kafuu.archandler.libs.model.StorageData
 import cc.kafuu.archandler.libs.utils.DeferredResult
 import java.io.File
@@ -12,7 +13,8 @@ sealed class StoragePickerUiState {
         val pickMode: PickMode = PickMode.ChooseDirectory,
         val loadState: StoragePickerLoadState = StoragePickerLoadState.None,
         val dialogState: StoragePickerDialogState = StoragePickerDialogState.None,
-        val listState: StoragePickerListState = StoragePickerListState.Undecided
+        val listState: StoragePickerListState = StoragePickerListState.Undecided,
+        val layoutType: LayoutType = LayoutType.LIST
     ) : StoragePickerUiState()
 
     data object Finished : StoragePickerUiState()

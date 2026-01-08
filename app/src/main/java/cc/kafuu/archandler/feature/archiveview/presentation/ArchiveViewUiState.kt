@@ -2,6 +2,7 @@ package cc.kafuu.archandler.feature.archiveview.presentation
 
 import androidx.compose.foundation.lazy.LazyListState
 import cc.kafuu.archandler.libs.archive.model.ArchiveEntry
+import cc.kafuu.archandler.libs.model.LayoutType
 import cc.kafuu.archandler.libs.utils.DeferredResult
 import java.io.File
 
@@ -13,7 +14,8 @@ sealed class ArchiveViewUiState {
         val currentPath: String = "",
         val entries: List<ArchiveEntry> = emptyList(),
         val loadState: ArchiveViewLoadState = ArchiveViewLoadState.None,
-        val lazyListState: LazyListState = LazyListState()
+        val lazyListState: LazyListState = LazyListState(),
+        val layoutType: LayoutType = LayoutType.LIST
     ) : ArchiveViewUiState()
 
     data object Finished : ArchiveViewUiState()

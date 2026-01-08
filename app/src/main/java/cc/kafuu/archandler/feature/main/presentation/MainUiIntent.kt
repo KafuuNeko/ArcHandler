@@ -74,4 +74,6 @@ sealed class MainUiIntent {
     data class ExtractToCurrentDirectory(val file: File) : MainUiIntent()
 
     data object ShowSortDialog : MainUiIntent()
+
+    data class SwitchLayoutType(val layoutType: cc.kafuu.archandler.libs.model.LayoutType) : MainUiIntent()
 }

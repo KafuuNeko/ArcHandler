@@ -127,4 +127,7 @@
     <string name="show_unreadable_directories_description">読み取ることができないディレクトリを表示</string>
     <string name="show_unreadable_files">読み取れないファイルを表示</string>
     <string name="show_unreadable_files_description">読み取ることができないファイルを表示</string>
+    <string name="list_layout_type">リストレイアウト</string>
+    <string name="list_layout_type_description">リスト表示モードを切り替え（リスト/グリッド）</string>
+    <string name="switch_layout_type">レイアウトを切り替え</string>
 </resources>

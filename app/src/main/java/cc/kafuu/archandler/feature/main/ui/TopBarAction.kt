@@ -30,6 +30,26 @@ fun TopBarAction(
     var expanded by remember { mutableStateOf(false) }
     val listState = uiState.listState as? MainListState.Directory ?: return
 
+    // 布局切换按钮
+    Image(
+        modifier = Modifier
+            .padding(horizontal = 10.dp)
+            .size(24.dp)
+            .clickable {
+                emitIntent(
+                    MainUiIntent.SwitchLayoutType(uiState.layoutType.toggle())
+                )
+            },
+        painter = painterResource(
+            if (uiState.layoutType == cc.kafuu.archandler.libs.model.LayoutType.LIST) {
+                R.drawable.ic_grid_view
+            } else {
+                R.drawable.ic_list_view
+            }
+        ),
+        contentDescription = stringResource(R.string.switch_layout_type)
+    )
+
     Image(
         modifier = Modifier
             .padding(horizontal = 10.dp)

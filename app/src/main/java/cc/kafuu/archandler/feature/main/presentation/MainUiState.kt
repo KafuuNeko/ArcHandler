@@ -1,8 +1,10 @@
 package cc.kafuu.archandler.feature.main.presentation
 
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.grid.LazyGridState
 import cc.kafuu.archandler.feature.main.model.SortType
 import cc.kafuu.archandler.libs.model.FileConflictStrategy
+import cc.kafuu.archandler.libs.model.LayoutType
 import cc.kafuu.archandler.libs.model.StorageData
 import cc.kafuu.archandler.libs.utils.DeferredResult
 import cc.kafuu.archandler.ui.utils.Stack
@@ -19,7 +21,8 @@ sealed class MainUiState {
         val dialogState: MainDialogState = MainDialogState.None,
         val viewModeState: MainListViewModeState = MainListViewModeState.Normal,
         val listState: MainListState = MainListState.Undecided,
-        val sortType: SortType = SortType.DATE_NEW_TO_OLD
+        val sortType: SortType = SortType.DATE_NEW_TO_OLD,
+        val layoutType: LayoutType = LayoutType.LIST
     ) : MainUiState()
 
     data object Finished : MainUiState()
@@ -72,7 +75,8 @@ sealed class MainListState {
         val files: List<File> = emptyList(),
         val canRead: Boolean = true,
         val canWrite: Boolean = true,
-        val lazyListState: LazyListState = LazyListState()
+        val lazyListState: LazyListState = LazyListState(),
+        val lazyGridState: LazyGridState = LazyGridState()
     ) : MainListState()
 }
 

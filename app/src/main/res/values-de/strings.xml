@@ -127,4 +127,7 @@
     <string name="show_unreadable_directories_description">Verzeichnisse anzeigen, die nicht gelesen werden können</string>
     <string name="show_unreadable_files">Unlesbare Dateien anzeigen</string>
     <string name="show_unreadable_files_description">Dateien anzeigen, die nicht gelesen werden können</string>
+    <string name="list_layout_type">Listenlayout</string>
+    <string name="list_layout_type_description">Listenansichtsmodus umschalten (Liste/Raster)</string>
+    <string name="switch_layout_type">Layout umschalten</string>
 </resources>

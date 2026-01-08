@@ -127,5 +127,8 @@
     <string name="show_unreadable_directories_description">顯示無法讀取的目錄</string>
     <string name="show_unreadable_files">顯示不可讀檔案</string>
     <string name="show_unreadable_files_description">顯示無法讀取的檔案</string>
+    <string name="list_layout_type">列表佈局</string>
+    <string name="list_layout_type_description">切換列表視圖模式（列表/網格）</string>
+    <string name="switch_layout_type">切換佈局</string>
 </resources>
 

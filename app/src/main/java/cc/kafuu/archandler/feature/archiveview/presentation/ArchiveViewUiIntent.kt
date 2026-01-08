@@ -18,5 +18,7 @@ sealed class ArchiveViewUiIntent {
     data class ExtractToDirectoryCompleted(val transferId: String?) : ArchiveViewUiIntent()
 
     data object CancelExtracting : ArchiveViewUiIntent()
+
+    data class SwitchLayoutType(val layoutType: cc.kafuu.archandler.libs.model.LayoutType) : ArchiveViewUiIntent()
 }
 

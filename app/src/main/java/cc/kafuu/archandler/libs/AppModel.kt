@@ -23,4 +23,6 @@ object AppModel : KotprefModel() {
 
     var listSortType by intPref(default = 0)
 
+    var listLayoutType by intPref(default = 0)
+
 }

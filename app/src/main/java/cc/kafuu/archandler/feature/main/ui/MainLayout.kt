@@ -342,6 +342,7 @@ private fun AccessibleView(
             loadState = uiState.loadState,
             listState = listState,
             viewMode = uiState.viewModeState,
+            layoutType = uiState.layoutType,
             emitIntent = emitIntent
         )
 
@@ -350,6 +351,7 @@ private fun AccessibleView(
             loadState = uiState.loadState,
             listState = listState,
             viewMode = uiState.viewModeState,
+            layoutType = uiState.layoutType,
             emitIntent = emitIntent
         )
     }

@@ -127,4 +127,7 @@
     <string name="show_unreadable_directories_description">읽을 수 없는 디렉터리 표시</string>
     <string name="show_unreadable_files">읽을 수 없는 파일 표시</string>
     <string name="show_unreadable_files_description">읽을 수 없는 파일 표시</string>
+    <string name="list_layout_type">목록 레이아웃</string>
+    <string name="list_layout_type_description">목록 보기 모드 전환 (목록/그리드)</string>
+    <string name="switch_layout_type">레이아웃 전환</string>
 </resources>

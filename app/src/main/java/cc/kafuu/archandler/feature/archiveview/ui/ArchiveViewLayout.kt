@@ -23,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -31,11 +32,15 @@ import cc.kafuu.archandler.R
 import cc.kafuu.archandler.feature.archiveview.presentation.ArchiveViewLoadState
 import cc.kafuu.archandler.feature.archiveview.presentation.ArchiveViewUiIntent
 import cc.kafuu.archandler.feature.archiveview.presentation.ArchiveViewUiState
+import cc.kafuu.archandler.libs.archive.model.ArchiveEntry
 import cc.kafuu.archandler.libs.extensions.getReadableSize
+import cc.kafuu.archandler.libs.model.LayoutType
 import cc.kafuu.archandler.ui.dialogs.AppLoadDialog
 import cc.kafuu.archandler.ui.widges.AppIconTextItemCard
 import cc.kafuu.archandler.ui.widges.AppLazyColumn
 import cc.kafuu.archandler.ui.widges.AppTopBar
+import cc.kafuu.archandler.ui.widges.AppGridFileItemCard
+import cc.kafuu.archandler.ui.widges.AppLazyGridView
 import cc.kafuu.archandler.ui.widges.IconMessageView
 import java.io.File
 
@@ -93,6 +98,8 @@ private fun NormalView(
     uiState: ArchiveViewUiState.Normal,
     emitIntent: (uiIntent: ArchiveViewUiIntent) -> Unit = {}
 ) {
+    val isGridLayout = uiState.layoutType == LayoutType.GRID
+
     Scaffold(
         modifier = Modifier
             .statusBarsPadding(),
@@ -100,7 +107,28 @@ private fun NormalView(
             AppTopBar(
                 title = uiState.archiveFile.name,
                 onBack = { emitIntent(ArchiveViewUiIntent.Close) },
-                backIconPainter = painterResource(R.drawable.ic_close)
+                backIconPainter = painterResource(R.drawable.ic_close),
+                actions = {
+                    // 布局切换按钮
+                    Image(
+                        modifier = Modifier
+                            .padding(horizontal = 10.dp)
+                            .size(24.dp)
+                            .clickable {
+                                emitIntent(
+                                    ArchiveViewUiIntent.SwitchLayoutType(uiState.layoutType.toggle())
+                                )
+                            },
+                        painter = painterResource(
+                            if (uiState.layoutType == LayoutType.LIST) {
+                                R.drawable.ic_grid_view
+                            } else {
+                                R.drawable.ic_list_view
+                            }
+                        ),
+                        contentDescription = stringResource(R.string.switch_layout_type)
+                    )
+                }
             )
         },
     ) { paddingValues ->
@@ -119,33 +147,63 @@ private fun NormalView(
                 emitIntent = emitIntent
             )
 
-            // 条目列表
-            AppLazyColumn(
-                modifier = Modifier
-                    .padding(top = 10.dp)
-                    .padding(horizontal = 10.dp)
-                    .weight(1f),
-                state = uiState.lazyListState,
-                items = uiState.entries,
-                emptyState = {
-                    if (uiState.loadState !is ArchiveViewLoadState.None) {
-                        Spacer(modifier = Modifier.weight(1f))
-                        return@AppLazyColumn
+            if (isGridLayout) {
+                // 网格布局
+                AppLazyGridView(
+                    modifier = Modifier
+                        .padding(top = 10.dp)
+                        .padding(horizontal = 10.dp)
+                        .weight(1f),
+                    items = uiState.entries,
+                    emptyView = {
+                        if (uiState.loadState !is ArchiveViewLoadState.None) {
+                            Spacer(modifier = Modifier.weight(1f))
+                            return@AppLazyGridView
+                        }
+                        IconMessageView(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f),
+                            icon = painterResource(R.drawable.ic_empty_folder),
+                            message = stringResource(R.string.empty_directory),
+                        )
+                    },
+                    gridItemContent = { entry ->
+                        GridEntryItem(
+                            entry = entry,
+                            emitIntent = emitIntent
+                        )
                     }
-                    IconMessageView(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f),
-                        icon = painterResource(R.drawable.ic_empty_folder),
-                        message = stringResource(R.string.empty_directory),
-                    )
-                }
-            ) { entry ->
-                EntryItem(
-                    entry = entry,
-                    emitIntent = emitIntent
                 )
-                Spacer(modifier = Modifier.height(10.dp))
+            } else {
+                // 列表布局
+                AppLazyColumn(
+                    modifier = Modifier
+                        .padding(top = 10.dp)
+                        .padding(horizontal = 10.dp)
+                        .weight(1f),
+                    state = uiState.lazyListState,
+                    items = uiState.entries,
+                    emptyState = {
+                        if (uiState.loadState !is ArchiveViewLoadState.None) {
+                            Spacer(modifier = Modifier.weight(1f))
+                            return@AppLazyColumn
+                        }
+                        IconMessageView(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f),
+                            icon = painterResource(R.drawable.ic_empty_folder),
+                            message = stringResource(R.string.empty_directory),
+                        )
+                    }
+                ) { entry ->
+                    EntryItem(
+                        entry = entry,
+                        emitIntent = emitIntent
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                }
             }
 
             // 底部解压按钮
@@ -248,6 +306,39 @@ private fun EntryItem(
     ) {
         emitIntent(ArchiveViewUiIntent.EntrySelected(entry))
     }
+}
+
+/**
+ * 网格布局的条目项
+ */
+@Composable
+private fun GridEntryItem(
+    entry: ArchiveEntry,
+    emitIntent: (uiIntent: ArchiveViewUiIntent) -> Unit = {}
+) {
+    val icon = if (entry.isDirectory) {
+        painterResource(R.drawable.ic_folder)
+    } else {
+        painterResource(R.drawable.ic_file)
+    }
+    val secondaryText = if (!entry.isDirectory) entry.size.getReadableSize() else null
+
+    AppGridFileItemCard(
+        modifier = Modifier.fillMaxWidth(),
+        icon = {
+            Image(
+                painter = icon,
+                contentDescription = entry.name,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Fit
+            )
+        },
+        text = entry.name,
+        secondaryText = secondaryText,
+        onClick = {
+            emitIntent(ArchiveViewUiIntent.EntrySelected(entry))
+        }
+    )
 }
 
 @Composable

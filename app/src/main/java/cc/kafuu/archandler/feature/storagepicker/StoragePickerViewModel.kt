@@ -21,6 +21,7 @@ import cc.kafuu.archandler.libs.extensions.isSameFileOrDirectory
 import cc.kafuu.archandler.libs.extensions.listFilteredFiles
 import cc.kafuu.archandler.libs.manager.DataTransferManager
 import cc.kafuu.archandler.libs.manager.FileManager
+import cc.kafuu.archandler.libs.model.LayoutType
 import cc.kafuu.archandler.libs.model.StorageData
 import com.hjq.permissions.Permission
 import com.hjq.permissions.XXPermissions
@@ -118,9 +119,12 @@ class StoragePickerViewModel :
             StoragePickerUiState.Finished.setup()
             return
         }
-        val initParams = _dataTransferManager.takeAs<StoragePickerParams>(intent.paramsToken)
-        if (initParams == null) return
-        StoragePickerUiState.Normal(pickMode = initParams.pickMode).setup()
+        val initParams =
+            _dataTransferManager.takeAs<StoragePickerParams>(intent.paramsToken) ?: return
+        StoragePickerUiState.Normal(
+            pickMode = initParams.pickMode,
+            layoutType = LayoutType.fromValue(AppModel.listLayoutType)
+        ).setup()
         if (initParams.defaultStorage == null) {
             loadExternalStorages()
         } else if (initParams.defaultPath == null) {
@@ -206,24 +210,24 @@ class StoragePickerViewModel :
     suspend fun onShowCreateDirectoryDialog() {
         val state = getOrNull<StoragePickerUiState.Normal>() ?: return
         val listState = state.listState as? StoragePickerListState.Directory ?: return
-        
+
         if (!listState.canWrite) {
             AppViewEvent.PopupToastMessageByResId(R.string.failed_to_create_directory).emit()
             return
         }
-        
+
         val directoryName = StoragePickerDialogState.CreateDirectoryInput().run {
             popupAwaitDialogResult { deferredResult.awaitCompleted() }
         } ?: return
-        
+
         if (directoryName.isBlank()) return
-        
+
         val directory = File(listState.directoryPath.toString(), directoryName)
         if (directory.exists()) {
             AppViewEvent.PopupToastMessageByResId(R.string.directory_already_exists).emit()
             return
         }
-        
+
         runCatching {
             withContext(Dispatchers.IO) {
                 directory.mkdirs()
@@ -232,13 +236,25 @@ class StoragePickerViewModel :
             if (success) {
                 // 刷新目录列表
                 doLoadDirectory(listState.storageData, listState.directoryPath)
-                AppViewEvent.PopupToastMessageByResId(R.string.directory_created_successfully).emit()
+                AppViewEvent.PopupToastMessageByResId(R.string.directory_created_successfully)
+                    .emit()
             } else {
                 AppViewEvent.PopupToastMessageByResId(R.string.failed_to_create_directory).emit()
             }
         }.onFailure { exception ->
-            val message = exception.message ?: get<AppLibs>().getString(R.string.failed_to_create_directory)
+            val message =
+                exception.message ?: get<AppLibs>().getString(R.string.failed_to_create_directory)
             AppViewEvent.PopupToastMessage(message).emit()
         }
+    }
+
+    /**
+     * 切换布局类型
+     */
+    @UiIntentObserver(StoragePickerUiIntent.SwitchLayoutType::class)
+    fun onSwitchLayoutType(intent: StoragePickerUiIntent.SwitchLayoutType) {
+        val uiState = getOrNull<StoragePickerUiState.Normal>() ?: return
+        AppModel.listLayoutType = intent.layoutType.value
+        uiState.copy(layoutType = intent.layoutType).setup()
     }
 }

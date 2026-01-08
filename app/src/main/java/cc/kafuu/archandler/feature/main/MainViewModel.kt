@@ -6,7 +6,6 @@ import cc.kafuu.archandler.feature.about.AboutActivity
 import cc.kafuu.archandler.feature.archiveview.ArchiveViewActivity
 import cc.kafuu.archandler.feature.createarchive.CreateArchiveActivity
 import cc.kafuu.archandler.feature.main.model.MainDrawerMenuEnum
-import cc.kafuu.archandler.feature.settings.SettingsActivity
 import cc.kafuu.archandler.feature.main.model.MainMultipleMenuEnum
 import cc.kafuu.archandler.feature.main.model.MainPackMenuEnum
 import cc.kafuu.archandler.feature.main.model.MainPasteMenuEnum
@@ -18,6 +17,7 @@ import cc.kafuu.archandler.feature.main.presentation.MainLoadState
 import cc.kafuu.archandler.feature.main.presentation.MainUiIntent
 import cc.kafuu.archandler.feature.main.presentation.MainUiState
 import cc.kafuu.archandler.feature.main.presentation.MainViewEvent
+import cc.kafuu.archandler.feature.settings.SettingsActivity
 import cc.kafuu.archandler.libs.AppLibs
 import cc.kafuu.archandler.libs.AppModel
 import cc.kafuu.archandler.libs.archive.ArchiveManager
@@ -39,6 +39,7 @@ import cc.kafuu.archandler.libs.manager.DataTransferManager
 import cc.kafuu.archandler.libs.manager.FileManager
 import cc.kafuu.archandler.libs.model.AppCacheType
 import cc.kafuu.archandler.libs.model.FileConflictStrategy
+import cc.kafuu.archandler.libs.model.LayoutType
 import cc.kafuu.archandler.libs.model.StorageData
 import cc.kafuu.archandler.libs.utils.parallelSortWith
 import cc.kafuu.archandler.ui.utils.Stack
@@ -83,8 +84,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
      * 展示错误消息
      */
     private suspend fun errorMessage(exception: Throwable?) {
-        val message = exception?.message
-            ?: get<AppLibs>().getString(R.string.unknown_error)
+        val message = exception?.message ?: get<AppLibs>().getString(R.string.unknown_error)
         AppViewEvent.PopupToastMessage(message).emit()
     }
 
@@ -134,18 +134,25 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
                 }
                 if (result.isFailure) errorMessage(result.exceptionOrNull())
                 val files = result.getOrNull() ?: emptyList()
+                val viewModeState = when (this.viewModeState) {
+                    is MainListViewModeState.MultipleSelect -> {
+                        val selected = files.mapNotNull { file ->
+                            file.takeIf { this.viewModeState.selected.contains(it) }
+                        }
+                        this.viewModeState.copy(selected = selected.toSet())
+                    }
 
+                    else -> this.viewModeState
+                }
                 copy(
                     listState = listState.copy(
                         files = files,
                         canRead = directory.canRead(),
                         canWrite = directory.canWrite()
                     ),
-                    viewModeState = (viewModeState as? MainListViewModeState.MultipleSelect)?.let { viewMode ->
-                        val selected =
-                            files.mapNotNull { file -> file.takeIf { viewMode.selected.contains(it) } }
-                        viewMode.copy(selected = selected.toSet())
-                    } ?: viewModeState,
+                    sortType = SortType.fromValue(AppModel.listSortType),
+                    layoutType = LayoutType.fromValue(AppModel.listLayoutType),
+                    viewModeState = viewModeState,
                 )
             }
 
@@ -155,10 +162,12 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
                 }
                 if (result.isFailure) errorMessage(result.exceptionOrNull())
                 val storageVolumes = result.getOrNull() ?: emptyList()
-                val listState = MainListState.StorageVolume(
-                    storageVolumes = storageVolumes
+                val listState = MainListState.StorageVolume(storageVolumes = storageVolumes)
+                copy(
+                    listState = listState,
+                    sortType = SortType.fromValue(AppModel.listSortType),
+                    layoutType = LayoutType.fromValue(AppModel.listLayoutType),
                 )
-                copy(listState = listState)
             }
         }
         // Reset state
@@ -412,9 +421,13 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
         if (!XXPermissions.isGranted(get(), Permission.MANAGE_EXTERNAL_STORAGE)) {
             MainUiState.PermissionDenied.setup()
         } else {
-            // 从AppModel读取排序类型
+            // 从AppModel读取排序类型和布局类型
             val sortType = SortType.fromValue(AppModel.listSortType)
-            MainUiState.Normal(sortType = sortType).loadExternalStorages().setup()
+            val layoutType = LayoutType.fromValue(AppModel.listLayoutType)
+            MainUiState.Normal(
+                sortType = sortType,
+                layoutType = layoutType
+            ).loadExternalStorages().setup()
         }
     }
 
@@ -452,7 +465,8 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
     private suspend fun onMainDrawerMenuClick(intent: MainUiIntent.MainDrawerMenuClick) {
         if (!isStateOf<MainUiState.Normal>()) return
         when (intent.menu) {
-            MainDrawerMenuEnum.Settings -> AppViewEvent.StartActivity(SettingsActivity::class.java).emit()
+            MainDrawerMenuEnum.Settings -> AppViewEvent.StartActivity(SettingsActivity::class.java)
+                .emit()
 
             MainDrawerMenuEnum.Code -> {
                 get<AppLibs>().jumpToUrl(AppModel.CODE_REPOSITORY_URL)
@@ -784,9 +798,17 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
         val newSortType = MainDialogState.SortSelect(uiState.sortType).run {
             popupAwaitDialogResult { deferredResult.awaitCompleted() }
         } ?: return
-
-        // 更新AppModel和UI状态
         AppModel.listSortType = newSortType.value
         uiState.copy(sortType = newSortType).refresh().setup()
+    }
+
+    /**
+     * 切换布局类型
+     */
+    @UiIntentObserver(MainUiIntent.SwitchLayoutType::class)
+    private suspend fun onSwitchLayoutType(intent: MainUiIntent.SwitchLayoutType) {
+        val uiState = getOrNull<MainUiState.Normal>() ?: return
+        AppModel.listLayoutType = intent.layoutType.value
+        uiState.copy(layoutType = intent.layoutType).setup()
     }
 }

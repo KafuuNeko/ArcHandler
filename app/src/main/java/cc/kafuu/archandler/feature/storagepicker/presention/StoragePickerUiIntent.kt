@@ -1,5 +1,6 @@
 package cc.kafuu.archandler.feature.storagepicker.presention
 
+import cc.kafuu.archandler.libs.model.LayoutType
 import cc.kafuu.archandler.libs.model.StorageData
 import java.io.File
 
@@ -22,5 +23,7 @@ sealed class StoragePickerUiIntent {
     data object SelectionCompleted : StoragePickerUiIntent()
 
     data object ShowCreateDirectoryDialog : StoragePickerUiIntent()
+
+    data class SwitchLayoutType(val layoutType: LayoutType) : StoragePickerUiIntent()
 
 }
