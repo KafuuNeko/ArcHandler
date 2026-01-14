@@ -15,6 +15,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import android.content.Intent
 import cc.kafuu.archandler.feature.archiveview.ArchiveViewActivity
+import cc.kafuu.archandler.feature.duplicatefinder.DuplicateFinderActivity
 import cc.kafuu.archandler.feature.main.presentation.MainUiIntent
 import cc.kafuu.archandler.feature.main.presentation.MainUiState
 import cc.kafuu.archandler.feature.main.presentation.MainViewEvent
@@ -81,6 +82,12 @@ class MainActivity : CoreActivityWithEvent() {
             MainViewEvent.JumpFilePermissionSetting -> onJumpFilePermissionSetting()
             is MainViewEvent.StartArchiveViewActivity -> {
                 val intent = Intent(this, ArchiveViewActivity::class.java).apply {
+                    putExtras(viewEvent.params)
+                }
+                startActivity(intent)
+            }
+            is MainViewEvent.StartDuplicateFinderActivity -> {
+                val intent = Intent(this, DuplicateFinderActivity::class.java).apply {
                     putExtras(viewEvent.params)
                 }
                 startActivity(intent)

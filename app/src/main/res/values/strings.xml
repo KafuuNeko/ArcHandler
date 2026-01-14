@@ -149,4 +149,21 @@
     <string name="list_layout_type">List Layout</string>
     <string name="list_layout_type_description">Toggle list view mode (List/Grid)</string>
     <string name="switch_layout_type">Switch Layout</string>
+
+    <!-- Duplicate Finder -->
+    <string name="duplicate_finder">Duplicate Files</string>
+    <string name="duplicate_files_found">%d duplicate files</string>
+    <string name="start_search">Start Search</string>
+    <string name="search_summary">Search Summary</string>
+    <string name="search_summary_details">Total files scanned: %d\nDuplicate files found: %d\nDuplicate groups: %d\nWasted space: %s</string>
+    <string name="no_duplicate_files_found">No duplicate files found</string>
+    <string name="duplicate_finder_idle_message">Search for duplicate files in:\n%s</string>
+    <string name="calculating_hash">Calculating file hashes…</string>
+    <string name="scanned_directories">%d directories scanned</string>
+    <string name="duplicate_group_title">%d files × %s</string>
+    <string name="select_all_in_group">Select All</string>
+    <string name="deselect_all">Deselect All</string>
+    <string name="delete_selected">Delete (%d)</string>
+    <string name="no_files_selected">No files selected</string>
+    <string name="invalid_directory">Invalid directory</string>
 </resources>

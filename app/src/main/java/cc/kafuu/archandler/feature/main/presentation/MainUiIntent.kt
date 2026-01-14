@@ -26,6 +26,8 @@ sealed class MainUiIntent {
 
     data class EntryUserDirectory(val path: Path) : MainUiIntent()
 
+    data object OpenDuplicateFinder : MainUiIntent()
+
     data class FileSelected(
         val storageData: StorageData,
         val file: File

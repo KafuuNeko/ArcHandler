@@ -811,4 +811,19 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
         AppModel.listLayoutType = intent.layoutType.value
         uiState.copy(layoutType = intent.layoutType).setup()
     }
+
+    /**
+     * 打开相同文件查找页面
+     */
+    @UiIntentObserver(MainUiIntent.OpenDuplicateFinder::class)
+    private suspend fun onOpenDuplicateFinder() {
+        val uiState = getOrNull<MainUiState.Normal>() ?: return
+        val listState = uiState.listState as? MainListState.Directory ?: return
+
+        MainViewEvent.StartDuplicateFinderActivity(
+            cc.kafuu.archandler.feature.duplicatefinder.DuplicateFinderActivity.params(
+                File(listState.directoryPath.toString())
+            )
+        ).emit()
+    }
 }

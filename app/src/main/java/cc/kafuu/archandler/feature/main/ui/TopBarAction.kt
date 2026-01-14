@@ -86,6 +86,14 @@ fun TopBarAction(
         }
 
         DropdownMenuItem(
+            text = { Text(stringResource(R.string.duplicate_finder)) },
+            onClick = {
+                emitIntent(MainUiIntent.OpenDuplicateFinder)
+                expanded = false
+            }
+        )
+
+        DropdownMenuItem(
             text = { Text(stringResource(R.string.create_directory)) },
             onClick = {
                 emitIntent(MainUiIntent.CreateDirectoryClick)

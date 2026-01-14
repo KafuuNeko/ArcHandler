@@ -5,6 +5,8 @@ import cc.kafuu.archandler.libs.core.IViewEvent
 
 sealed class MainViewEvent : IViewEvent {
     data object JumpFilePermissionSetting : MainViewEvent()
-    
+
     data class StartArchiveViewActivity(val params: Bundle) : MainViewEvent()
+
+    data class StartDuplicateFinderActivity(val params: Bundle) : MainViewEvent()
 }
