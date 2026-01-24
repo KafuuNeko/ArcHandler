@@ -130,4 +130,19 @@
     <string name="list_layout_type">목록 레이아웃</string>
     <string name="list_layout_type_description">목록 보기 모드 전환 (목록/그리드)</string>
     <string name="switch_layout_type">레이아웃 전환</string>
+    <string name="duplicate_finder">중복 파일</string>
+    <string name="duplicate_files_found">%d개의 중복 파일 발견</string>
+    <string name="start_search">검색 시작</string>
+    <string name="search_summary">검색 요약</string>
+    <string name="search_summary_details">스캔한 총 파일: %d\n발견된 중복 파일: %d\n중복 그룹: %d\n낭비된 공간: %s</string>
+    <string name="no_duplicate_files_found">중복 파일을 찾지 못함</string>
+    <string name="duplicate_finder_idle_message">다음 위치에서 중복 파일 검색:\n%s</string>
+    <string name="calculating_hash">파일 해시 계산 중…</string>
+    <string name="scanned_directories">%d개 디렉터리 스캔됨</string>
+    <string name="duplicate_group_title">%d개 파일 × %s</string>
+    <string name="select_all_in_group">모두 선택</string>
+    <string name="deselect_all">모두 선택 해제</string>
+    <string name="delete_selected">삭제（%d）</string>
+    <string name="no_files_selected">선택된 파일 없음</string>
+    <string name="invalid_directory">잘못된 디렉터리</string>
 </resources>

@@ -130,4 +130,19 @@
     <string name="list_layout_type">Listenlayout</string>
     <string name="list_layout_type_description">Listenansichtsmodus umschalten (Liste/Raster)</string>
     <string name="switch_layout_type">Layout umschalten</string>
+    <string name="duplicate_finder">Doppelte Dateien</string>
+    <string name="duplicate_files_found">%d doppelte Dateien gefunden</string>
+    <string name="start_search">Suche starten</string>
+    <string name="search_summary">Suchzusammenfassung</string>
+    <string name="search_summary_details">Insgesamt durchsuchte Dateien: %d\nGefundene doppelte Dateien: %d\nDoppelte Gruppen: %d\nVerschwenderter Platz: %s</string>
+    <string name="no_duplicate_files_found">Keine doppelten Dateien gefunden</string>
+    <string name="duplicate_finder_idle_message">Nach doppelten Dateien suchen in:\n%s</string>
+    <string name="calculating_hash">Datei-Hashes werden berechnet…</string>
+    <string name="scanned_directories">%d Verzeichnisse durchsucht</string>
+    <string name="duplicate_group_title">%d Dateien × %s</string>
+    <string name="select_all_in_group">Alle auswählen</string>
+    <string name="deselect_all">Alle abwählen</string>
+    <string name="delete_selected">Löschen (%d)</string>
+    <string name="no_files_selected">Keine Dateien ausgewählt</string>
+    <string name="invalid_directory">Ungültiges Verzeichnis</string>
 </resources>

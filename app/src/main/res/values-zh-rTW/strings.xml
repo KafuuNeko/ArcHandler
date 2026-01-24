@@ -130,5 +130,20 @@
     <string name="list_layout_type">列表佈局</string>
     <string name="list_layout_type_description">切換列表視圖模式（列表/網格）</string>
     <string name="switch_layout_type">切換佈局</string>
+    <string name="duplicate_finder">重複檔案</string>
+    <string name="duplicate_files_found">發現 %d 個重複檔案</string>
+    <string name="start_search">開始搜尋</string>
+    <string name="search_summary">搜尋摘要</string>
+    <string name="search_summary_details">已掃描檔案總數：%d\n發現的重複檔案：%d\n重複檔案組：%d\n浪費空間：%s</string>
+    <string name="no_duplicate_files_found">未發現重複檔案</string>
+    <string name="duplicate_finder_idle_message">在以下位置搜尋重複檔案：\n%s</string>
+    <string name="calculating_hash">正在計算檔案雜湊…</string>
+    <string name="scanned_directories">已掃描 %d 個目錄</string>
+    <string name="duplicate_group_title">%d 個檔案 × %s</string>
+    <string name="select_all_in_group">全選</string>
+    <string name="deselect_all">取消全選</string>
+    <string name="delete_selected">刪除（%d）</string>
+    <string name="no_files_selected">未選擇檔案</string>
+    <string name="invalid_directory">無效目錄</string>
 </resources>
 

@@ -130,4 +130,19 @@
     <string name="list_layout_type">Liste</string>
     <string name="list_layout_type_description">Basculer le mode d\'affichage (Liste/Grille)</string>
     <string name="switch_layout_type">Changer de disposition</string>
+    <string name="duplicate_finder">Fichiers en double</string>
+    <string name="duplicate_files_found">%d fichiers en double trouvés</string>
+    <string name="start_search">Démarrer la recherche</string>
+    <string name="search_summary">Résumé de la recherche</string>
+    <string name="search_summary_details">Total de fichiers analysés : %d\nFichiers en double trouvés : %d\nGroupes de doublons : %d\nEspace gaspillé : %s</string>
+    <string name="no_duplicate_files_found">Aucun fichier en double trouvé</string>
+    <string name="duplicate_finder_idle_message">Rechercher des fichiers en double dans :\n%s</string>
+    <string name="calculating_hash">Calcul des hachages de fichiers…</string>
+    <string name="scanned_directories">%d répertoires analysés</string>
+    <string name="duplicate_group_title">%d fichiers × %s</string>
+    <string name="select_all_in_group">Tout sélectionner</string>
+    <string name="deselect_all">Tout désélectionner</string>
+    <string name="delete_selected">Supprimer (%d)</string>
+    <string name="no_files_selected">Aucun fichier sélectionné</string>
+    <string name="invalid_directory">Répertoire invalide</string>
 </resources>

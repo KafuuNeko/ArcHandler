@@ -130,4 +130,19 @@
     <string name="list_layout_type">Список</string>
     <string name="list_layout_type_description">Переключить режим просмотра (Список/Сетка)</string>
     <string name="switch_layout_type">Переключить макет</string>
+    <string name="duplicate_finder">Дубликаты файлов</string>
+    <string name="duplicate_files_found">Найдено дубликатов: %d</string>
+    <string name="start_search">Начать поиск</string>
+    <string name="search_summary">Сводка поиска</string>
+    <string name="search_summary_details">Всего просканировано файлов: %d\nНайдено дубликатов: %d\nГрупп дубликатов: %d\nПотрачено места: %s</string>
+    <string name="no_duplicate_files_found">Дубликаты файлов не найдены</string>
+    <string name="duplicate_finder_idle_message">Поиск дубликатов файлов в:\n%s</string>
+    <string name="calculating_hash">Вычисление хешей файлов…</string>
+    <string name="scanned_directories">Просканировано каталогов: %d</string>
+    <string name="duplicate_group_title">%d файлов × %s</string>
+    <string name="select_all_in_group">Выбрать все</string>
+    <string name="deselect_all">Снять выделение со всех</string>
+    <string name="delete_selected">Удалить (%d)</string>
+    <string name="no_files_selected">Файлы не выбраны</string>
+    <string name="invalid_directory">Недопустимый каталог</string>
 </resources>
