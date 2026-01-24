@@ -34,7 +34,6 @@ fun DuplicateFileItem(
     modifier: Modifier = Modifier,
     file: File,
     selected: Boolean = false,
-    selectionMode: Boolean = false,
     onClick: () -> Unit = {},
     onSelectionChange: (File, Boolean) -> Unit = { _, _ -> }
 ) {
@@ -50,15 +49,9 @@ fun DuplicateFileItem(
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .then(
-                if (selectionMode) {
-                    Modifier.clickable {
-                        onSelectionChange(file, !selected)
-                    }
-                } else {
-                    Modifier.clickable(onClick = onClick)
-                }
-            ),
+            .clickable {
+                onSelectionChange(file, !selected)
+            },
         colors = CardDefaults.cardColors(
             containerColor = if (selected) {
                 MaterialTheme.colorScheme.primaryContainer
@@ -115,13 +108,11 @@ fun DuplicateFileItem(
             }
 
             // 选择框
-            if (selectionMode) {
-                Spacer(modifier = Modifier.width(8.dp))
-                Checkbox(
-                    checked = selected,
-                    onCheckedChange = { onSelectionChange(file, it) }
-                )
-            }
+            Spacer(modifier = Modifier.width(8.dp))
+            Checkbox(
+                checked = selected,
+                onCheckedChange = { onSelectionChange(file, it) }
+            )
         }
     }
 }

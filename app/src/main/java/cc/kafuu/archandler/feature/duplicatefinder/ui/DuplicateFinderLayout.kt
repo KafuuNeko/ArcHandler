@@ -72,7 +72,7 @@ private fun NormalView(
     emitIntent: (DuplicateFinderUiIntent) -> Unit
 ) {
     val title = when {
-        uiState.selectionMode -> stringResource(R.string.n_files_selected, uiState.selectedFiles.size)
+        uiState.selectedFiles.isNotEmpty() -> stringResource(R.string.n_files_selected, uiState.selectedFiles.size)
         uiState.searchState is DuplicateFinderSearchState.Success -> {
             val state = uiState.searchState
             stringResource(R.string.duplicate_files_found, state.duplicateFileCount)
@@ -93,11 +93,7 @@ private fun NormalView(
                 navigationIcon = {
                     IconButton(
                         onClick = {
-                            if (uiState.selectionMode) {
-                                emitIntent(DuplicateFinderUiIntent.ToggleSelection)
-                            } else {
-                                emitIntent(DuplicateFinderUiIntent.Back)
-                            }
+                            emitIntent(DuplicateFinderUiIntent.Back)
                         }
                     ) {
                         Icon(
@@ -108,32 +104,13 @@ private fun NormalView(
                         )
                     }
                 },
-                actions = {
-                    when (uiState.searchState) {
-                        is DuplicateFinderSearchState.Success -> {
-                            IconButton(
-                                onClick = {
-                                    emitIntent(DuplicateFinderUiIntent.ToggleSelection)
-                                }
-                            ) {
-                                Icon(
-                                    modifier = Modifier.size(24.dp),
-                                    painter = painterResource(R.drawable.ic_check_circle),
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSurface
-                                )
-                            }
-                        }
-                        else -> Unit
-                    }
-                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface
                 )
             )
         },
         bottomBar = {
-            if (uiState.selectionMode) {
+            if (uiState.selectedFiles.isNotEmpty()) {
                 BottomActionBar(uiState, emitIntent)
             }
         }
@@ -146,7 +123,6 @@ private fun NormalView(
                 is DuplicateFinderSearchState.Success -> {
                     SuccessView(
                         searchState = searchState,
-                        selectionMode = uiState.selectionMode,
                         selectedFiles = uiState.selectedFiles,
                         emitIntent = emitIntent
                     )
@@ -163,7 +139,6 @@ private fun NormalView(
 @Composable
 private fun SuccessView(
     searchState: DuplicateFinderSearchState.Success,
-    selectionMode: Boolean,
     selectedFiles: Set<File>,
     emitIntent: (DuplicateFinderUiIntent) -> Unit
 ) {
@@ -215,7 +190,6 @@ private fun SuccessView(
             items(searchState.duplicateGroups) { group ->
                 DuplicateGroupCard(
                     group = group,
-                    selectionMode = selectionMode,
                     selectedFiles = selectedFiles,
                     emitIntent = emitIntent
                 )
@@ -227,7 +201,6 @@ private fun SuccessView(
 @Composable
 private fun DuplicateGroupCard(
     group: DuplicateFileGroup,
-    selectionMode: Boolean,
     selectedFiles: Set<File>,
     emitIntent: (DuplicateFinderUiIntent) -> Unit
 ) {
@@ -270,7 +243,6 @@ private fun DuplicateGroupCard(
                     modifier = Modifier.padding(vertical = 4.dp),
                     file = file,
                     selected = selectedFiles.contains(file),
-                    selectionMode = selectionMode,
                     onClick = {
                         // 点击文件暂时不做任何操作
                     },

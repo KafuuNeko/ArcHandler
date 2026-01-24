@@ -83,10 +83,6 @@ class DuplicateFinderViewModel(
         val state = getOrNull<DuplicateFinderUiState.Normal>() ?: return
 
         when {
-            state.selectionMode -> {
-                // 退出选择模式
-                state.copy(selectionMode = false, selectedFiles = emptySet()).setup()
-            }
             state.searchState is DuplicateFinderSearchState.Searching ||
             state.loadState !is DuplicateFinderLoadState.None -> Unit
             else -> {
@@ -206,25 +202,11 @@ class DuplicateFinderViewModel(
     }
 
     /**
-     * 切换选择模式
-     */
-    @UiIntentObserver(DuplicateFinderUiIntent.ToggleSelection::class)
-    private suspend fun onToggleSelection() {
-        val state = getOrNull<DuplicateFinderUiState.Normal>() ?: return
-        val newMode = !state.selectionMode
-        state.copy(
-            selectionMode = newMode,
-            selectedFiles = if (newMode) emptySet() else state.selectedFiles
-        ).setup()
-    }
-
-    /**
      * 文件选择
      */
     @UiIntentObserver(DuplicateFinderUiIntent.FileSelect::class)
     private suspend fun onFileSelect(intent: DuplicateFinderUiIntent.FileSelect) {
         val state = getOrNull<DuplicateFinderUiState.Normal>() ?: return
-        if (!state.selectionMode) return
 
         val newSelected = state.selectedFiles.toMutableSet().apply {
             if (intent.selected) {
@@ -296,7 +278,6 @@ class DuplicateFinderViewModel(
             // 删除完成后刷新搜索结果
             currentState.copy(
                 loadState = DuplicateFinderLoadState.None,
-                selectionMode = false,
                 selectedFiles = emptySet()
             ).setup()
 
@@ -312,8 +293,7 @@ class DuplicateFinderViewModel(
         val state = getOrNull<DuplicateFinderUiState.Normal>() ?: return
         state.copy(
             searchState = DuplicateFinderSearchState.Idle,
-            selectedFiles = emptySet(),
-            selectionMode = false
+            selectedFiles = emptySet()
         ).setup()
         onStartSearch()
     }

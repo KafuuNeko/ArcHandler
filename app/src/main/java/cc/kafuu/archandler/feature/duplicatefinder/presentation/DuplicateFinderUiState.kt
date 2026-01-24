@@ -12,7 +12,6 @@ sealed class DuplicateFinderUiState {
         val loadState: DuplicateFinderLoadState = DuplicateFinderLoadState.None,
         val dialogState: DuplicateFinderDialogState = DuplicateFinderDialogState.None,
         val searchState: DuplicateFinderSearchState = DuplicateFinderSearchState.Idle,
-        val selectionMode: Boolean = false,
         val selectedFiles: Set<File> = emptySet()
     ) : DuplicateFinderUiState()
 

@@ -11,8 +11,6 @@ sealed class DuplicateFinderUiIntent {
 
     data object CancelSearch : DuplicateFinderUiIntent()
 
-    data object ToggleSelection : DuplicateFinderUiIntent()
-
     data class FileSelect(
         val file: File,
         val selected: Boolean
