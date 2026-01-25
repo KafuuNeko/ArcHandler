@@ -22,6 +22,7 @@ import cc.kafuu.archandler.libs.AppLibs
 import cc.kafuu.archandler.libs.AppModel
 import cc.kafuu.archandler.libs.archive.ArchiveManager
 import cc.kafuu.archandler.libs.archive.IPasswordProvider
+import cc.kafuu.archandler.libs.archive.model.ArchiveTestResult
 import cc.kafuu.archandler.libs.core.AppViewEvent
 import cc.kafuu.archandler.libs.core.CoreViewModelWithEvent
 import cc.kafuu.archandler.libs.core.UiIntentObserver
@@ -785,6 +786,50 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
                 uiState
                     .enterDirectory(listState.storageData, Path(dest.path))
                     .setup()
+            }
+        }
+    }
+
+    /**
+     * 测试归档完整性
+     */
+    @UiIntentObserver(MainUiIntent.TestArchive::class)
+    private suspend fun onTestArchive(intent: MainUiIntent.TestArchive) {
+        val uiState = getOrNull<MainUiState.Normal>() ?: return
+        enqueueAsyncTask {
+            // 显示测试中状态
+            uiState.copy(loadState = MainLoadState.TestingArchive(intent.file)).setup()
+
+            val result = runCatching {
+                mArchiveManager.openArchive(intent.file)?.use { archive ->
+                    if (!archive.open(mPasswordProvider)) {
+                        return@use ArchiveTestResult.error(
+                            get<Context>().getString(R.string.failed_to_open_archive)
+                        )
+                    }
+                    archive.test()
+                }
+            }
+
+            // 清除加载状态
+            uiState.setup()
+
+            val testResult = result.getOrNull() ?: ArchiveTestResult.error(
+                get<Context>().getString(R.string.archive_test_failed)
+            )
+
+            // 显示测试结果对话框
+            val message = if (testResult.success) {
+                get<Context>().getString(R.string.archive_test_success, testResult.testedFiles)
+            } else {
+                testResult.errorMessage ?: get<Context>().getString(R.string.archive_test_failed)
+            }
+
+            MainDialogState.ArchiveTestResult(
+                success = testResult.success,
+                message = message
+            ).run {
+                popupAwaitDialogResult { deferredResult.awaitCompleted() }
             }
         }
     }

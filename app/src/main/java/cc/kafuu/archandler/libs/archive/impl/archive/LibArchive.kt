@@ -4,6 +4,7 @@ import android.util.Log
 import cc.kafuu.archandler.libs.archive.IArchive
 import cc.kafuu.archandler.libs.archive.IPasswordProvider
 import cc.kafuu.archandler.libs.archive.model.ArchiveEntry
+import cc.kafuu.archandler.libs.archive.model.ArchiveTestResult
 import cc.kafuu.archandler.libs.jni.NativeCallback
 import cc.kafuu.archandler.libs.jni.NativeLib
 import kotlinx.coroutines.currentCoroutineContext
@@ -48,6 +49,16 @@ class LibArchive(private val archiveFile: File) : IArchive {
             destDir.path,
             nativeListener
         )
+    }
+
+    override suspend fun test(): ArchiveTestResult {
+        return try {
+            val files = list()
+            val fileCount = files.count { !it.isDirectory }
+            ArchiveTestResult.success(testedFiles = fileCount, totalFiles = fileCount)
+        } catch (e: Exception) {
+            ArchiveTestResult.error(e.message ?: "Failed to test archive")
+        }
     }
 
     override fun close() = Unit

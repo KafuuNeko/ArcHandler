@@ -60,6 +60,12 @@ sealed class MainDialogState {
         val currentSortType: SortType,
         val deferredResult: DeferredResult<SortType> = DeferredResult()
     ) : MainDialogState()
+
+    data class ArchiveTestResult(
+        val success: Boolean,
+        val message: String,
+        val deferredResult: DeferredResult<Boolean> = DeferredResult()
+    ) : MainDialogState()
 }
 
 sealed class MainListState {
@@ -138,5 +144,9 @@ sealed class MainLoadState {
 
     data class QueryDuplicateFiles(
         val file: File? = null
+    ) : MainLoadState()
+
+    data class TestingArchive(
+        val file: File
     ) : MainLoadState()
 }

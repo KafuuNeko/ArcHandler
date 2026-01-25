@@ -145,5 +145,15 @@
     <string name="delete_selected">删除（%d）</string>
     <string name="no_files_selected">未选择文件</string>
     <string name="invalid_directory">无效目录</string>
+
+    <!-- Archive Test -->
+    <string name="test_archive">测试压缩包</string>
+    <string name="testing_archive_message">正在测试压缩包完整性…</string>
+    <string name="archive_test_success">测试通过！\n已测试文件数：%d</string>
+    <string name="archive_test_failed">测试失败</string>
+    <string name="failed_to_open_archive">无法打开压缩包</string>
+    <string name="archive_test_success_title">测试成功</string>
+    <string name="archive_test_failed_title">测试失败</string>
+    <string name="ok">确定</string>
 </resources>
 

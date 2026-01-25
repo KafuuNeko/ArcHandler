@@ -166,4 +166,14 @@
     <string name="delete_selected">Delete (%d)</string>
     <string name="no_files_selected">No files selected</string>
     <string name="invalid_directory">Invalid directory</string>
+
+    <!-- Archive Test -->
+    <string name="test_archive">Test Archive</string>
+    <string name="testing_archive_message">Testing archive integrity…</string>
+    <string name="archive_test_success">Test passed successfully!\nFiles tested: %d</string>
+    <string name="archive_test_failed">Test failed</string>
+    <string name="failed_to_open_archive">Failed to open archive</string>
+    <string name="archive_test_success_title">Test Successful</string>
+    <string name="archive_test_failed_title">Test Failed</string>
+    <string name="ok">OK</string>
 </resources>

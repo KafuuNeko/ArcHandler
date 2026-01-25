@@ -178,6 +178,14 @@ private fun MultipleSelectAction(
                     onSwitchExpanded(false)
                 }
             )
+
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.test_archive)) },
+                onClick = {
+                    emitIntent(MainUiIntent.TestArchive(file))
+                    onSwitchExpanded(false)
+                }
+            )
         }
     }
 

@@ -1,6 +1,7 @@
 package cc.kafuu.archandler.libs.archive
 
 import cc.kafuu.archandler.libs.archive.model.ArchiveEntry
+import cc.kafuu.archandler.libs.archive.model.ArchiveTestResult
 import java.io.Closeable
 import java.io.File
 
@@ -28,4 +29,11 @@ interface IArchive : Closeable {
         destDir: File,
         onProgress: suspend (index: Int, path: String, target: Int) -> Unit = { _, _, _ -> }
     )
+
+    /**
+     * 测试归档完整性
+     * 验证压缩包是否损坏
+     * @return 测试结果，包含是否成功和错误信息
+     */
+    suspend fun test(): ArchiveTestResult
 }

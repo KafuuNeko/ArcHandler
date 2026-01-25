@@ -40,6 +40,7 @@ import cc.kafuu.archandler.feature.main.ui.scaffold.MainScaffoldDrawer
 import cc.kafuu.archandler.feature.main.ui.scaffold.MainScaffoldTopBar
 import cc.kafuu.archandler.libs.model.StorageData
 import cc.kafuu.archandler.libs.utils.TestUtils
+import cc.kafuu.archandler.ui.dialogs.ArchiveTestResultDialog
 import cc.kafuu.archandler.ui.dialogs.AppLoadDialog
 import cc.kafuu.archandler.ui.dialogs.FileConflictDialog
 import cc.kafuu.archandler.ui.dialogs.InputConfirmDialog
@@ -137,6 +138,11 @@ private fun MainLoadDialogSwitch(
                 }
             )
         }
+
+        is MainLoadState.TestingArchive -> {
+            val message = stringResource(R.string.testing_archive_message)
+            AppLoadDialog(messages = listOf(message, loadState.file.name))
+        }
     }
 }
 
@@ -214,6 +220,14 @@ private fun MainDialogSwitch(
             },
             onConfirmRequest = { sortType ->
                 dialogState.deferredResult.complete(coroutineScope, sortType)
+            }
+        )
+
+        is MainDialogState.ArchiveTestResult -> ArchiveTestResultDialog(
+            success = dialogState.success,
+            message = dialogState.message,
+            onDismissRequest = {
+                dialogState.deferredResult.complete(coroutineScope, true)
             }
         )
     }

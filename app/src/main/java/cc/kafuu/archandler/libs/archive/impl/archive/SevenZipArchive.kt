@@ -3,6 +3,7 @@ package cc.kafuu.archandler.libs.archive.impl.archive
 import cc.kafuu.archandler.libs.archive.IArchive
 import cc.kafuu.archandler.libs.archive.IPasswordProvider
 import cc.kafuu.archandler.libs.archive.model.ArchiveEntry
+import cc.kafuu.archandler.libs.archive.model.ArchiveTestResult
 import cc.kafuu.archandler.libs.manager.CacheManager
 import cc.kafuu.archandler.libs.model.AppCacheType
 import kotlinx.coroutines.Dispatchers
@@ -192,6 +193,41 @@ class SevenZipArchive(
             }
             index++
             yield()
+        }
+    }
+
+    /**
+     * 测试归档完整性
+     */
+    override suspend fun test(): ArchiveTestResult = withContext(Dispatchers.IO) {
+        try {
+            var testedCount = 0
+            val totalCount = mSimpleArchive?.archiveItems?.count { it.path != null && !it.isFolder } ?: 0
+
+            mSimpleArchive?.archiveItems?.forEach { item ->
+                currentCoroutineContext().ensureActive()
+                if (!item.isFolder) {
+                    runCatching {
+                        val dummyStream = java.io.ByteArrayOutputStream()
+                        item.extractSlow({ data ->
+                            dummyStream.write(data)
+                            data.size
+                        }, mPassword)
+                    }.onFailure { exception ->
+                        return@withContext ArchiveTestResult.error(
+                            message = "Failed to test file: ${item.path}\n${exception.message}"
+                        )
+                    }
+                    testedCount++
+                }
+                yield()
+            }
+
+            ArchiveTestResult.success(testedFiles = testedCount, totalFiles = totalCount)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            ArchiveTestResult.error(e.message ?: "Unknown error occurred during test")
         }
     }
 
