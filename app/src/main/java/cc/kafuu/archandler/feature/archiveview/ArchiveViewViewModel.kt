@@ -310,31 +310,34 @@ class ArchiveViewViewModel : CoreViewModelWithEvent<ArchiveViewUiIntent, Archive
             mDataTransferManager.takeAs<StoragePickerResult.ChooseDirectory>(intent.transferId)
         } ?: return
         val currentState = getOrNull<ArchiveViewUiState.Normal>() ?: return
-        currentState.copy(loadState = ArchiveViewLoadState.Extracting(0, "", 0)).setup()
-        val archive = mArchive ?: run {
-            errorMessage(null)
-            currentState.copy(loadState = ArchiveViewLoadState.None).setup()
-            return
-        }
-        val destDir = File(result.directoryPath.toString())
-        val resultExtract = runCatching {
-            withContext(Dispatchers.IO) {
-                archive.extractAll(destDir) { index, path, target ->
-                    withContext(Dispatchers.Main) {
-                        uiState
-                            .copy(loadState = ArchiveViewLoadState.Extracting(index, path, target))
-                            .setup()
+
+        enqueueAsyncTask {
+            currentState.copy(loadState = ArchiveViewLoadState.Extracting(0, "", 0)).setup()
+            val archive = mArchive ?: run {
+                errorMessage(null)
+                currentState.copy(loadState = ArchiveViewLoadState.None).setup()
+                return@enqueueAsyncTask
+            }
+            val destDir = File(result.directoryPath.toString())
+            val resultExtract = runCatching {
+                withContext(Dispatchers.IO) {
+                    archive.extractAll(destDir) { index, path, target ->
+                        withContext(Dispatchers.Main) {
+                            currentState
+                                .copy(loadState = ArchiveViewLoadState.Extracting(index, path, target))
+                                .setup()
+                        }
+                        currentCoroutineContext().ensureActive()
                     }
-                    currentCoroutineContext().ensureActive()
                 }
             }
-        }
-        uiState.setup()
-        mCacheManager.clearCache(AppCacheType.MERGE_SPLIT_ARCHIVE)
-        if (resultExtract.isFailure) {
-            errorMessage(resultExtract.exceptionOrNull())
-        } else {
-            AppViewEvent.PopupToastMessageByResId(R.string.archive_unpacking_success_message).emit()
+            currentState.setup()
+            mCacheManager.clearCache(AppCacheType.MERGE_SPLIT_ARCHIVE)
+            if (resultExtract.isFailure) {
+                errorMessage(resultExtract.exceptionOrNull())
+            } else {
+                AppViewEvent.PopupToastMessageByResId(R.string.archive_unpacking_success_message).emit()
+            }
         }
     }
 
