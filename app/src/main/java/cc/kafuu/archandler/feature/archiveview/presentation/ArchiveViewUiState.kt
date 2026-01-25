@@ -15,10 +15,20 @@ sealed class ArchiveViewUiState {
         val entries: List<ArchiveEntry> = emptyList(),
         val loadState: ArchiveViewLoadState = ArchiveViewLoadState.None,
         val lazyListState: LazyListState = LazyListState(),
-        val layoutType: LayoutType = LayoutType.LIST
+        val layoutType: LayoutType = LayoutType.LIST,
+        val dialogState: ArchiveViewDialogState = ArchiveViewDialogState.None
     ) : ArchiveViewUiState()
 
     data object Finished : ArchiveViewUiState()
+}
+
+sealed class ArchiveViewDialogState {
+    data object None : ArchiveViewDialogState()
+
+    data class PasswordInput(
+        val file: File,
+        val deferredResult: DeferredResult<String?> = DeferredResult()
+    ) : ArchiveViewDialogState()
 }
 
 sealed class ArchiveViewLoadState {

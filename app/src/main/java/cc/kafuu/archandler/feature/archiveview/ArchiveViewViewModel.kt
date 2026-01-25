@@ -1,6 +1,7 @@
 package cc.kafuu.archandler.feature.archiveview
 
 import cc.kafuu.archandler.R
+import cc.kafuu.archandler.feature.archiveview.presentation.ArchiveViewDialogState
 import cc.kafuu.archandler.feature.archiveview.presentation.ArchiveViewLoadState
 import cc.kafuu.archandler.feature.archiveview.presentation.ArchiveViewUiIntent
 import cc.kafuu.archandler.feature.archiveview.presentation.ArchiveViewUiState
@@ -25,6 +26,7 @@ import cc.kafuu.archandler.libs.model.AppCacheType
 import cc.kafuu.archandler.libs.model.ArchiveViewData
 import cc.kafuu.archandler.libs.model.LayoutType
 import cc.kafuu.archandler.libs.model.StorageData
+import cc.kafuu.archandler.libs.utils.DeferredResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
@@ -62,8 +64,14 @@ class ArchiveViewViewModel : CoreViewModelWithEvent<ArchiveViewUiIntent, Archive
     // 压缩包密码提供请求接口
     val mPasswordProvider = object : IPasswordProvider {
         override suspend fun getPassword(file: File): String? {
-            // 暂时返回null，可以后续扩展密码输入对话框
-            return null
+            val deferredResult = DeferredResult<String?>()
+            awaitStateOf<ArchiveViewUiState.Normal>().copy(
+                dialogState = ArchiveViewDialogState.PasswordInput(
+                    file = file,
+                    deferredResult = deferredResult
+                )
+            ).setup()
+            return deferredResult.awaitCompleted()
         }
     }
 
@@ -106,13 +114,18 @@ class ArchiveViewViewModel : CoreViewModelWithEvent<ArchiveViewUiIntent, Archive
             archive.open(mPasswordProvider)
         }.getOrNull() ?: false
         if (!opened) {
+            // 清除对话框状态
+            getOrNull<ArchiveViewUiState.Normal>()?.copy(
+                dialogState = ArchiveViewDialogState.None
+            )?.setup()
             errorMessage(null)
             ArchiveViewUiState.Finished.setup()
             return
         }
         mArchive = archive
         getOrNull<ArchiveViewUiState.Normal>()?.copy(
-            loadState = ArchiveViewLoadState.LoadingEntries
+            loadState = ArchiveViewLoadState.LoadingEntries,
+            dialogState = ArchiveViewDialogState.None
         )?.setup()
 
         // 缓存完整的文件列表

@@ -21,6 +21,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -29,6 +30,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import cc.kafuu.archandler.R
+import cc.kafuu.archandler.feature.archiveview.presentation.ArchiveViewDialogState
 import cc.kafuu.archandler.feature.archiveview.presentation.ArchiveViewLoadState
 import cc.kafuu.archandler.feature.archiveview.presentation.ArchiveViewUiIntent
 import cc.kafuu.archandler.feature.archiveview.presentation.ArchiveViewUiState
@@ -36,6 +38,7 @@ import cc.kafuu.archandler.libs.archive.model.ArchiveEntry
 import cc.kafuu.archandler.libs.extensions.getReadableSize
 import cc.kafuu.archandler.libs.model.LayoutType
 import cc.kafuu.archandler.ui.dialogs.AppLoadDialog
+import cc.kafuu.archandler.ui.dialogs.PasswordInputDialog
 import cc.kafuu.archandler.ui.widges.AppIconTextItemCard
 import cc.kafuu.archandler.ui.widges.AppLazyColumn
 import cc.kafuu.archandler.ui.widges.AppTopBar
@@ -56,6 +59,7 @@ fun ArchiveViewLayout(
             BackHandler { emitIntent(ArchiveViewUiIntent.Back) }
             NormalView(uiState, emitIntent)
             LoadDialogSwitch(uiState.loadState, emitIntent)
+            DialogSwitch(uiState.dialogState)
         }
     }
 }
@@ -360,4 +364,24 @@ private fun ExtractButton(
 @Composable
 private fun ArchiveViewPreview() {
     ArchiveViewLayout(ArchiveViewUiState.Normal(archiveFile = File("archive.zip")))
+}
+
+@Composable
+private fun DialogSwitch(
+    dialogState: ArchiveViewDialogState
+) {
+    val coroutineScope = rememberCoroutineScope()
+    when (dialogState) {
+        ArchiveViewDialogState.None -> Unit
+
+        is ArchiveViewDialogState.PasswordInput -> PasswordInputDialog(
+            message = stringResource(R.string.enter_password_message, dialogState.file.name),
+            onDismissRequest = {
+                dialogState.deferredResult.complete(coroutineScope, null)
+            },
+            onConfirmRequest = {
+                dialogState.deferredResult.complete(coroutineScope, it)
+            }
+        )
+    }
 }
