@@ -94,6 +94,48 @@ namespace internal {
         }
     }
 
+    jobject TestArchive(
+            JNIEnv *env,
+            jobject thiz,
+            jstring archive_path,
+            jobject listener
+    ) {
+        auto c_archive_path = JStringToCString(env, archive_path);
+        try {
+            ArchiveExtractor extractor(c_archive_path);
+
+            auto result = extractor.Test([=](const std::string &path, size_t index, size_t total) {
+                if (!listener) return;
+                auto j_path = CreateJavaString(env, path);
+                auto j_index = CreateJavaInteger(env, static_cast<jint>(index));
+                auto j_total = CreateJavaInteger(env, static_cast<jint>(total));
+                std::vector<jobject> params{j_path.get(), j_index.get(), j_total.get()};
+                // 如果检测到取消异常，会抛出 OperationCancelledException
+                CallNativeCallback(env, listener, params);
+            });
+
+            return CreateArchiveTestResult(
+                    env,
+                    result.success,
+                    result.error_message,
+                    static_cast<jint>(result.tested_files),
+                    static_cast<jint>(result.total_files)
+            ).release();
+        } catch (const OperationCancelledException &) {
+            // 操作被取消，这是正常情况，不需要记录错误
+            s_latest_error_message = "Operation cancelled";
+            return CreateArchiveTestResult(
+                    env, false, "Operation cancelled", 0, 0
+            ).release();
+        } catch (const std::exception &exception) {
+            s_latest_error_message = exception.what();
+            logger::error("TestArchive exception: %s", exception.what());
+            return CreateArchiveTestResult(
+                    env, false, exception.what(), 0, 0
+            ).release();
+        }
+    }
+
     jobjectArray ListArchiveFiles(JNIEnv *env, jobject thiz, jstring archive_path) {
         auto c_archive_path = JStringToCString(env, archive_path);
         try {
@@ -178,4 +220,15 @@ JNI_METHOD(NativeLib, fetchArchiveFiles)(
         jstring archive_path
 ) {
     return internal::ListArchiveFiles(env, thiz, archive_path);
+}
+
+extern "C"
+JNIEXPORT jobject JNICALL
+JNI_METHOD(NativeLib, testArchive)(
+        JNIEnv *env,
+        jobject thiz,
+        jstring archive_path,
+        jobject listener
+) {
+    return internal::TestArchive(env, thiz, archive_path, listener);
 }

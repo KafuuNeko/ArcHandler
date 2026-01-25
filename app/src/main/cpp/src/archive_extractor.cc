@@ -189,3 +189,78 @@ void ArchiveExtractor::Extract(
         FinishEntryOrThrow(disk.get(), dest);
     }
 }
+
+ArchiveExtractor::TestResult ArchiveExtractor::Test(const ProgressListener& listener) const {
+    try {
+        // 统计total_files（可能抛出）
+        size_t total_files = CountFilesInArchive();
+
+        // 打开reader
+        auto reader = CreateArchiveReader(archive_path_, READ_BLOCK_SIZE);
+
+        struct archive_entry *entry = nullptr;
+        std::vector<char> buffer(READ_BLOCK_SIZE);
+        size_t tested_files = 0;
+        size_t current_index = 0;
+
+        while (true) {
+            int rc = archive_read_next_header(reader.get(), &entry);
+            if (rc == ARCHIVE_EOF) {
+                break;
+            }
+            if (rc < ARCHIVE_OK) {
+                auto err = archive_error_string(reader.get());
+                return TestResult{
+                    .success = false,
+                    .error_message = std::string("Failed to read header: ") +
+                                     (err ? err : "unknown"),
+                    .tested_files = tested_files,
+                    .total_files = total_files
+                };
+            }
+
+            // 如果是常规文件，读取并验证所有数据
+            if (archive_entry_filetype(entry) == AE_IFREG) {
+                if (listener) {
+                    auto pathname = archive_entry_pathname_utf8(entry);
+                    if (pathname == nullptr) pathname = archive_entry_pathname(entry);
+                    listener(std::string(pathname), ++current_index, total_files);
+                }
+
+                // 读取并丢弃所有数据以验证完整性
+                while (true) {
+                    auto len = archive_read_data(reader.get(), buffer.data(), buffer.size());
+                    if (len == 0) {
+                        // 数据读取完成
+                        break;
+                    }
+                    if (len < 0) {
+                        auto err = archive_error_string(reader.get());
+                        return TestResult{
+                            .success = false,
+                            .error_message = std::string("Data integrity check failed: ") +
+                                             (err ? err : "unknown"),
+                            .tested_files = tested_files,
+                            .total_files = total_files
+                        };
+                    }
+                }
+                ++tested_files;
+            }
+        }
+
+        return TestResult{
+            .success = true,
+            .error_message = "",
+            .tested_files = tested_files,
+            .total_files = total_files
+        };
+    } catch (const std::exception& exception) {
+        return TestResult{
+            .success = false,
+            .error_message = exception.what(),
+            .tested_files = 0,
+            .total_files = 0
+        };
+    }
+}

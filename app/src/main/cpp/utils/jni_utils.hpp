@@ -301,6 +301,41 @@ inline auto CreateJavaLong(JNIEnv *env, jlong value) {
 }
 
 /**
+ * @brief 创建 ArchiveTestResult Kotlin 对象
+ */
+inline auto CreateArchiveTestResult(
+        JNIEnv *env,
+        bool success,
+        const std::string &error_message,
+        jint tested_files,
+        jint total_files
+) {
+    auto result_class_ptr = FindClass(env, "cc/kafuu/archandler/libs/archive/model/ArchiveTestResult");
+    if (!result_class_ptr) return WrapLocalRef(env, static_cast<jobject>(nullptr));
+
+    // 直接使用构造函数创建对象
+    jmethodID result_ctor = env->GetMethodID(
+            result_class_ptr.get(),
+            "<init>",
+            "(ZLjava/lang/String;II)V"
+    );
+    if (!result_ctor) return WrapLocalRef(env, static_cast<jobject>(nullptr));
+
+    auto j_error_msg = error_message.empty() ? nullptr : CreateJavaString(env, error_message).get();
+    return WrapLocalRef(
+            env,
+            env->NewObject(
+                    result_class_ptr.get(),
+                    result_ctor,
+                    success ? JNI_TRUE : JNI_FALSE,
+                    j_error_msg,
+                    tested_files,
+                    total_files
+            )
+    );
+}
+
+/**
  * @brief 创建 ArchiveEntry Kotlin 对象
  */
 inline auto CreateArchiveEntry(

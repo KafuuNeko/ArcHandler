@@ -52,13 +52,16 @@ class LibArchive(private val archiveFile: File) : IArchive {
     }
 
     override suspend fun test(): ArchiveTestResult {
-        return try {
-            val files = list()
-            val fileCount = files.count { !it.isDirectory }
-            ArchiveTestResult.success(testedFiles = fileCount, totalFiles = fileCount)
-        } catch (e: Exception) {
-            ArchiveTestResult.error(e.message ?: "Failed to test archive")
+        val ctx = currentCoroutineContext()
+        val nativeListener = object : NativeCallback {
+            override fun invoke(vararg args: Any?) {
+                // 检查协程是否仍然活跃，如果已取消则抛出异常
+                if (!ctx.isActive) {
+                    throw CancellationException("Archive testing cancelled")
+                }
+            }
         }
+        return NativeLib.testArchive(archiveFile.path, nativeListener)
     }
 
     override fun close() = Unit

@@ -27,6 +27,15 @@ public:
             bool overwrite = true
     ) const;
 
+    struct TestResult {
+        bool success;
+        std::string error_message;
+        size_t tested_files;
+        size_t total_files;
+    };
+
+    [[nodiscard]] TestResult Test(const ProgressListener& listener = nullptr) const;
+
 private:
     std::string archive_path_;
 

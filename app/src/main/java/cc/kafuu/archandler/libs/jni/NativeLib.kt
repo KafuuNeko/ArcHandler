@@ -1,6 +1,7 @@
 package cc.kafuu.archandler.libs.jni
 
 import cc.kafuu.archandler.libs.archive.model.ArchiveEntry
+import cc.kafuu.archandler.libs.archive.model.ArchiveTestResult
 
 object NativeLib {
     init {
@@ -29,4 +30,9 @@ object NativeLib {
     external fun fetchArchiveFiles(
         archivePath: String
     ): Array<ArchiveEntry>?
+
+    external fun testArchive(
+        archivePath: String,
+        listener: NativeCallback
+    ): ArchiveTestResult
 }
