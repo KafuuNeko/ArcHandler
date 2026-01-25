@@ -79,6 +79,7 @@
     <string name="high">High</string>
     <string name="current">Current</string>
     <string name="password_optional">Password (optional)</string>
+    <string name="incorrect_password">Incorrect password</string>
     <string name="encryption">Encryption</string>
     <string name="clear">Clear</string>
     <string name="save_location">Save Location</string>

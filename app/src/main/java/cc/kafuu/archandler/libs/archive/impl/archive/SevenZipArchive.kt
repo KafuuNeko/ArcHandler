@@ -3,6 +3,7 @@ package cc.kafuu.archandler.libs.archive.impl.archive
 import cc.kafuu.archandler.libs.archive.IArchive
 import cc.kafuu.archandler.libs.archive.IPasswordProvider
 import cc.kafuu.archandler.libs.archive.model.ArchiveEntry
+import cc.kafuu.archandler.libs.archive.model.ArchivePasswordException
 import cc.kafuu.archandler.libs.archive.model.ArchiveTestResult
 import cc.kafuu.archandler.libs.manager.CacheManager
 import cc.kafuu.archandler.libs.model.AppCacheType
@@ -47,12 +48,46 @@ class SevenZipArchive(
             if (hasEncryptedEntries()) {
                 mPassword = provider?.getPassword(archiveFile) ?: return false
                 if (!tryOpen(fileToOpen, mPassword)) return false
+                // 验证密码是否正确
+                if (!verifyPassword()) {
+                    throw ArchivePasswordException("Incorrect password for encrypted archive")
+                }
             }
         } else {
             mPassword = provider?.getPassword(archiveFile) ?: return false
             if (!tryOpen(fileToOpen, mPassword)) return false
+            // 验证密码是否正确
+            if (!verifyPassword()) {
+                throw ArchivePasswordException("Incorrect password for encrypted archive")
+            }
         }
         return mArchive != null && mSimpleArchive != null
+    }
+
+    /**
+     * 验证密码是否正确
+     * 通过尝试解压第一个非文件夹文件来验证
+     */
+    private fun verifyPassword(): Boolean {
+        // 如果没有密码，认为验证通过（未加密的情况）
+        if (mPassword == null) return true
+
+        val firstFileItem = mSimpleArchive?.archiveItems?.firstOrNull {
+            !it.isFolder && it.path != null
+        } ?: return true  // 没有文件可验证，认为通过
+
+        return try {
+            val dummyStream = java.io.ByteArrayOutputStream()
+            firstFileItem.extractSlow({ data ->
+                dummyStream.write(data)
+                data.size
+            }, mPassword)
+            // 如果能成功提取至少一些数据，说明密码正确
+            dummyStream.size() > 0
+        } catch (e: SevenZipException) {
+            // 密码错误或数据损坏
+            false
+        }
     }
 
     /**

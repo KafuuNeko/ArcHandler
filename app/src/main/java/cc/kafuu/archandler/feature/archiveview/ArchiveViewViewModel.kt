@@ -15,6 +15,7 @@ import cc.kafuu.archandler.libs.AppModel
 import cc.kafuu.archandler.libs.archive.ArchiveManager
 import cc.kafuu.archandler.libs.archive.IArchive
 import cc.kafuu.archandler.libs.archive.IPasswordProvider
+import cc.kafuu.archandler.libs.archive.model.ArchivePasswordException
 import cc.kafuu.archandler.libs.archive.model.ArchiveEntry
 import cc.kafuu.archandler.libs.core.AppViewEvent
 import cc.kafuu.archandler.libs.core.CoreViewModelWithEvent
@@ -112,8 +113,22 @@ class ArchiveViewViewModel : CoreViewModelWithEvent<ArchiveViewUiIntent, Archive
         }
         val opened = runCatching {
             archive.open(mPasswordProvider)
-        }.getOrNull() ?: false
-        if (!opened) {
+        }
+
+        // 处理密码验证错误
+        if (opened.exceptionOrNull() is ArchivePasswordException) {
+            // 清除对话框状态
+            getOrNull<ArchiveViewUiState.Normal>()?.copy(
+                dialogState = ArchiveViewDialogState.None
+            )?.setup()
+            // 显示密码错误消息
+            AppViewEvent.PopupToastMessageByResId(R.string.incorrect_password).emit()
+            ArchiveViewUiState.Finished.setup()
+            return
+        }
+
+        // 处理其他打开失败的情况
+        if (opened.getOrNull() != true) {
             // 清除对话框状态
             getOrNull<ArchiveViewUiState.Normal>()?.copy(
                 dialogState = ArchiveViewDialogState.None
