@@ -216,13 +216,18 @@ class SevenZipArchive(
                 FileOutputStream(outFile).use { out ->
                     val ctx = currentCoroutineContext()
                     item.extractSlow({ data ->
-                        if (!ctx.isActive) throw CancellationException()
+                        // 检查协程是否已被取消
+                        ctx.ensureActive()
                         out.write(data)
                         data.size
                     }, mPassword)
                 }
+            } catch (e: CancellationException) {
+                // 取消操作时清理半成品文件并重新抛出取消异常
+                outFile.delete()
+                throw e
             } catch (e: Throwable) {
-                // 异常清理半成品
+                // 其他异常清理半成品
                 outFile.delete()
                 throw e
             }
@@ -244,7 +249,10 @@ class SevenZipArchive(
                 if (!item.isFolder) {
                     runCatching {
                         val dummyStream = java.io.ByteArrayOutputStream()
+                        val ctx = currentCoroutineContext()
                         item.extractSlow({ data ->
+                            // 检查协程是否已被取消
+                            ctx.ensureActive()
                             dummyStream.write(data)
                             data.size
                         }, mPassword)
