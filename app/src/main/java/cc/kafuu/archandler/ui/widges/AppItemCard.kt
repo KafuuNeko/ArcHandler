@@ -19,7 +19,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -59,7 +58,9 @@ fun AppIconTextItemCard(
     modifier: Modifier = Modifier,
     painter: Painter,
     text: String,
+    textMaxLine: Int = 1,
     secondaryText: String? = null,
+    secondaryTextMaxLine: Int = 1,
     onClick: (() -> Unit)? = null
 ) {
     var itemModifier = modifier.clip(CardDefaults.shape)
@@ -90,6 +91,8 @@ fun AppIconTextItemCard(
                     style = MaterialTheme.typography.headlineMedium.copy(
                         textAlign = TextAlign.Center
                     ),
+                    maxLines = textMaxLine,
+                    overflow = TextOverflow.Ellipsis
                 )
                 secondaryText?.also {
                     Spacer(modifier = Modifier.height(5.dp))
@@ -98,7 +101,9 @@ fun AppIconTextItemCard(
                         style = MaterialTheme.typography.labelMedium.copy(
                             textAlign = TextAlign.Center
                         ),
-                        color = MaterialTheme.colorScheme.onSurface.withAlpha(0.5f)
+                        color = MaterialTheme.colorScheme.onSurface.withAlpha(0.5f),
+                        maxLines = secondaryTextMaxLine,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }

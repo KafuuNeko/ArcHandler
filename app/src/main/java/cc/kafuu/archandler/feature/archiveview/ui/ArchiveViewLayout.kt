@@ -292,7 +292,7 @@ private fun PathBar(
 
 @Composable
 private fun EntryItem(
-    entry: cc.kafuu.archandler.libs.archive.model.ArchiveEntry,
+    entry: ArchiveEntry,
     emitIntent: (uiIntent: ArchiveViewUiIntent) -> Unit = {}
 ) {
     val icon = if (entry.isDirectory) {
