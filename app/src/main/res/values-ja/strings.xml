@@ -145,4 +145,13 @@
     <string name="delete_selected">削除（%d）</string>
     <string name="no_files_selected">ファイルが選択されていません</string>
     <string name="invalid_directory">無効なディレクトリ</string>
+    <string name="test_archive">アーカイブをテスト</string>
+    <string name="testing_archive_message">アーカイブの整合性をテスト中…</string>
+    <string name="archive_test_success">テスト合格！\nテスト済みファイル数：%d</string>
+    <string name="archive_test_failed">テスト失敗</string>
+    <string name="failed_to_open_archive">アーカイブを開けませんでした</string>
+    <string name="archive_test_success_title">テスト成功</string>
+    <string name="archive_test_failed_title">テスト失敗</string>
+    <string name="ok">OK</string>
+    <string name="more">詳細</string>
 </resources>

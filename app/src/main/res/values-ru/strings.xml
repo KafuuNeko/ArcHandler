@@ -145,4 +145,13 @@
     <string name="delete_selected">Удалить (%d)</string>
     <string name="no_files_selected">Файлы не выбраны</string>
     <string name="invalid_directory">Недопустимый каталог</string>
+    <string name="test_archive">Проверить архив</string>
+    <string name="testing_archive_message">Проверка целостности архива…</string>
+    <string name="archive_test_success">Тест пройден!\nПроверено файлов: %d</string>
+    <string name="archive_test_failed">Тест не пройден</string>
+    <string name="failed_to_open_archive">Не удалось открыть архив</string>
+    <string name="archive_test_success_title">Тест пройден</string>
+    <string name="archive_test_failed_title">Тест не пройден</string>
+    <string name="ok">ОК</string>
+    <string name="more">Ещё</string>
 </resources>

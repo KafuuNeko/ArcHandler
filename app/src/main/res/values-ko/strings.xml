@@ -145,4 +145,13 @@
     <string name="delete_selected">삭제（%d）</string>
     <string name="no_files_selected">선택된 파일 없음</string>
     <string name="invalid_directory">잘못된 디렉터리</string>
+    <string name="test_archive">압축 파일 테스트</string>
+    <string name="testing_archive_message">압축 파일 무결성 테스트 중…</string>
+    <string name="archive_test_success">테스트 통과!\n테스트된 파일: %d</string>
+    <string name="archive_test_failed">테스트 실패</string>
+    <string name="failed_to_open_archive">압축 파일을 열 수 없습니다</string>
+    <string name="archive_test_success_title">테스트 성공</string>
+    <string name="archive_test_failed_title">테스트 실패</string>
+    <string name="ok">확인</string>
+    <string name="more">더보기</string>
 </resources>

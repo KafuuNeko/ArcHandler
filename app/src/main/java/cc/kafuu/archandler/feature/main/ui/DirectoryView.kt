@@ -27,6 +27,7 @@ import cc.kafuu.archandler.feature.main.presentation.MainListViewModeState
 import cc.kafuu.archandler.feature.main.presentation.MainLoadState
 import cc.kafuu.archandler.feature.main.presentation.MainUiIntent
 import cc.kafuu.archandler.feature.main.ui.common.BottomMenu
+import cc.kafuu.archandler.feature.main.ui.common.MoreMenu
 import cc.kafuu.archandler.libs.extensions.getFileType
 import cc.kafuu.archandler.libs.extensions.getLastModifiedDate
 import cc.kafuu.archandler.libs.extensions.getReadableSize
@@ -34,11 +35,11 @@ import cc.kafuu.archandler.libs.model.FileType
 import cc.kafuu.archandler.libs.model.LayoutType
 import cc.kafuu.archandler.libs.model.StorageData
 import cc.kafuu.archandler.ui.utils.rememberVideoThumbnailPainter
+import cc.kafuu.archandler.ui.widges.AppGridFileItemCard
 import cc.kafuu.archandler.ui.widges.AppLazyColumn
+import cc.kafuu.archandler.ui.widges.AppLazyGridView
 import cc.kafuu.archandler.ui.widges.AppOptionalIconTextItemCard
 import cc.kafuu.archandler.ui.widges.DirectoryPathBar
-import cc.kafuu.archandler.ui.widges.AppGridFileItemCard
-import cc.kafuu.archandler.ui.widges.AppLazyGridView
 import cc.kafuu.archandler.ui.widges.IconMessageView
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
@@ -238,6 +239,7 @@ private fun GridFileItem(
                     .build(),
                 placeholder = defaultIcon
             )
+
             FileType.Movie -> rememberVideoThumbnailPainter(model = file, placeholder = defaultIcon)
             else -> defaultIcon
         }
@@ -296,6 +298,23 @@ private fun MultipleMenuView(
                     sourceFiles = files,
                 ).also(emitIntent)
             }
+        }
+        // 更多按钮
+        MoreMenu(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight(),
+            listState = listData,
+            viewModeState = viewMode,
+            emitIntent = emitIntent
+        ) {
+            BottomMenu(
+                modifier = Modifier
+                    .fillMaxSize(),
+                icon = painterResource(R.drawable.ic_more_vert),
+                title = stringResource(R.string.more),
+                onMenuClick = it
+            )
         }
     }
 }

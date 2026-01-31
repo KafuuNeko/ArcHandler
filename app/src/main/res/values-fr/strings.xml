@@ -145,4 +145,13 @@
     <string name="delete_selected">Supprimer (%d)</string>
     <string name="no_files_selected">Aucun fichier sélectionné</string>
     <string name="invalid_directory">Répertoire invalide</string>
+    <string name="test_archive">Tester l’archive</string>
+    <string name="testing_archive_message">Vérification de l’intégrité de l’archive…</string>
+    <string name="archive_test_success">Test réussi !\nFichiers testés : %d</string>
+    <string name="archive_test_failed">Échec du test</string>
+    <string name="failed_to_open_archive">Impossible douvrir l’archive</string>
+    <string name="archive_test_success_title">Test réussi</string>
+    <string name="archive_test_failed_title">Échec du test</string>
+    <string name="ok">OK</string>
+    <string name="more">Plus</string>
 </resources>

@@ -145,5 +145,14 @@
     <string name="delete_selected">刪除（%d）</string>
     <string name="no_files_selected">未選擇檔案</string>
     <string name="invalid_directory">無效目錄</string>
+    <string name="test_archive">測試封存</string>
+    <string name="testing_archive_message">正在測試封存完整性…</string>
+    <string name="archive_test_success">測試通過！\n已測試檔案數：%d</string>
+    <string name="archive_test_failed">測試失敗</string>
+    <string name="failed_to_open_archive">無法開啟封存</string>
+    <string name="archive_test_success_title">測試成功</string>
+    <string name="archive_test_failed_title">測試失敗</string>
+    <string name="ok">確定</string>
+    <string name="more">更多</string>
 </resources>
 

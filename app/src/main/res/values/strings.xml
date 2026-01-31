@@ -150,8 +150,6 @@
     <string name="list_layout_type">List Layout</string>
     <string name="list_layout_type_description">Toggle list view mode (List/Grid)</string>
     <string name="switch_layout_type">Switch Layout</string>
-
-    <!-- Duplicate Finder -->
     <string name="duplicate_finder">Duplicate Files</string>
     <string name="duplicate_files_found">%d duplicate files</string>
     <string name="start_search">Start Search</string>
@@ -167,8 +165,6 @@
     <string name="delete_selected">Delete (%d)</string>
     <string name="no_files_selected">No files selected</string>
     <string name="invalid_directory">Invalid directory</string>
-
-    <!-- Archive Test -->
     <string name="test_archive">Test Archive</string>
     <string name="testing_archive_message">Testing archive integrity…</string>
     <string name="archive_test_success">Test passed successfully!\nFiles tested: %d</string>
@@ -177,4 +173,5 @@
     <string name="archive_test_success_title">Test Successful</string>
     <string name="archive_test_failed_title">Test Failed</string>
     <string name="ok">OK</string>
+    <string name="more">More</string>
 </resources>

@@ -156,5 +156,6 @@
     <string name="archive_test_success_title">测试成功</string>
     <string name="archive_test_failed_title">测试失败</string>
     <string name="ok">确定</string>
+    <string name="more">更多</string>
 </resources>
 
