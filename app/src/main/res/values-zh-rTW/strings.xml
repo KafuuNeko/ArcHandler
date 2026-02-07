@@ -61,6 +61,7 @@
     <string name="current">當前</string>
     <string name="password_optional">密碼（可選）</string>
     <string name="encryption">加密</string>
+    <string name="incorrect_password">密碼錯誤</string>
     <string name="clear">清除</string>
     <string name="save_location">儲存位置</string>
     <string name="select_directory">選擇目錄</string>
@@ -154,5 +155,15 @@
     <string name="archive_test_failed_title">測試失敗</string>
     <string name="ok">確定</string>
     <string name="more">更多</string>
+    <string name="default_app_settings">預設應用程式設定</string>
+    <string name="default_app_settings_description">設定在 ArcHandler 中開啟檔案的預設應用程式</string>
+    <string name="default_app_images">圖片</string>
+    <string name="default_app_images_description">選擇開啟圖片的應用程式</string>
+    <string name="default_app_videos">影片</string>
+    <string name="default_app_videos_description">選擇開啟影片的應用程式</string>
+    <string name="default_app_documents">文件</string>
+    <string name="default_app_documents_description">選擇開啟文件的應用程式</string>
+    <string name="default_app_always_ask">每次詢問</string>
+    <string name="default_app_system_default">系統預設</string>
 </resources>
 

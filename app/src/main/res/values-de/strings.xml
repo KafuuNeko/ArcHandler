@@ -61,6 +61,7 @@
     <string name="current">Aktuell</string>
     <string name="password_optional">Passwort (optional)</string>
     <string name="encryption">Verschlüsselung</string>
+    <string name="incorrect_password">Falsches Passwort</string>
     <string name="clear">Löschen</string>
     <string name="save_location">Speicherort</string>
     <string name="select_directory">Verzeichnis auswählen</string>
@@ -154,4 +155,14 @@
     <string name="archive_test_failed_title">Test fehlgeschlagen</string>
     <string name="ok">OK</string>
     <string name="more">Mehr</string>
+    <string name="default_app_settings">Standard-App-Einstellungen</string>
+    <string name="default_app_settings_description">Standard-Apps für das Öffnen von Dateien in ArcHandler konfigurieren</string>
+    <string name="default_app_images">Bilder</string>
+    <string name="default_app_images_description">App zum Öffnen von Bilddateien auswählen</string>
+    <string name="default_app_videos">Videos</string>
+    <string name="default_app_videos_description">App zum Öffnen von Videodateien auswählen</string>
+    <string name="default_app_documents">Dokumente</string>
+    <string name="default_app_documents_description">App zum Öffnen von Dokumenten auswählen</string>
+    <string name="default_app_always_ask">Immer fragen</string>
+    <string name="default_app_system_default">Systemstandard</string>
 </resources>

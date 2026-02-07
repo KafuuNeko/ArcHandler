@@ -5,7 +5,7 @@ import cc.kafuu.archandler.feature.settings.presentation.SettingsUiIntent
 import cc.kafuu.archandler.feature.settings.presentation.SettingsUiState
 import cc.kafuu.archandler.libs.model.LayoutType
 
-enum class SettingItem(
+enum class ToggleSetting(
     val titleResId: Int,
     val descriptionResId: Int
 ) {

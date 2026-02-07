@@ -61,6 +61,7 @@
     <string name="current">현재</string>
     <string name="password_optional">비밀번호 (선택 사항)</string>
     <string name="encryption">암호화</string>
+    <string name="incorrect_password">비밀번호가 올바르지 않습니다</string>
     <string name="clear">지우기</string>
     <string name="save_location">저장 위치</string>
     <string name="select_directory">디렉터리 선택</string>
@@ -154,4 +155,14 @@
     <string name="archive_test_failed_title">테스트 실패</string>
     <string name="ok">확인</string>
     <string name="more">더보기</string>
+    <string name="default_app_settings">기본 앱 설정</string>
+    <string name="default_app_settings_description">ArcHandler 내에서 파일을 열 기본 앱 구성</string>
+    <string name="default_app_images">이미지</string>
+    <string name="default_app_images_description">이미지 파일을 열 앱 선택</string>
+    <string name="default_app_videos">동영상</string>
+    <string name="default_app_videos_description">동영상 파일을 열 앱 선택</string>
+    <string name="default_app_documents">문서</string>
+    <string name="default_app_documents_description">문서 파일을 열 앱 선택</string>
+    <string name="default_app_always_ask">항상 묻기</string>
+    <string name="default_app_system_default">시스템 기본값</string>
 </resources>

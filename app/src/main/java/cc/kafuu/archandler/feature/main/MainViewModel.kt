@@ -28,7 +28,7 @@ import cc.kafuu.archandler.libs.core.CoreViewModelWithEvent
 import cc.kafuu.archandler.libs.core.UiIntentObserver
 import cc.kafuu.archandler.libs.extensions.copyOrMoveTo
 import cc.kafuu.archandler.libs.extensions.countAllFiles
-import cc.kafuu.archandler.libs.extensions.createChooserIntent
+import cc.kafuu.archandler.libs.extensions.openFileWithDefaultApp
 import cc.kafuu.archandler.libs.extensions.createUniqueDirectory
 import cc.kafuu.archandler.libs.extensions.deletes
 import cc.kafuu.archandler.libs.extensions.getSameNameDirectory
@@ -534,7 +534,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
         }
         // 判断当前打开的文件是否可解压
         if (!ArchiveManager.isExtractable(intent.file)) {
-            get<Context>().createChooserIntent(intent.file.name, intent.file)
+            get<Context>().openFileWithDefaultApp(intent.file)
                 ?.let { AppViewEvent.StartActivityByIntent(it) }
                 ?.emit()
         } else {

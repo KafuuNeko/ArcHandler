@@ -25,4 +25,8 @@ object AppModel : KotprefModel() {
 
     var listLayoutType by intPref(default = 0)
 
+    // 默认应用包名，null 表示"总是询问"
+    var defaultAppImages by nullableStringPref(default = null)
+    var defaultAppVideos by nullableStringPref(default = null)
+    var defaultAppDocuments by nullableStringPref(default = null)
 }

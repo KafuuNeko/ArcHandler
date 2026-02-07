@@ -60,8 +60,8 @@
     <string name="high">高</string>
     <string name="current">当前</string>
     <string name="password_optional">密码（可选）</string>
-    <string name="incorrect_password">密码错误</string>
     <string name="encryption">加密</string>
+    <string name="incorrect_password">密码错误</string>
     <string name="clear">清除</string>
     <string name="save_location">保存位置</string>
     <string name="select_directory">选择目录</string>
@@ -157,5 +157,15 @@
     <string name="archive_test_failed_title">测试失败</string>
     <string name="ok">确定</string>
     <string name="more">更多</string>
+    <string name="default_app_settings">默认应用设置</string>
+    <string name="default_app_settings_description">配置 ArcHandler 内打开文件的默认应用</string>
+    <string name="default_app_images">图片</string>
+    <string name="default_app_images_description">选择打开图片的应用</string>
+    <string name="default_app_videos">视频</string>
+    <string name="default_app_videos_description">选择打开视频的应用</string>
+    <string name="default_app_documents">文档</string>
+    <string name="default_app_documents_description">选择打开文档的应用</string>
+    <string name="default_app_always_ask">每次询问</string>
+    <string name="default_app_system_default">系统默认</string>
 </resources>
 

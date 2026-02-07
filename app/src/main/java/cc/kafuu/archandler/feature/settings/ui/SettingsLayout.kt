@@ -1,6 +1,7 @@
 package cc.kafuu.archandler.feature.settings.ui
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -10,8 +11,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
@@ -23,10 +27,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import cc.kafuu.archandler.R
-import cc.kafuu.archandler.feature.settings.model.SettingItem
+import cc.kafuu.archandler.feature.settings.model.DefaultAppSetting
+import cc.kafuu.archandler.feature.settings.model.ToggleSetting
+import cc.kafuu.archandler.feature.settings.presentation.SettingsDialogState
 import cc.kafuu.archandler.feature.settings.presentation.SettingsUiIntent
 import cc.kafuu.archandler.feature.settings.presentation.SettingsUiState
 import cc.kafuu.archandler.libs.extensions.withAlpha
+import cc.kafuu.archandler.ui.dialogs.AppPickerDialog
 import cc.kafuu.archandler.ui.widges.AppTopBar
 import cc.kafuu.archandler.ui.widges.SettingItem
 
@@ -39,7 +46,36 @@ fun SettingsLayout(
     when (uiState) {
         SettingsUiState.None, SettingsUiState.Finished -> Unit
 
-        is SettingsUiState.Normal -> Normal(uiState, emitIntent)
+        is SettingsUiState.Normal -> {
+            Normal(uiState, emitIntent)
+            DialogSwitch(uiState.dialogState, emitIntent)
+        }
+    }
+}
+
+@Composable
+private fun DialogSwitch(
+    dialogState: SettingsDialogState,
+    emitIntent: (uiIntent: SettingsUiIntent) -> Unit = {}
+) {
+    when (dialogState) {
+        SettingsDialogState.None -> Unit
+
+        is SettingsDialogState.AppPicker -> AppPickerDialog(
+            title = dialogState.title,
+            apps = dialogState.apps,
+            onDismissRequest = {
+                emitIntent(SettingsUiIntent.DismissAppPicker)
+            },
+            onAppSelected = { appInfo ->
+                emitIntent(SettingsUiIntent.SetDefaultApp(dialogState.type, appInfo.packageName))
+                emitIntent(SettingsUiIntent.DismissAppPicker)
+            },
+            onResetToAsk = {
+                emitIntent(SettingsUiIntent.SetDefaultApp(dialogState.type, null))
+                emitIntent(SettingsUiIntent.DismissAppPicker)
+            }
+        )
     }
 }
 
@@ -110,9 +146,9 @@ private fun SettingsViewContent(
             }
         }
 
-        // Settings items
-        items(SettingItem.entries.toTypedArray()) { item ->
-            ModernSettingItem(
+        // Toggle settings items
+        items(ToggleSetting.entries.toTypedArray()) { item ->
+            ToggleSettingItem(
                 title = stringResource(item.titleResId),
                 description = stringResource(item.descriptionResId),
                 checked = item.getCurrentValue(uiState),
@@ -121,11 +157,34 @@ private fun SettingsViewContent(
                 }
             )
         }
+
+        // Default app settings header
+        item {
+            Text(
+                text = stringResource(R.string.default_app_settings),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
+            )
+        }
+
+        // Default app settings items
+        items(DefaultAppSetting.entries.toTypedArray()) { setting ->
+            val currentAppName = uiState.getDefaultAppDisplayName(setting.type)
+
+            DefaultAppSettingItem(
+                title = stringResource(setting.titleResId),
+                currentAppName = currentAppName,
+                onClick = {
+                    emitIntent(SettingsUiIntent.ShowAppPicker(setting.type))
+                }
+            )
+        }
     }
 }
 
 @Composable
-private fun ModernSettingItem(
+private fun ToggleSettingItem(
     title: String,
     description: String,
     checked: Boolean,
@@ -165,6 +224,39 @@ private fun ModernSettingItem(
                 checked = checked,
                 onCheckedChange = onCheckedChange,
                 colors = switchColors
+            )
+        }
+    }
+}
+
+@Composable
+private fun DefaultAppSettingItem(
+    title: String,
+    currentAppName: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 2.dp,
+            pressedElevation = 4.dp
+        )
+    ) {
+        SettingItem(
+            modifier = Modifier,
+            title = title,
+            description = currentAppName
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurface.withAlpha(0.6f)
             )
         }
     }

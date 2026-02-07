@@ -61,6 +61,7 @@
     <string name="current">Текущий</string>
     <string name="password_optional">Пароль (необязательно)</string>
     <string name="encryption">Шифрование</string>
+    <string name="incorrect_password">Неверный пароль</string>
     <string name="clear">Очистить</string>
     <string name="save_location">Место сохранения</string>
     <string name="select_directory">Выберите каталог</string>
@@ -154,4 +155,14 @@
     <string name="archive_test_failed_title">Тест не пройден</string>
     <string name="ok">ОК</string>
     <string name="more">Ещё</string>
+    <string name="default_app_settings">Настройки приложений по умолчанию</string>
+    <string name="default_app_settings_description">Настройте приложения по умолчанию для открытия файлов в ArcHandler</string>
+    <string name="default_app_images">Изображения</string>
+    <string name="default_app_images_description">Выберите приложение для открытия изображений</string>
+    <string name="default_app_videos">Видео</string>
+    <string name="default_app_videos_description">Выберите приложение для открытия видео</string>
+    <string name="default_app_documents">Документы</string>
+    <string name="default_app_documents_description">Выберите приложение для открытия документов</string>
+    <string name="default_app_always_ask">Всегда спрашивать</string>
+    <string name="default_app_system_default">Системный по умолчанию</string>
 </resources>

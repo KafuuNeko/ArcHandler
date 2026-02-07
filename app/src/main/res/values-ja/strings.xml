@@ -61,6 +61,7 @@
     <string name="current">現在</string>
     <string name="password_optional">パスワード（任意）</string>
     <string name="encryption">暗号化</string>
+    <string name="incorrect_password">パスワードが正しくありません</string>
     <string name="clear">クリア</string>
     <string name="save_location">保存場所</string>
     <string name="select_directory">ディレクトリを選択</string>
@@ -154,4 +155,14 @@
     <string name="archive_test_failed_title">テスト失敗</string>
     <string name="ok">OK</string>
     <string name="more">詳細</string>
+    <string name="default_app_settings">デフォルトアプリ設定</string>
+    <string name="default_app_settings_description">ArcHandler 内でファイルを開くデフォルトアプリを設定</string>
+    <string name="default_app_images">画像</string>
+    <string name="default_app_images_description">画像ファイルを開くアプリを選択</string>
+    <string name="default_app_videos">動画</string>
+    <string name="default_app_videos_description">動画ファイルを開くアプリを選択</string>
+    <string name="default_app_documents">ドキュメント</string>
+    <string name="default_app_documents_description">ドキュメントファイルを開くアプリを選択</string>
+    <string name="default_app_always_ask">毎回確認</string>
+    <string name="default_app_system_default">システムデフォルト</string>
 </resources>

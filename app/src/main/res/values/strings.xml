@@ -174,4 +174,14 @@
     <string name="archive_test_failed_title">Test Failed</string>
     <string name="ok">OK</string>
     <string name="more">More</string>
+    <string name="default_app_settings">Default App Settings</string>
+    <string name="default_app_settings_description">Configure default apps for opening files within ArcHandler</string>
+    <string name="default_app_images">Images</string>
+    <string name="default_app_images_description">Choose app to open image files</string>
+    <string name="default_app_videos">Videos</string>
+    <string name="default_app_videos_description">Choose app to open video files</string>
+    <string name="default_app_documents">Documents</string>
+    <string name="default_app_documents_description">Choose app to open document files</string>
+    <string name="default_app_always_ask">Always ask</string>
+    <string name="default_app_system_default">System default</string>
 </resources>
