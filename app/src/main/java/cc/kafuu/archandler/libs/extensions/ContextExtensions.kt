@@ -112,3 +112,14 @@ fun Context.canOpenUri(uri: Uri) = try {
 } catch (e: Exception) {
     false
 }
+
+fun Context.createInstallApkIntent(file: File): Intent? {
+    if (!file.exists()) return null
+    val authority = "${packageName}.fileprovider"
+    val uri = FileProvider.getUriForFile(this, authority, file)
+    return Intent(Intent.ACTION_VIEW).apply {
+        setDataAndType(uri, "application/vnd.android.package-archive")
+        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    }
+}

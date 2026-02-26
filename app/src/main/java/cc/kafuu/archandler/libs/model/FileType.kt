@@ -22,5 +22,7 @@ enum class FileType(
 
     Database(R.drawable.ic_file_database),
 
+    Apk(R.drawable.ic_file_apk),
+
     Unknow(R.drawable.ic_file)
 }

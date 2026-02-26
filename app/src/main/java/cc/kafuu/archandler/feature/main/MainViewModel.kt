@@ -28,18 +28,20 @@ import cc.kafuu.archandler.libs.core.CoreViewModelWithEvent
 import cc.kafuu.archandler.libs.core.UiIntentObserver
 import cc.kafuu.archandler.libs.extensions.copyOrMoveTo
 import cc.kafuu.archandler.libs.extensions.countAllFiles
-import cc.kafuu.archandler.libs.extensions.openFileWithDefaultApp
 import cc.kafuu.archandler.libs.extensions.createUniqueDirectory
 import cc.kafuu.archandler.libs.extensions.deletes
+import cc.kafuu.archandler.libs.extensions.getFileType
 import cc.kafuu.archandler.libs.extensions.getSameNameDirectory
 import cc.kafuu.archandler.libs.extensions.hasUnmovableItems
 import cc.kafuu.archandler.libs.extensions.listFilteredFiles
+import cc.kafuu.archandler.libs.extensions.openFileWithDefaultApp
 import cc.kafuu.archandler.libs.extensions.sha256Of
 import cc.kafuu.archandler.libs.manager.CacheManager
 import cc.kafuu.archandler.libs.manager.DataTransferManager
 import cc.kafuu.archandler.libs.manager.FileManager
 import cc.kafuu.archandler.libs.model.AppCacheType
 import cc.kafuu.archandler.libs.model.FileConflictStrategy
+import cc.kafuu.archandler.libs.model.FileType
 import cc.kafuu.archandler.libs.model.LayoutType
 import cc.kafuu.archandler.libs.model.StorageData
 import cc.kafuu.archandler.libs.utils.parallelSortWith
@@ -530,6 +532,11 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
                 storageData = intent.storageData,
                 directoryPath = Path(intent.file.path)
             ).setup()
+            return
+        }
+        // 如果是apk
+        if (intent.file.getFileType() == FileType.Apk) {
+            MainViewEvent.RequestInstallApk(intent.file).emit()
             return
         }
         // 判断当前打开的文件是否可解压

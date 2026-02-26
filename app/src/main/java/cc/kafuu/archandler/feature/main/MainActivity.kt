@@ -1,5 +1,7 @@
 package cc.kafuu.archandler.feature.main
 
+import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.compose.BackHandler
 import androidx.activity.viewModels
@@ -13,7 +15,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import android.content.Intent
 import cc.kafuu.archandler.feature.archiveview.ArchiveViewActivity
 import cc.kafuu.archandler.feature.duplicatefinder.DuplicateFinderActivity
 import cc.kafuu.archandler.feature.main.presentation.MainUiIntent
@@ -23,6 +24,7 @@ import cc.kafuu.archandler.feature.main.ui.MainLayout
 import cc.kafuu.archandler.libs.AppModel
 import cc.kafuu.archandler.libs.core.CoreActivityWithEvent
 import cc.kafuu.archandler.libs.core.IViewEvent
+import cc.kafuu.archandler.libs.extensions.createInstallApkIntent
 import com.hjq.permissions.Permission
 import com.hjq.permissions.XXPermissions
 import kotlinx.coroutines.launch
@@ -86,12 +88,15 @@ class MainActivity : CoreActivityWithEvent() {
                 }
                 startActivity(intent)
             }
+
             is MainViewEvent.StartDuplicateFinderActivity -> {
                 val intent = Intent(this, DuplicateFinderActivity::class.java).apply {
                     putExtras(viewEvent.params)
                 }
                 startActivity(intent)
             }
+
+            is MainViewEvent.RequestInstallApk -> onRequestInstallApk(viewEvent)
         }
     }
 
@@ -99,5 +104,20 @@ class MainActivity : CoreActivityWithEvent() {
         XXPermissions.with(this)
             .permission(Permission.MANAGE_EXTERNAL_STORAGE)
             .request { _: List<String?>?, _: Boolean -> mViewModel.emit(MainUiIntent.Init) }
+    }
+
+    private fun onRequestInstallApk(event: MainViewEvent.RequestInstallApk) {
+        val apkFile = event.file
+        if (!apkFile.exists()) return
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            XXPermissions.with(this)
+                .permission(Permission.REQUEST_INSTALL_PACKAGES)
+                .request { _, allGranted ->
+                    if (!allGranted) return@request
+                    createInstallApkIntent(apkFile)?.let(::startActivity)
+                }
+        } else {
+            createInstallApkIntent(apkFile)?.let(::startActivity)
+        }
     }
 }

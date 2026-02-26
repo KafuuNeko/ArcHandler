@@ -16,7 +16,6 @@ import java.security.MessageDigest
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import kotlin.math.log10
 import kotlin.math.pow
 
 private val EXTENSION_ICON_MAP = mapOf(
@@ -44,6 +43,9 @@ private val EXTENSION_ICON_MAP = mapOf(
         ".mp3", ".wav", ".aac", ".flac", ".ogg", ".m4a", ".wma", ".aiff"
     ),
 
+    // apk
+    FileType.Apk to setOf(".apk"),
+
     // database
     FileType.Database to setOf(
         ".db", ".sqlite", ".sqlite3", ".db3", ".mdb", ".accdb"
@@ -69,7 +71,8 @@ fun File.getLastModifiedDate(format: String = "yyyy-MM-dd HH:mm:ss"): String {
 fun Long.getReadableSize(): String {
     if (this == 0L) return "0 B"
     val units = arrayOf("B", "KB", "MB", "GB", "TB", "PB")
-    val unitIndex = (kotlin.math.log10(this.toDouble()) / kotlin.math.log10(1024.0)).toInt().coerceAtMost(units.size - 1)
+    val unitIndex = (kotlin.math.log10(this.toDouble()) / kotlin.math.log10(1024.0)).toInt()
+        .coerceAtMost(units.size - 1)
     val readableSize = this / 1024.0.pow(unitIndex.toDouble())
     return "%.2f %s".format(readableSize, units[unitIndex])
 }
@@ -131,15 +134,15 @@ suspend fun List<File>.deletes(
     var deletedCount = 0
     val filesToDelete = mutableListOf<File>()
     val directoriesToDelete = mutableListOf<File>()
-    
+
     // 使用迭代方式收集所有需要删除的文件（避免递归栈溢出）
     val stack = mutableListOf<File>()
     stack.addAll(this@deletes)
-    
+
     while (stack.isNotEmpty()) {
         currentCoroutineContext().ensureActive()
         val file = stack.removeAt(stack.size - 1)
-        
+
         if (file.isDirectory) {
             file.listFiles()?.forEach { child ->
                 stack.add(child)
@@ -149,37 +152,36 @@ suspend fun List<File>.deletes(
             filesToDelete.add(file)
         }
     }
-    
+
     // 先删除所有文件，再删除目录
     val allFilesToDelete = filesToDelete + directoriesToDelete.reversed()
     val totalFiles = allFilesToDelete.size
-    
+
     // 初始化进度更新
     if (onProgressUpdate != null && totalFiles > 0) {
         withContext(Dispatchers.Main) {
             onProgressUpdate(0, totalFiles)
         }
     }
-    
+
     var lastUpdateTime = System.currentTimeMillis()
-    
+
     // 批量删除文件
     for ((index, file) in allFilesToDelete.withIndex()) {
         currentCoroutineContext().ensureActive()
-        
+
         val isSuccessful = try {
             file.delete()
         } catch (e: Exception) {
             e.printStackTrace()
             false
         }
-        
+
         if (isSuccessful) deletedCount++
-        
+
         // 基于时间间隔更新进度（减少 UI 更新频率）
         val currentTime = System.currentTimeMillis()
-        if (onProgressUpdate != null && 
-            (currentTime - lastUpdateTime >= updateIntervalMs || index == totalFiles - 1)) {
+        if (onProgressUpdate != null && (currentTime - lastUpdateTime >= updateIntervalMs || index == totalFiles - 1)) {
             withContext(Dispatchers.Main) {
                 onProgressUpdate(deletedCount, totalFiles)
             }
