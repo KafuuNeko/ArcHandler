@@ -135,6 +135,8 @@ private fun ArchiveOptions(
     uiState: CreateArchiveUiState.Normal,
     emitIntent: (uiIntent: CreateArchiveUiIntent) -> Unit
 ) {
+    Spacer(modifier = Modifier.height(10.dp))
+
     val optionState = uiState.archiveOptions
     // 选择压缩包格式
     FormatCard(
