@@ -245,8 +245,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
             }?.use { archive ->
                 val destDir = file.getSameNameDirectory().createUniqueDirectory() ?: return@use null
                 archive.extractAll(destDir) { index, path, target ->
-                    copy(loadState = MainLoadState.Unpacking(file, index, path, target))
-                        .setup()
+                    copy(loadState = MainLoadState.Unpacking(file, index, path, target)).setup()
                 }
                 return@use destDir
             }
@@ -717,7 +716,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
     private suspend fun onCancelSelectNoDuplicatesJob() {
         val uiState = getOrNull<MainUiState.Normal>() ?: return
         if (uiState.loadState is MainLoadState.QueryDuplicateFiles) cancelActiveTaskAndRestore()
-        uiState.copy(loadState = MainLoadState.None).refresh().setup()
+        uiState.copy(loadState = MainLoadState.None).setup()
     }
 
     @UiIntentObserver(MainUiIntent.InvertSelectionClick::class)
@@ -851,7 +850,9 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
             popupAwaitDialogResult { deferredResult.awaitCompleted() }
         } ?: return
         AppModel.listSortType = newSortType.value
-        uiState.copy(sortType = newSortType).refresh().setup()
+        if (newSortType != uiState.sortType) {
+            uiState.copy(sortType = newSortType).refresh().setup()
+        }
     }
 
     /**
