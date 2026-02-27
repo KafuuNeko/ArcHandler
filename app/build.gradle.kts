@@ -14,8 +14,8 @@ android {
         applicationId = "cc.kafuu.archandler"
         minSdk = 24
         targetSdk = 35
-        versionCode = 10000
-        versionName = "1.0.0.foss.α"
+        versionCode = 10001
+        versionName = "1.0.1.foss"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         externalNativeBuild {
