@@ -1,136 +1,116 @@
 # ArcHandler
 
-一个 Android 归档文件处理应用，支持多种压缩格式的创建、解压和管理。
+[中文](README_zh.md) | English
 
-## 📋 功能特性
+An Android archive file processing application that supports creating, extracting, and managing various compression formats.
 
-### 核心功能
+## 📋 Features
 
-- **压缩文件创建**
-  - 支持多种归档格式：ZIP、7Z、TAR、CPIO
-  - 支持多种压缩算法：Gzip、Bzip2、XZ、LZ4、Zstd、LZMA、Deflate
-  - 可自定义压缩级别（1-9，Zstd 支持 1-19）
-  - 支持密码保护的压缩包（ZIP、7Z）
-  - 支持分卷压缩（Volume Split）
+### Core Functions
 
-- **压缩文件解压**
-  - 支持广泛的归档格式：
-    - **常见格式**：ZIP、7Z、RAR、RAR5、TAR、CPIO
-    - **压缩格式**：GZ、BZ2、XZ、LZ4、ZST、LZMA
-    - **组合格式**：TAR.GZ、TAR.BZ2、TAR.XZ、TAR.LZ4、TAR.ZST
-    - **其他格式**：ISO、HFS、ARJ、CAB、LZH、CHM、NSIS、AR、RPM、UDF、WIM、XAR、FAT、NTFS
-  - 支持分卷压缩包（.7z.001、.zip.001 等）
-  - 支持密码保护的压缩包
+- **Archive Creation**
+  - Supports multiple archive formats: ZIP, 7Z, TAR, CPIO
+  - Supports multiple compression algorithms: Gzip, Bzip2, XZ, LZ4, Zstd, LZMA, Deflate
+  - Customizable compression levels (1-9, Zstd supports 1-19)
+  - Password-protected archives (ZIP, 7Z)
+  - Volume split support
 
-- **文件管理**
-  - 文件浏览和导航
-  - 文件复制、移动、删除
-  - 多文件选择
-  - 存储卷管理（内部存储、外部存储）
+- **Archive Extraction**
+  - Supports a wide range of archive formats:
+    - **Common formats**: ZIP, 7Z, RAR, RAR5, TAR, CPIO
+    - **Compressed formats**: GZ, BZ2, XZ, LZ4, ZST, LZMA
+    - **Combined formats**: TAR.GZ, TAR.BZ2, TAR.XZ, TAR.LZ4, TAR.ZST
+    - **Other formats**: ISO, HFS, ARJ, CAB, LZH, CHM, NSIS, AR, RPM, UDF, WIM, XAR, FAT, NTFS
+  - Supports split archive files (.7z.001, .zip.001, etc.)
+  - Supports password-protected archives
 
-## 📦 支持的格式
+- **File Management**
+  - File browsing and navigation
+  - File copy, move, delete
+  - Multi-file selection
+  - Storage volume management (internal storage, external storage)
 
-### 归档格式
-- ZIP（支持密码保护）
-- 7Z（支持密码保护）
+## 📦 Supported Formats
+
+### Archive Formats
+- ZIP (password protected)
+- 7Z (password protected)
 - TAR
 - CPIO
 - RAR / RAR5
 - ISO
-- 以及其他多种格式
+- And many other formats
 
-### 压缩算法
-- **无压缩**：None、Store
-- **通用压缩**：Deflate、LZMA
-- **Unix 压缩**：Gzip、Bzip2、XZ
-- **现代压缩**：LZ4、Zstd
+### Compression Algorithms
+- **No compression**: None, Store
+- **General compression**: Deflate, LZMA
+- **Unix compression**: Gzip, Bzip2, XZ
+- **Modern compression**: LZ4, Zstd
 
-### 组合格式
-- TAR.GZ、TAR.BZ2、TAR.XZ、TAR.LZ4、TAR.ZST
-- CPIO.GZ、CPIO.BZ2、CPIO.XZ、CPIO.LZ4、CPIO.ZST
+### Combined Formats
+- TAR.GZ, TAR.BZ2, TAR.XZ, TAR.LZ4, TAR.ZST
+- CPIO.GZ, CPIO.BZ2, CPIO.XZ, CPIO.LZ4, CPIO.ZST
 
-## 🔧 构建要求
+## 🔧 Build Requirements
 
-- **Android Studio** - 最新版本
-- **JDK 11** 或更高版本
+- **Android Studio** - Latest version
+- **JDK 11** or higher
 - **Android SDK**
   - `compileSdk`: 35
   - `minSdk`: 24
   - `targetSdk`: 35
-- **NDK** - 版本 28.1.13356709
-- **CMake** - 版本 3.22.1 或更高
-- **Gradle** - 通过 Gradle Wrapper 管理
+- **NDK** - Version 28.1.13356709
+- **CMake** - Version 3.22.1 or higher
+- **Gradle** - Managed via Gradle Wrapper
 
-## 🚀 构建步骤
+## 📱 Usage Guide
 
-1. 克隆仓库
-```bash
-git clone https://github.com/yourusername/ArcHandler.git
-cd ArcHandler
-```
+### Creating an Archive
 
-2. 使用 Android Studio 打开项目
+1. Select files or folders to compress on the main screen
+2. Tap the "Archive" button
+3. Choose archive format (ZIP, 7Z, TAR, CPIO)
+4. Select compression type and level
+5. (Optional) Set password protection
+6. (Optional) Set volume split size
+7. Choose save location
+8. Start creating the archive
 
-3. 同步 Gradle 依赖
+### Extracting an Archive
 
-4. 构建项目
-```bash
-./gradlew assembleDebug
-```
+1. Find the archive file on the main screen
+2. Tap the archive file
+3. Select extraction destination
+4. Enter password if the archive is protected
+5. Handle file conflicts (if any)
+6. Start extraction
 
-5. 安装到设备
-```bash
-./gradlew installDebug
-```
+### File Management
 
-## 📱 使用说明
+- **Copy/Move**: After selecting files, use the bottom menu to perform operations
+- **Delete**: After selecting files, tap the delete button
+- **Multi-select**: Long press a file to enter multi-select mode
 
-### 创建压缩包
+## 🔐 Permissions
 
-1. 在主界面选择要压缩的文件或文件夹
-2. 点击"归档"按钮
-3. 选择归档格式（ZIP、7Z、TAR、CPIO）
-4. 选择压缩类型和级别
-5. （可选）设置密码保护
-6. （可选）设置分卷大小
-7. 选择保存位置
-8. 开始创建压缩包
+The app requires the following permissions:
 
-### 解压压缩包
+- `MANAGE_EXTERNAL_STORAGE` - Manage external storage (Android 11+)
+- `READ_EXTERNAL_STORAGE` - Read external storage
+- `WRITE_EXTERNAL_STORAGE` - Write external storage
 
-1. 在主界面找到压缩包文件
-2. 点击压缩包文件
-3. 选择解压目标位置
-4. 如果压缩包有密码，输入密码
-5. 处理文件冲突（如需要）
-6. 开始解压
+These permissions are used to access and manage files on your device.
 
-### 文件管理
+## 📄 License
 
-- **复制/移动**：选择文件后，使用底部菜单进行操作
-- **删除**：选择文件后，点击删除按钮
-- **多选**：长按文件进入多选模式
+This project uses an open source license (see LICENSE file for details).
 
-## 🔐 权限说明
+## 🤝 Contributing
 
-应用需要以下权限：
+Feel free to submit Issues and Pull Requests!
 
-- `MANAGE_EXTERNAL_STORAGE` - 管理外部存储（Android 11+）
-- `READ_EXTERNAL_STORAGE` - 读取外部存储
-- `WRITE_EXTERNAL_STORAGE` - 写入外部存储
+## ⚠️ Notes
 
-这些权限用于访问和管理设备上的文件。
-
-## 📄 许可证
-
-本项目采用开源许可证（具体许可证请查看 LICENSE 文件）。
-
-## 🤝 贡献
-
-欢迎提交 Issue 和 Pull Request！
-
-## ⚠️ 注意事项
-
-- 这是一个 FOSS（自由开源软件）版本
-- 当前版本为 Alpha 阶段，可能存在一些不稳定因素
-- 建议在生产环境使用前进行充分测试
+- This is a FOSS (Free and Open Source Software) version
+- Current version is in Alpha stage, there may be some instabilities
+- It is recommended to perform thorough testing before using in production environments
