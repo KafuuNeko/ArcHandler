@@ -11,13 +11,22 @@ enum class ArchiveFormat(
     Zip(
         displayName = R.string.archive_format_zip_name,
         supportsPassword = true,
-        supportCompressionTypes = listOf(CompressionType.Store, CompressionType.Deflate),
+        supportCompressionTypes = listOf(
+            CompressionType.Store,
+            CompressionType.Deflate,
+            CompressionType.Lzma,
+            CompressionType.Ppmd
+        ),
         defaultCompressionType = CompressionType.Deflate,
     ),
     SevenZip(
         displayName = R.string.archive_format_seven_zip_name,
         supportsPassword = true,
-        supportCompressionTypes = listOf(CompressionType.Store, CompressionType.Lzma),
+        supportCompressionTypes = listOf(
+            CompressionType.Store,
+            CompressionType.Lzma,
+            CompressionType.Ppmd
+        ),
         defaultCompressionType = CompressionType.Lzma
     ),
     Xar(

@@ -5,15 +5,21 @@ sealed class CompressionOption {
 
     data class Zip(
         val password: String? = null,
-        val compressionLevel: Int = 5
+        val compressionLevel: Int = 5,
+        val compressionMethod: Method = Method.Deflate,
     ) : CompressionOption() {
+        enum class Method { Store, Deflate, Lzma, Ppmd }
+
         override val fileExtension: String get() = "zip"
     }
 
     data class SevenZip(
         val password: String? = null,
-        val compressionLevel: Int = 5
+        val compressionLevel: Int = 5,
+        val compressionMethod: Method = Method.Lzma,
     ) : CompressionOption() {
+        enum class Method { Store, Lzma, Ppmd }
+
         override val fileExtension: String get() = "7z"
     }
 

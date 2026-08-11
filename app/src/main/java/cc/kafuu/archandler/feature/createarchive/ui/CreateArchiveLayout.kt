@@ -24,6 +24,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import cc.kafuu.archandler.R
+import cc.kafuu.archandler.feature.createarchive.model.ArchiveFormat
+import cc.kafuu.archandler.feature.createarchive.model.CompressionType
 import cc.kafuu.archandler.feature.createarchive.presentation.CreateArchiveLoadState
 import cc.kafuu.archandler.feature.createarchive.presentation.CreateArchiveUiIntent
 import cc.kafuu.archandler.feature.createarchive.presentation.CreateArchiveUiState
@@ -161,6 +163,15 @@ private fun ArchiveOptions(
     CompressionTypeCard(
         supportCompressionTypes = optionState.format.supportCompressionTypes,
         compressionType = optionState.compressionType,
+        compatibilityWarning = when {
+            optionState.format == ArchiveFormat.Zip &&
+                optionState.compressionType in listOf(
+                    CompressionType.Lzma,
+                    CompressionType.Ppmd
+                ) -> stringResource(R.string.zip_advanced_compression_compatibility_warning)
+
+            else -> null
+        },
         onFormatChange = {
             CreateArchiveUiIntent.ArchiveCompressionTypeChange(it).also(emitIntent)
         }

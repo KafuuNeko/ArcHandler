@@ -49,6 +49,7 @@
     <string name="query_duplicate_files_message">Проверка на дубликаты файлов…</string>
     <string name="waiting">Ожидание…</string>
     <string name="compression_type">Тип сжатия</string>
+    <string name="zip_advanced_compression_compatibility_warning">Некоторые ZIP-программы не могут распаковывать архивы LZMA или PPMd. Для лучшей совместимости используйте Deflate.</string>
     <string name="format">Формат</string>
     <string name="password">Пароль</string>
     <string name="supported">Поддерживается</string>

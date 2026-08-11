@@ -14,14 +14,16 @@ fun CreateArchiveUiState.Normal.getPackageOptions() = when (archiveOptions.forma
     ArchiveFormat.Zip -> listOf(
         Zip(
             password = archiveOptions.password?.takeIf { it.isNotEmpty() },
-            compressionLevel = if (archiveOptions.compressionType.levelRange == null) 0 else archiveOptions.level
+            compressionLevel = if (archiveOptions.compressionType.levelRange == null) 0 else archiveOptions.level,
+            compressionMethod = archiveOptions.compressionType.toZipCompressionMethod()
         )
     )
 
     ArchiveFormat.SevenZip -> listOf(
         SevenZip(
             password = archiveOptions.password?.takeIf { it.isNotEmpty() },
-            compressionLevel = if (archiveOptions.compressionType.levelRange == null) 0 else archiveOptions.level
+            compressionLevel = if (archiveOptions.compressionType.levelRange == null) 0 else archiveOptions.level,
+            compressionMethod = archiveOptions.compressionType.toSevenZipCompressionMethod()
         )
     )
 
@@ -48,6 +50,21 @@ fun CreateArchiveUiState.Normal.getPackageOptions() = when (archiveOptions.forma
     ArchiveFormat.Xar -> listOf(
         Xar(algorithm = getPackageAlgorithm())
     )
+}
+
+private fun CompressionType.toZipCompressionMethod() = when (this) {
+    CompressionType.Store -> Zip.Method.Store
+    CompressionType.Deflate -> Zip.Method.Deflate
+    CompressionType.Lzma -> Zip.Method.Lzma
+    CompressionType.Ppmd -> Zip.Method.Ppmd
+    else -> throw IllegalArgumentException("Unsupported Zip compression type: $this")
+}
+
+private fun CompressionType.toSevenZipCompressionMethod() = when (this) {
+    CompressionType.Store -> SevenZip.Method.Store
+    CompressionType.Lzma -> SevenZip.Method.Lzma
+    CompressionType.Ppmd -> SevenZip.Method.Ppmd
+    else -> throw IllegalArgumentException("Unsupported 7-Zip compression type: $this")
 }
 
 fun CreateArchiveUiState.Normal.getPackageAlgorithm() = when (archiveOptions.compressionType) {

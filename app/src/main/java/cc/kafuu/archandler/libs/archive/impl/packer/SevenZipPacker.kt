@@ -19,6 +19,7 @@ import net.sf.sevenzipjbinding.IOutItemTar
 import net.sf.sevenzipjbinding.IOutItemZip
 import net.sf.sevenzipjbinding.ISequentialInStream
 import net.sf.sevenzipjbinding.ISequentialOutStream
+import net.sf.sevenzipjbinding.OutArchiveCompressionMethod
 import net.sf.sevenzipjbinding.SevenZip
 import net.sf.sevenzipjbinding.impl.OutItemFactory
 import net.sf.sevenzipjbinding.impl.RandomAccessFileInStream
@@ -39,6 +40,7 @@ class SevenZipPacker(
         is CompressionOption.Tar -> SevenZip.openOutArchiveTar()
 
         is CompressionOption.SevenZip -> SevenZip.openOutArchive7z().apply {
+            setCompressionMethod(option.compressionMethod.toJBindingMethod())
             if (option.password != null && this is IOutFeatureSetEncryptHeader) {
                 setHeaderEncryption(true)
             }
@@ -46,6 +48,7 @@ class SevenZipPacker(
         }
 
         is CompressionOption.Zip -> SevenZip.openOutArchiveZip().apply {
+            setCompressionMethod(option.compressionMethod.toJBindingMethod())
             if (option.password != null && this is IOutFeatureSetEncryptHeader) {
                 setHeaderEncryption(true)
             }
@@ -53,6 +56,19 @@ class SevenZipPacker(
         }
 
         else -> throw IllegalArgumentException()
+    }
+
+    private fun CompressionOption.SevenZip.Method.toJBindingMethod() = when (this) {
+        CompressionOption.SevenZip.Method.Store -> OutArchiveCompressionMethod.COPY
+        CompressionOption.SevenZip.Method.Lzma -> OutArchiveCompressionMethod.LZMA
+        CompressionOption.SevenZip.Method.Ppmd -> OutArchiveCompressionMethod.PPMD
+    }
+
+    private fun CompressionOption.Zip.Method.toJBindingMethod() = when (this) {
+        CompressionOption.Zip.Method.Store -> OutArchiveCompressionMethod.COPY
+        CompressionOption.Zip.Method.Deflate -> OutArchiveCompressionMethod.DEFLATE
+        CompressionOption.Zip.Method.Lzma -> OutArchiveCompressionMethod.LZMA
+        CompressionOption.Zip.Method.Ppmd -> OutArchiveCompressionMethod.PPMD
     }
 
     /**

@@ -92,7 +92,7 @@ dependencies {
     ksp(libs.androidx.room.compiler)
 
     // JBinding-4Android
-    implementation(libs.x.zip.jbinding.xandroid)
+    implementation(project(":sevenzipjbinding"))
 
     // XXPermissions
     implementation(libs.xxpermissions)

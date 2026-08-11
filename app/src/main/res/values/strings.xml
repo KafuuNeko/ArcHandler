@@ -13,6 +13,7 @@
     <string name="archive_compression_type_store_name" translatable="false">Store</string>
     <string name="archive_compression_type_deflate_name" translatable="false">Deflate</string>
     <string name="archive_compression_type_lzma_name" translatable="false">LZMA</string>
+    <string name="archive_compression_type_ppmd_name" translatable="false">PPMd</string>
     <string name="archive_compression_type_gzip_name" translatable="false">Gzip</string>
     <string name="archive_compression_type_bzip2_name" translatable="false">bzip2</string>
     <string name="archive_compression_type_xz_name" translatable="false">XZ</string>
@@ -68,6 +69,7 @@
     <string name="query_duplicate_files_message">Checking for duplicate files…</string>
     <string name="waiting">Waiting…</string>
     <string name="compression_type">Compression Type</string>
+    <string name="zip_advanced_compression_compatibility_warning">Some ZIP tools cannot extract LZMA or PPMd archives. Use Deflate for the best compatibility.</string>
     <string name="format">Format</string>
     <string name="password">Password</string>
     <string name="supported">Supported</string>

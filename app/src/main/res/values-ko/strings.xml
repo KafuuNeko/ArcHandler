@@ -49,6 +49,7 @@
     <string name="query_duplicate_files_message">중복 파일 확인 중…</string>
     <string name="waiting">대기 중…</string>
     <string name="compression_type">압축 유형</string>
+    <string name="zip_advanced_compression_compatibility_warning">일부 ZIP 도구는 LZMA 또는 PPMd 압축 파일을 풀 수 없습니다. 호환성을 우선하려면 Deflate를 사용하세요.</string>
     <string name="format">형식</string>
     <string name="password">비밀번호</string>
     <string name="supported">지원됨</string>

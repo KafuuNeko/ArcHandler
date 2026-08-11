@@ -49,6 +49,7 @@
     <string name="query_duplicate_files_message">重複ファイルを確認中…</string>
     <string name="waiting">待機中…</string>
     <string name="compression_type">圧縮タイプ</string>
+    <string name="zip_advanced_compression_compatibility_warning">一部の ZIP ツールでは、LZMA または PPMd のアーカイブを展開できません。互換性を優先する場合は Deflate を使用してください。</string>
     <string name="format">形式</string>
     <string name="password">パスワード</string>
     <string name="supported">サポート済み</string>

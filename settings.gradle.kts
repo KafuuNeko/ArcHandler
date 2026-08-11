@@ -22,4 +22,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "ArcHandler"
 include(":app")
- 
+include(":sevenzipjbinding")

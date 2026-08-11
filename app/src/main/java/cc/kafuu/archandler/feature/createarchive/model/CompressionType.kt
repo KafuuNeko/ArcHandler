@@ -23,6 +23,10 @@ enum class CompressionType(
         displayName = R.string.archive_compression_type_lzma_name,
         levelRange = 1..9
     ),
+    Ppmd(
+        displayName = R.string.archive_compression_type_ppmd_name,
+        levelRange = 1..7
+    ),
     Gzip(
         displayName = R.string.archive_compression_type_gzip_name,
         levelRange = 1..9

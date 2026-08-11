@@ -49,6 +49,7 @@
     <string name="query_duplicate_files_message">正在檢查重複檔案…</string>
     <string name="waiting">等待中…</string>
     <string name="compression_type">壓縮類型</string>
+    <string name="zip_advanced_compression_compatibility_warning">部分 ZIP 工具無法解壓縮 LZMA 或 PPMd 壓縮檔。如需最佳相容性，請使用 Deflate。</string>
     <string name="format">格式</string>
     <string name="password">密碼</string>
     <string name="supported">支援</string>
@@ -166,4 +167,3 @@
     <string name="default_app_always_ask">每次詢問</string>
     <string name="default_app_system_default">系統預設</string>
 </resources>
-

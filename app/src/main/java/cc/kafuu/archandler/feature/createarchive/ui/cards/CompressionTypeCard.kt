@@ -9,6 +9,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,6 +30,7 @@ import cc.kafuu.archandler.feature.createarchive.ui.common.SectionCard
 fun CompressionTypeCard(
     supportCompressionTypes: List<CompressionType>,
     compressionType: CompressionType,
+    compatibilityWarning: String? = null,
     onFormatChange: (CompressionType) -> Unit
 ) {
     SectionCard(stringResource(R.string.compression_type)) {
@@ -69,6 +71,14 @@ fun CompressionTypeCard(
                     )
                 }
             }
+        }
+
+        compatibilityWarning?.let {
+            Text(
+                text = it,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }
