@@ -4,7 +4,7 @@ import androidx.annotation.StringRes
 import cc.kafuu.archandler.R
 
 enum class CompressionType(
-    @StringRes val displayName: Int,
+    @param:StringRes val displayName: Int,
     val levelRange: IntRange?,
 ) {
     None(

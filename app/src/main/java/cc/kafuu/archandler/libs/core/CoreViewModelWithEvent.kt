@@ -64,7 +64,7 @@ interface IViewEvent
 
 sealed class AppViewEvent : IViewEvent {
     data class PopupToastMessage(val message: String) : AppViewEvent()
-    data class PopupToastMessageByResId(@StringRes val message: Int) : AppViewEvent()
+    data class PopupToastMessageByResId(@param:StringRes val message: Int) : AppViewEvent()
     data class StartActivity(val activity: Class<*>, val extras: Bundle? = null) : AppViewEvent()
     data class StartActivityByIntent(val intent: Intent) : AppViewEvent()
     data class SetResult(val resultCode: Int, val intent: Intent? = null) : AppViewEvent()

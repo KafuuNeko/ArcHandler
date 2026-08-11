@@ -25,7 +25,7 @@ sealed class CreateArchiveLoadState {
     data object None : CreateArchiveLoadState()
 
     data class Packing(
-        @StringRes val message: Int,
+        @param:StringRes val message: Int,
         val currentFile: File? = null,
         val progression: Pair<Int, Int>? = null
     ) : CreateArchiveLoadState()

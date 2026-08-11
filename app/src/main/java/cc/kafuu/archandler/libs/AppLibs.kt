@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
 import androidx.annotation.StringRes
 import cc.kafuu.archandler.R
 import cc.kafuu.archandler.libs.model.AppInfo
@@ -24,7 +23,7 @@ class AppLibs(
     }
 
     fun jumpToUrl(url: String) {
-        Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {
+        Intent(Intent.ACTION_VIEW, url.toUri()).apply {
             setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }.also {
             mContext.startActivity(it)

@@ -6,8 +6,8 @@ import cc.kafuu.archandler.R
 
 
 enum class MainMultipleMenuEnum(
-    @DrawableRes val icon: Int,
-    @StringRes val title: Int,
+    @param:DrawableRes val icon: Int,
+    @param:StringRes val title: Int,
 ) {
     Copy(R.drawable.ic_file_copy, R.string.copy),
     Move(R.drawable.ic_file_moving, R.string.move),

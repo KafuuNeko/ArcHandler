@@ -126,7 +126,7 @@
     <string name="has_unmovable_files_message">Some files could not be moved</string>
     <string name="cannot_write_directory_message">Cannot write to the destination directory</string>
     <string name="file_import_confirm_message">Do you want to import %d files?</string>
-    <string name="importing_message">Importing...</string>
+    <string name="importing_message">Importing…</string>
     <string name="file_imported_successfully">File imported successfully</string>
     <string name="no_importable_files_found">No importable files found</string>
     <string name="archive_opening_message">Opening archive…</string>
@@ -156,12 +156,12 @@
     <string name="duplicate_files_found">%d duplicate files</string>
     <string name="start_search">Start Search</string>
     <string name="search_summary">Search Summary</string>
-    <string name="search_summary_details">Total files scanned: %d\nDuplicate files found: %d\nDuplicate groups: %d\nWasted space: %s</string>
+    <string name="search_summary_details">Total files scanned: %1$d\nDuplicate files found: %2$d\nDuplicate groups: %3$d\nWasted space: %4$s</string>
     <string name="no_duplicate_files_found">No duplicate files found</string>
     <string name="duplicate_finder_idle_message">Search for duplicate files in:\n%s</string>
     <string name="calculating_hash">Calculating file hashes…</string>
     <string name="scanned_directories">%d directories scanned</string>
-    <string name="duplicate_group_title">%d files × %s</string>
+    <string name="duplicate_group_title">%1$d files × %2$s</string>
     <string name="select_all_in_group">Select All</string>
     <string name="deselect_all">Deselect All</string>
     <string name="delete_selected">Delete (%d)</string>

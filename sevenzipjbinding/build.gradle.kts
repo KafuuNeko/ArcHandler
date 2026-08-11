@@ -4,7 +4,8 @@ plugins {
 
 android {
     namespace = "net.sf.sevenzipjbinding"
-    compileSdk = 35
+    compileSdk = 37
+    enableKotlin = false
 
     defaultConfig {
         minSdk = 24
@@ -28,8 +29,8 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     externalNativeBuild {

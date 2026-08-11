@@ -136,12 +136,12 @@
     <string name="duplicate_files_found">发现 %d 个重复文件</string>
     <string name="start_search">开始搜索</string>
     <string name="search_summary">搜索摘要</string>
-    <string name="search_summary_details">已扫描文件总数：%d\n发现的重复文件：%d\n重复文件组：%d\n浪费空间：%s</string>
+    <string name="search_summary_details">已扫描文件总数：%1$d\n发现的重复文件：%2$d\n重复文件组：%3$d\n浪费空间：%4$s</string>
     <string name="no_duplicate_files_found">未发现重复文件</string>
     <string name="duplicate_finder_idle_message">在以下位置搜索重复文件：\n%s</string>
     <string name="calculating_hash">正在计算文件哈希…</string>
     <string name="scanned_directories">已扫描 %d 个目录</string>
-    <string name="duplicate_group_title">%d 个文件 × %s</string>
+    <string name="duplicate_group_title">%1$d 个文件 × %2$s</string>
     <string name="select_all_in_group">全选</string>
     <string name="deselect_all">取消全选</string>
     <string name="delete_selected">删除（%d）</string>

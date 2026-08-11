@@ -136,12 +136,12 @@
     <string name="duplicate_files_found">%d 個の重複ファイルが見つかりました</string>
     <string name="start_search">検索開始</string>
     <string name="search_summary">検索サマリー</string>
-    <string name="search_summary_details">スキャンされたファイルの合計：%d\n見つかった重複ファイル：%d\n重複グループ：%d\n無駄な容量：%s</string>
+    <string name="search_summary_details">スキャンされたファイルの合計：%1$d\n見つかった重複ファイル：%2$d\n重複グループ：%3$d\n無駄な容量：%4$s</string>
     <string name="no_duplicate_files_found">重複ファイルは見つかりませんでした</string>
     <string name="duplicate_finder_idle_message">次の場所で重複ファイルを検索：\n%s</string>
     <string name="calculating_hash">ファイルハッシュを計算中…</string>
     <string name="scanned_directories">%d ディレクトリをスキャン</string>
-    <string name="duplicate_group_title">%d ファイル × %s</string>
+    <string name="duplicate_group_title">%1$d ファイル × %2$s</string>
     <string name="select_all_in_group">すべて選択</string>
     <string name="deselect_all">すべて選択解除</string>
     <string name="delete_selected">削除（%d）</string>

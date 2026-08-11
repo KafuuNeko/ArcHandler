@@ -1,19 +1,17 @@
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    id("com.google.devtools.ksp") version "2.0.21-1.0.28"
-    id("kotlin-kapt")
+    id("com.google.devtools.ksp") version "2.3.10"
 }
 
 android {
     namespace = "cc.kafuu.archandler"
-    compileSdk = 35
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "cc.kafuu.archandler"
         minSdk = 24
-        targetSdk = 35
+        targetSdk = 37
         versionCode = 10001
         versionName = "1.0.1.foss"
 
@@ -48,11 +46,9 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-    kotlinOptions {
-        jvmTarget = "11"
+        isCoreLibraryDesugaringEnabled = true
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     buildFeatures {
         compose = true
@@ -68,6 +64,8 @@ android {
 
 dependencies {
 
+    coreLibraryDesugaring(libs.desugar.jdk.libs.nio)
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -76,6 +74,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.material.icons.core)
 
     implementation(libs.kotlin.reflect)
 
@@ -88,7 +87,6 @@ dependencies {
     // room
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
-    annotationProcessor(libs.androidx.room.compiler)
     ksp(libs.androidx.room.compiler)
 
     // JBinding-4Android

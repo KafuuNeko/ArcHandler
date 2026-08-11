@@ -106,11 +106,11 @@ class ParallelSortPerformanceTest {
 
         // 使用自定义比较器来追踪比较操作
         val comparisons = java.util.concurrent.atomic.AtomicInteger(0)
-        val threadIds = java.util.concurrent.ConcurrentHashMap.newKeySet<Long>()
+        val threadIds = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
 
         val comparator = Comparator<Int> { a, b ->
             comparisons.incrementAndGet()
-            threadIds.add(Thread.currentThread().id)
+            threadIds.add(Thread.currentThread().name)
             a.compareTo(b)
         }
 

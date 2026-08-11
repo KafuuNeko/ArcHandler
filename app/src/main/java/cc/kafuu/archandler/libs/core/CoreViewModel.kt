@@ -75,7 +75,6 @@ abstract class CoreViewModel<I, S>(initStatus: S) : ViewModel() {
      * ViewModel清理函数，将清理所有LiveData观察者
      */
     override fun onCleared() {
-        super.onCleared()
         mForeverObservers.forEach { (liveData, observers) ->
             @Suppress("UNCHECKED_CAST")
             observers.forEach { observer ->

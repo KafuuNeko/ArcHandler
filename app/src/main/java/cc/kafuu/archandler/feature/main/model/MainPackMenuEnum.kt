@@ -5,8 +5,8 @@ import androidx.annotation.StringRes
 import cc.kafuu.archandler.R
 
 enum class MainPackMenuEnum(
-    @DrawableRes val icon: Int,
-    @StringRes val title: Int,
+    @param:DrawableRes val icon: Int,
+    @param:StringRes val title: Int,
 ) {
     Cancel(R.drawable.ic_close, R.string.cancel),
     Pack(R.drawable.ic_packing, R.string.archive),

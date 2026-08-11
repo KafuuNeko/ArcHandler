@@ -5,8 +5,8 @@ import androidx.annotation.StringRes
 import cc.kafuu.archandler.R
 
 enum class MainDrawerMenuEnum(
-    @DrawableRes val icon: Int,
-    @StringRes val title: Int,
+    @param:DrawableRes val icon: Int,
+    @param:StringRes val title: Int,
 ) {
     Code(R.drawable.ic_code, R.string.code_repository),
     Feedback(R.drawable.ic_feedback, R.string.feedback),

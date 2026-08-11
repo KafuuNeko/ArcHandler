@@ -13,7 +13,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -235,7 +235,7 @@ private fun DuplicateGroupCard(
                 }
             }
 
-            Divider(modifier = Modifier.padding(vertical = 8.dp))
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
             // 文件列表
             group.files.forEach { file ->
@@ -270,7 +270,7 @@ private fun BottomActionBar(
     emitIntent: (DuplicateFinderUiIntent) -> Unit
 ) {
     Column {
-        Divider()
+        HorizontalDivider()
         Row(
             modifier = Modifier
                 .fillMaxWidth()

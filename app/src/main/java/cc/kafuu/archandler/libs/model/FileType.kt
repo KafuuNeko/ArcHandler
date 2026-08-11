@@ -4,7 +4,7 @@ import androidx.annotation.DrawableRes
 import cc.kafuu.archandler.R
 
 enum class FileType(
-    @DrawableRes val icon: Int
+    @param:DrawableRes val icon: Int
 ) {
     Folder(R.drawable.ic_folder),
 

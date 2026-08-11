@@ -5,6 +5,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.viewModels
+import androidx.core.content.IntentCompat
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -53,12 +54,12 @@ class ImportFileActivity : CoreActivityWithEvent() {
     private fun getUris() = when (intent?.action) {
         Intent.ACTION_VIEW -> intent.data?.let { listOf(it) }
 
-        Intent.ACTION_SEND -> intent.getParcelableExtra(
-            Intent.EXTRA_STREAM, Uri::class.java
+        Intent.ACTION_SEND -> IntentCompat.getParcelableExtra(
+            intent, Intent.EXTRA_STREAM, Uri::class.java
         )?.let { listOf(it) }
 
-        Intent.ACTION_SEND_MULTIPLE -> intent.getParcelableArrayListExtra(
-            Intent.EXTRA_STREAM, Uri::class.java
+        Intent.ACTION_SEND_MULTIPLE -> IntentCompat.getParcelableArrayListExtra(
+            intent, Intent.EXTRA_STREAM, Uri::class.java
         )?.toList()
 
         else -> null

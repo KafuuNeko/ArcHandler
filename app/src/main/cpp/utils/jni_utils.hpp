@@ -321,14 +321,16 @@ inline auto CreateArchiveTestResult(
     );
     if (!result_ctor) return WrapLocalRef(env, static_cast<jobject>(nullptr));
 
-    auto j_error_msg = error_message.empty() ? nullptr : CreateJavaString(env, error_message).get();
+    auto j_error_msg = error_message.empty()
+                       ? WrapLocalRef(env, static_cast<jstring>(nullptr))
+                       : CreateJavaString(env, error_message);
     return WrapLocalRef(
             env,
             env->NewObject(
                     result_class_ptr.get(),
                     result_ctor,
                     success ? JNI_TRUE : JNI_FALSE,
-                    j_error_msg,
+                    j_error_msg.get(),
                     tested_files,
                     total_files
             )
